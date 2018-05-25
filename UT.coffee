@@ -27,6 +27,7 @@ V = require './V'
 #			traceAll.txt
 #			src/...
 # - if run all TESTS report how many are disabled _
+# - change ut to t
 
 
 
@@ -164,6 +165,64 @@ decorate = (test, objectThis) ->
 
 
 
+aGenerate = (cmd) =>
+	(tn, fn) ->
+		if bRunning and t_depth is 1
+			@logFatal "NESTED t: the parent of '#{tn}' is also a test; change to 's' (section)"
+		#		@log "found async: #{tn} --> #{@name}"
+		testList.unshift
+			bEnabled: false
+			cmd: cmd
+			cname: @name
+			tn: tn
+			fn: fn
+			path: path
+
+
+testGenerate = (cmd) =>
+	(tn, fn) ->
+		if bRunning
+			if ++t_depth is 2
+				@logFatal "NESTED t: the parent of '#{tn}' is also a test; change to 's' (section)"
+			fn()
+			--t_depth
+		else
+#			@log "found test: #{tn}: cmd=#{cmd}"
+
+			testList.unshift
+				bEnabled: false
+				cmd: cmd
+				cname: @name
+				tn: tn
+				fn: fn
+				path: path
+
+
+sectionGenerate = (cmd) =>	#TRY
+	(tn, fn) ->
+		throw 0 unless typeof tn is "string"
+		throw 0 unless typeof fn is "function"
+		if bRunning and t_depth is 1
+			@logFatal "NESTED t: the parent of '#{tn}' is also a test; change to 's' (section)"
+		#		@log "found section: #{tn}"
+		testStack.push tn
+		path = '/' + testStack.join '/'
+		testList.unshift
+			bEnabled: false
+			cmd: cmd
+			cname: @name
+			tn: tn
+			fn: fn
+			path: path
+
+		#		fn
+		#			tn: tn
+		fn.bind(this)
+			tn: tn
+		testStack.pop()
+
+
+
 
 
 module.exports = class UT extends Base
@@ -180,59 +239,21 @@ module.exports = class UT extends Base
 
 	#COMMAND: asynchronous test
 	_a: (tn, fn) ->
-	a: (tn, fn) ->
-		if bRunning and t_depth is 1
-			@logFatal "NESTED t: the parent of '#{tn}' is also a test; change to 's' (section)"
-#		@log "found async: #{tn} --> #{@name}"
-		testList.unshift
-			cmd: 'a'
-			cname: @name
-			tn: tn
-			fn: fn
-			path: path
+	A: (tn, fn) -> aGenerate('A').bind(this) tn, fn
+	a: (tn, fn) -> aGenerate('a').bind(this) tn, fn
 
 
 	#COMMAND: section / directory of tests
 	_s: (tn, fn) ->
-	s: (tn, fn) ->
-		throw 0 unless typeof tn is "string"
-		throw 0 unless typeof fn is "function"
-		if bRunning and t_depth is 1
-			@logFatal "NESTED t: the parent of '#{tn}' is also a test; change to 's' (section)"
-#		@log "found section: #{tn}"
-		testStack.push tn
-		path = '/' + testStack.join '/'
-		testList.unshift
-			cmd: 's'
-			cname: @name
-			tn: tn
-			fn: fn
-			path: path
-
-#		fn
-#			tn: tn
-		fn.bind(this)
-			tn: tn
-		testStack.pop()
+	S: (tn, fn) -> sectionGenerate('S').bind(this) tn, fn
+	s: (tn, fn) -> sectionGenerate('s').bind(this) tn, fn
 
 
 	#COMMAND: synchronous test
 	_t: (tn, fn) ->
-	t: (tn, fn) ->
-		if bRunning
-			if ++t_depth is 2
-				@logFatal "NESTED t: the parent of '#{tn}' is also a test; change to 's' (section)"
-			fn()
-			--t_depth
-		else
-#			@log "found test: #{tn}"
+	T: (tn, fn) -> testGenerate('T').bind(this) tn, fn
+	t: (tn, fn) -> testGenerate('t').bind(this) tn, fn
 
-			testList.unshift
-				cmd: 't'
-				cname: @name
-				tn: tn
-				fn: fn
-				path: path
 
 
 	next: ->
@@ -254,10 +275,11 @@ module.exports = class UT extends Base
 
 			if test.bRun
 				@logFatal "already run!"
-			test.bRun = true
+			else
+				test.bRun = true
 
 			switch test.cmd
-				when 'a'
+				when 'a', 'A'
 					pr = new Promise (resolve, reject) =>
 #						@log "ASYNC #{test.tn} PATH=#{test.path}"	# type=#{typeof test.fn} fn=#{test.fn}"
 
@@ -279,7 +301,7 @@ module.exports = class UT extends Base
 						@logFatal "a", ex
 						@post "a-catch"
 					return		#IMPORTANT
-				when 't'
+				when 't', 'T'
 #					@log "RUNNING #{test.tn} PATH=#{test.path}"#" #{test.fn}"
 					passSave = pass
 					try
@@ -312,7 +334,7 @@ module.exports = class UT extends Base
 						@post "t-catch"
 #					@log "back"
 					return
-				when 's'
+				when 's', 'S'
 #					@log "here1"
 					@post "s"
 #					@log "here2"
@@ -350,24 +372,41 @@ module.exports = class UT extends Base
 	#				@log "pre: ##{testIndex} #{test.cmd}:#{test.tn}: #{test.path}"
 					testIndex++
 
-	#			@log "@@@@@@@@@@@@@@@@@"
-	#			@log "------------------------------------"
 				testIndex = 0
 				bRunning = true
 				iterations = 0
-				testListSaved = testList.length
-				@next()
 
-				#HACK: utilize this timer to keep node running until all tests have completed
-				timer = setInterval =>
-	#					@log "ping"
-						unless bRunning
-							secs = Math.ceil((Date.now() - msStart) / 1000)
-							@log "all unit tests completed: [#{secs} second#{if secs is 1 then "" else "s"}] total=#{pass+fail}: #{unless fail then "PASS" else "pass"}=#{pass} #{if fail then "FAIL" else "fail"}=#{fail}"
-							clearInterval timer
-							resolve()
-					,
-						100
+				bFoundOverride = false
+				testList.forEach (test) =>
+#					console.log test.cmd
+#					if test.cmd is 'T'
+#						bFoundOverride = true
+					if /^[A-Z]/.test test.cmd
+						@log "OVERRIDE: #{test.cmd}"
+						test.bEnabled = true
+						bFoundOverride = true
+
+				testListSaved = testList.length
+
+				if bFoundOverride
+					testList = testList.filter (test) => test.bEnabled
+					@log "found #{testListSaved} tests, but also found #{testList.length} overrides"
+
+				if testList.length > 0
+					testListSaved = testList.length
+
+					@next()
+
+					#HACK: utilize this timer to keep node running until all tests have completed
+					timer = setInterval =>
+		#					@log "ping"
+							unless bRunning
+								secs = Math.ceil((Date.now() - msStart) / 1000)
+								@log "all unit tests completed: [#{secs} second#{if secs is 1 then "" else "s"}] total=#{pass+fail}: #{unless fail then "PASS" else "pass"}=#{pass} #{if fail then "FAIL" else "fail"}=#{fail}"
+								clearInterval timer
+								resolve()
+						,
+							100
 
 #if ut
 	ut: (testHub) ->
@@ -393,11 +432,17 @@ class UTUT extends UT
 
 			@eq ut.say_hi_to_peter, "Hi Pete!"
 
-			@testHub.startClient "spaceName HELP"
+			@testHub.startClient "/tmp/ut/UTUT"
 #			.then (client) =>
 #				@log "one: #{client.one}"
 			.catch (ex) =>
 				@logCatch "startClient2", ex		#H: logCatch WHAT should be the parameter?
+
+
+		@t "empty log", ->
+			@log "pre"
+			@log()
+			@log "post"
 
 
 		@s "bag", ->
@@ -419,7 +464,7 @@ class UTUT extends UT
 					@pass()
 
 
-		@s "sync nesting test", ->
+		@S "sync nesting test", ->
 #			@log "SYNC"
 #			t = 0
 #			@log "div 0"
@@ -454,7 +499,7 @@ class UTUT extends UT
 						ut.resolve()
 				@s "b2", (ut) ->
 					@s "b2c1", (ut) ->
-						@a "b2c1d1", (ut) ->
+						@A "b2c1d1", (ut) ->
 							ut.resolve()
 
 
