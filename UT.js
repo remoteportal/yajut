@@ -11,8 +11,6 @@ REMOVE_ME_MS = 10;
 /*
 YAJUT - Yet Another Javascript Unit T e s t							a.shift "pop() by doing shift LEFT"
 
-bottom line: unit tests must be as powerful and succinct as possible... as little boilerplate as possible... and easily controllable... to isolate correct one giving you brief
-    must be fast (parallel execution), vary trace easily.  quickly stop on errors
 easily extendable with native commands
 rich set of primatives (dump object)
 logging for posterity
