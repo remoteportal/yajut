@@ -6,7 +6,7 @@ REMOVE_ME_MS = 10
 
 
 
-###			**MASTER**
+###
 YAJUT - Yet Another Javascript Unit T e s t							a.shift "pop() by doing shift LEFT"
 
 bottom line: unit tests must be as powerful and succinct as possible... as little boilerplate as possible... and easily controllable... to isolate correct one giving you brief
@@ -19,8 +19,6 @@ logging for posterity
 
 great support for negative testing... ... ability to "unwind" errors and remove specific expected ones
 
-non-features
-human readable dot.dot.dot crap
 
 
 USAGE:
@@ -76,9 +74,13 @@ test-start
 
 
 
-FEATURES
+FEATURES:
 - ability to add or remove flags run-over-run: +flag  /flag or something
 - almost everything is customizable: mTypes, logging, primatives (t, a, p, s, etc.)
+
+
+NON-FEATURES:
+- human "sentence" readable assertion library: dot.dot.dot crap.   For me, brevity is way more important
 
 
 ERRORS:

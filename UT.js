@@ -8,7 +8,7 @@ REMOVE_ME_MS = 10;
 
 //else
 //endif
-/*			**MASTER**
+/*
 YAJUT - Yet Another Javascript Unit T e s t							a.shift "pop() by doing shift LEFT"
 
 bottom line: unit tests must be as powerful and succinct as possible... as little boilerplate as possible... and easily controllable... to isolate correct one giving you brief
@@ -20,9 +20,6 @@ logging for posterity
 => you spend most of your time writing unit tests... make it as easy and enjoyable as possible
 
 great support for negative testing... ... ability to "unwind" errors and remove specific expected ones
-
-non-features
-human readable dot.dot.dot crap
 
 USAGE:
 yajut						run current configuration
@@ -67,9 +64,12 @@ runner-start
 test-done
 test-start
 
-FEATURES
+FEATURES:
 - ability to add or remove flags run-over-run: +flag  /flag or something
 - almost everything is customizable: mTypes, logging, primatives (t, a, p, s, etc.)
+
+NON-FEATURES:
+- human "sentence" readable assertion library: dot.dot.dot crap.   For me, brevity is way more important
 
 ERRORS:
 UT001 Unknown test option: $
