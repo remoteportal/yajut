@@ -11,6 +11,8 @@ REMOVE_ME_MS = 10;
 /*
 YAJUT - Yet Another Javascript Unit T e s t							a.shift "pop() by doing shift LEFT"
 
+bottom line: unit tests must be as powerful and succinct as possible... as little boilerplate as possible... and easily controllable... to isolate correct one giving you brief
+    must be fast (parallel execution), vary trace easily.  quickly stop on errors
 easily extendable with native commands
 rich set of primatives (dump object)
 logging for posterity
@@ -134,6 +136,7 @@ TODOs
 - pass all stdout and stderr from the test
 - pass metrics like # of database hits, etc.
 - test info siloed--none commingled trace and logging.  even though five concurrent tests running, all the trace is separate.  Even threads of particular test are siloed.
+- perhaps put the "assertion library" tightly in it's own silo'ed area?
 
 ROUNDUP:
 - https://medium.com/welldone-software/an-overview-of-javascript-testing-in-2018-f68950900bc3
@@ -714,13 +717,13 @@ Test = class Test extends UTBase { //@Test #@test
       to = {
         ms: ms,
         msActual: null,
-        msBeg: Date.UTC(),
+        msBeg: Date.now(),
         msEnd: null
       };
       return new Promise((resolve) => { //NEEEDED
         this.logg(trace.DELAY, `BEG: delay ${ms}`);
         return setTimeout(() => {
-          to.msEnd = Date.UTC();
+          to.msEnd = Date.now();
           to.msActual = to.msEnd - to.msBeg;
           this.logg(trace.DELAY_END, `END: delay ${ms} ********************************`, to);
           return resolve(to);
@@ -947,7 +950,7 @@ Test = class Test extends UTBase { //@Test #@test
       throw "state";
     }
     this.mState = this.STATE_DONE;
-    this.msEnd = Date.UTC();
+    this.msEnd = Date.now();
     this.msDur = this.msEnd - this.msBeg;
     //		@logg trace.UT_DUR, "dur=#{@msDur}: #{@path}"
     //		@log "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ post: who=#{who} ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
@@ -989,7 +992,7 @@ Test = class Test extends UTBase { //@Test #@test
     delete this.opts.perTestOpts; //H: this assumes PER TEST not PER FILE
     this.logg(trace.UT_TEST_PRE_ONE_LINER, `================== ${this.one() // /#{testList.length} #{@cname} #{@cmd}:#{@tn}#{if trace.DETAIL then ": path=#{@path}" else ""}"
 }`);
-    this.msBeg = Date.UTC();
+    this.msBeg = Date.now();
     this.mState = this.STATE_RUNNING;
     syncTestsCount++;
     ref2 = this.parent;
@@ -1258,7 +1261,8 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
       },
       {
         o: "-f FM#",
-        d: "mFailMode: 0=run all, 1=fail at test (after possible healing), 2=fail fast (before healing)"
+        //				d: "mFailMode: 0=run all, 1=fail at test (after possible healing), 2=fail fast (before healing)"
+        d: "mFailMode: 0=run all, 1=fail after test, 2=fail fast"
       },
       {
         o: "-g testPattern",
@@ -1624,7 +1628,7 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
     
     //		@log "^^^^^^^^^^^^^^^ Runner.exit: why=#{@whyList[@mWhy]}(#{@mWhy}) msg=#{msg}"
     //		@log @one()
-    this.secsElapsed = Math.ceil((Date.UTC() - this.msStart) / 1000);
+    this.secsElapsed = Math.ceil((Date.now() - this.msStart) / 1000);
     if (this.pass || this.failList.length) {
       //		@log "======================================================"
       this.log(`${Base.openMsgGet()}  All unit tests completed: [${this.secsElapsed} ${S.PLURAL("second", this.secsElapsed)}] total=${this.pass + this.failList.length}: ${(!this.failList.length ? "PASS" : "pass")}=${this.pass} ${(this.failList.length ? "FAIL" : "fail")}=${this.failList.length}`);
@@ -1715,7 +1719,7 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
         value: "UNIT TEST RUNNER"
       },
       msStart: {
-        value: Date.UTC()
+        value: Date.now()
       }
     });
     return new Promise((resolve1, reject1) => {
@@ -1729,7 +1733,7 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
         this.testsValidate();
         this.testsEnable();
         if (this.count(this.STATE_WAITING) > 0) {
-          
+          // now that cleanup can be async can't run all sync tests instantly because after() code contains Promise code
           //				for testIndex,i in @selectList by -1
           //					if (test=testList[testIndex-1]).isAsyncRunnable()
           //						@selectList.splice i, 1

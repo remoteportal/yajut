@@ -150,6 +150,7 @@ TODOs
 - pass all stdout and stderr from the test
 - pass metrics like # of database hits, etc.
 - test info siloed--none commingled trace and logging.  even though five concurrent tests running, all the trace is separate.  Even threads of particular test are siloed.
+- perhaps put the "assertion library" tightly in it's own silo'ed area?
 
 
 
@@ -650,14 +651,14 @@ class Test extends UTBase		#@Test #@test
 			to =
 				ms: ms
 				msActual: null
-				msBeg: Date.UTC()
+				msBeg: Date.now()
 				msEnd: null
 
 			new Promise (resolve) =>	#NEEEDED
 				@logg trace.DELAY, "BEG: delay #{ms}"
 
 				setTimeout =>
-						to.msEnd = Date.UTC()
+						to.msEnd = Date.now()
 						to.msActual = to.msEnd - to.msBeg
 						@logg trace.DELAY_END, "END: delay #{ms} ********************************", to
 						resolve to
@@ -873,7 +874,7 @@ b> #{V.vt b}
 		throw "state" unless @mState is @STATE_RUNNING
 
 		@mState = @STATE_DONE
-		@msEnd = Date.UTC()
+		@msEnd = Date.now()
 		@msDur = @msEnd - @msBeg
 
 #		@logg trace.UT_DUR, "dur=#{@msDur}: #{@path}"
@@ -922,7 +923,7 @@ b> #{V.vt b}
 #TODO: remove extranous test name in front: 39:58 [AsyncTest] ================== #27 a FSUT /fileSize
 		@logg trace.UT_TEST_PRE_ONE_LINER, "================== #{@one()}"		# /#{testList.length} #{@cname} #{@cmd}:#{@tn}#{if trace.DETAIL then ": path=#{@path}" else ""}"
 
-		@msBeg = Date.UTC()
+		@msBeg = Date.now()
 		@mState = @STATE_RUNNING
 		syncTestsCount++
 
@@ -1151,7 +1152,8 @@ class UTRunner extends UTBase		#@UTRunner @runner
 				d: "exit on match"
 			,
 				o: "-f FM#"
-				d: "mFailMode: 0=run all, 1=fail at test (after possible healing), 2=fail fast (before healing)"
+#				d: "mFailMode: 0=run all, 1=fail at test (after possible healing), 2=fail fast (before healing)"
+				d: "mFailMode: 0=run all, 1=fail after test, 2=fail fast"
 			,
 				o: "-g testPattern"
 				d: "like -l (list all tests) but only show matching lines"
@@ -1434,7 +1436,7 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 #		@log "^^^^^^^^^^^^^^^ Runner.exit: why=#{@whyList[@mWhy]}(#{@mWhy}) msg=#{msg}"
 #		@log @one()
 
-		@secsElapsed = Math.ceil((Date.UTC() - @msStart) / 1000)
+		@secsElapsed = Math.ceil((Date.now() - @msStart) / 1000)
 
 		if @pass or @failList.length
 	#		@log "======================================================"
@@ -1510,7 +1512,7 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 				enumerable: true
 				value: "UNIT TEST RUNNER"
 			msStart:
-				value: Date.UTC()
+				value: Date.now()
 
 		new Promise (@resolve, @reject) =>
 			@testsSort()
@@ -1524,7 +1526,7 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 				@testsEnable()
 
 				if @count(@STATE_WAITING) > 0
-					#RECENT: now that cleanup can be async can't run all sync tests instantly because after() code contains Promise code
+					# now that cleanup can be async can't run all sync tests instantly because after() code contains Promise code
 	#				for testIndex,i in @selectList by -1
 	#					if (test=testList[testIndex-1]).isAsyncRunnable()
 	#						@selectList.splice i, 1
