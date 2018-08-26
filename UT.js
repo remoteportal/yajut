@@ -4,7 +4,7 @@
 var A, AsyncTest, Base, EXPORTED, O, REMOVE_ME_MS, S, Section, SyncTest, Test, UT, UTBase, UTRunner, UT_UT, Util, V, aGenerate, bag, handler, log, path, proxyBag, sectionGenerate, syncTestsCount, target, testGenerate, testList, testStack, trace,
   indexOf = [].indexOf;
 
-REMOVE_ME_MS = 10;
+REMOVE_ME_MS = 10; //H
 
 //else
 //endif
@@ -49,7 +49,6 @@ server: "blank" or "std"
 client: "blank" or "std"
 
 Everything is logged.... in fact you can do @snap to take a picture of both databases and all object state at that moment in separate data directory
-
 Promise-based, hierarchical test, minimalist and least-boilerplate, inline with source code unit test framework.
 
 - (ut) -> vs @utMethod: the value of 'ut' parameter is that:
@@ -174,7 +173,7 @@ testStack = [];
 testList = [];
 
 log = function() {
-  return global.log.apply(this, arguments);
+  return global.log.apply(this, arguments); //PATTERN
 };
 
 bag = Object.create({

@@ -1,5 +1,5 @@
 #if node
-REMOVE_ME_MS = 10
+REMOVE_ME_MS = 10		#H
 #else
 REMOVE_ME_MS = 10
 #endif
@@ -20,7 +20,6 @@ logging for posterity
 great support for negative testing... ... ability to "unwind" errors and remove specific expected ones
 
 
-
 USAGE:
 yajut						run current configuration
 yajut conffile				run configuration stored as JSON in text file
@@ -30,7 +29,6 @@ yajut resetstats			forceably reset all test statistics without user confirmation
 yajut -k keyword			run all tests matching keyword
 yajut -r					re-run all failed tests from the exact preceeding run
 yajut -s conffile			save current code-specified configuration into confifile for manual editing or re-use later
-
 
 
 EXTENDS: Base
@@ -54,8 +52,6 @@ server: "blank" or "std"
 client: "blank" or "std"
 
 Everything is logged.... in fact you can do @snap to take a picture of both databases and all object state at that moment in separate data directory
-
-
 Promise-based, hierarchical test, minimalist and least-boilerplate, inline with source code unit test framework.
 
 - (ut) -> vs @utMethod: the value of 'ut' parameter is that:
@@ -186,7 +182,7 @@ testList = []
 
 
 
-log = -> global.log.apply this, arguments
+log = -> global.log.apply this, arguments		#PATTERN
 
 
 
