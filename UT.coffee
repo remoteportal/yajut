@@ -61,6 +61,13 @@ Promise-based, hierarchical test, minimalist and least-boilerplate, inline with 
 
 
 
+P-tests:
+	@P "test name", (ut) ->
+		Promise.resolve()
+		.then =>
+			@log "this chain does return promise"		BUT GENERATES  (UT004) in RN because RN promises are objects not typeof => Promise
+
+
 EVENTS: @events
 left-open
 runner-done
@@ -83,6 +90,8 @@ ERRORS:
 UT001 Unknown test option: $
 UT002 Unknown mType=$
 UT003 You are not allowed to define the method named '$' because it clashes with a built-in property
+UT004 Promise expected but not returned from P-test
+UT005 P-tests aren't supported by ReactNative
 
 
 GENERALIZE:
@@ -166,6 +175,7 @@ KNOWN BUGS:
 #GITHUB: #TODO: create new repo called AlvinUtils and put these in there
 #import A
 #import Base
+#import Context
 #import O
 #import S
 #import trace
@@ -392,8 +402,13 @@ EXPORTED = class UT extends UTBase			#@UT
 	#COMMAND: asynchronous test
 	_P: (a, b, c) ->
 	_p: (a, b, c) ->
+#if rn
+	P: (a, b, c) -> throw Error "UT005 P-tests aren't supported by ReactNative"
+	p: (a, b, c) -> throw Error "UT005 P-tests aren't supported by ReactNative"
+#else
 	P: (a, b, c) -> aGenerate('P').bind(this) a, b, c
 	p: (a, b, c) -> aGenerate('p').bind(this) a, b, c
+#endif
 
 	#COMMAND: section / to build a hierarchy of tests
 	_S: (a, b, c) ->
@@ -472,15 +487,15 @@ class Test extends UTBase		#@Test #@test
 
 
 #TODO: even sync tests should be run with timer because they could take too long!
-	after: (mFail, ex) ->
+	after: (mFail, ex_s_null) ->
 #		@log "#".repeat 60
-#		@log "after mFail=#{mFail}: #{@one2()}" #, ex
+#		@log "after mFail=#{mFail}: #{@one2()}" #, ex_s_null
 
 #		@log "failList.length=#{@failList.length}"
 		if mFail in [@FAIL_ERROR, @FAIL_EXCEPTION, @FAIL_TIMEOUT, @UNEXPECTED_PROMISE]
 #			@log "on-the-fly append mFail to failList"
 #			@log "+ add"
-			@FAIL mFail, null, null, ex
+			@FAIL mFail, null, null, ex_s_null
 #		@log "DUMP IT ALL", @failList
 
 		expectMap = {}
@@ -520,7 +535,7 @@ class Test extends UTBase		#@Test #@test
 						@failList.splice i, 1
 			unless bFound
 #				@log "exceptionMessage not found"
-				detail = '^' + V.COMPARE_REPORT ex.message, _, preamble:"ex.message\n\n@opts.exceptionMessage"
+				detail = '^' + V.COMPARE_REPORT ex_s_null.message, _, preamble:"ex.message\n\n@opts.exceptionMessage"
 #				@log "+ add"
 				@FAIL @FAIL_ERROR, "exceptionMessage mismatch", detail, null
 
@@ -608,7 +623,7 @@ class Test extends UTBase		#@Test #@test
 #			@log "calling @done()"
 			@done()
 		.catch (ex) =>
-			@logFatal "CATCH", ex
+			@logCatch "after chain", ex
 
 
 
@@ -960,7 +975,7 @@ TypeError: One of the sources for assign has an enumerable key on the prototype 
 				unless k in cmds
 					@logFatal "[[#{@path}]] UT001 Unknown test option: '#{k}'", @opts
 
-			if (@opts.onTimeout or @opts.timeout) and @cmd not in ["_a","a","_A","A"]
+			if (@opts.onTimeout or @opts.timeout) and @cmd not in ["_a","a","_A","A","_p","p","_P","P"]
 				@logFatal "[[#{@path}]] asynch opt not allowed with '#{@cmd}' cmd", @opts
 
 			if @opts.mType?
@@ -1038,13 +1053,13 @@ class AsyncTest extends Test				#@AsyncTest @async
 				rv = @fnTest @			# ASYNC
 			catch ex
 				clearTimeout timer
-#				console.log ex
 				#YES_CODE_PATH: I've seen this but sure why... you'd think that "catch" would be run instead
 #				throw new Error "REALLY?  I really don't see how this could be triggered!!!"  it's not a promise... it's  TRY..CATCH... that's why!
 				return @after @FAIL_EXCEPTION, ex
 
+#			@log "returned from asynch test!"
 			if @cmd.toLowerCase() is 'p'
-#				@log "rv=#{V.vt rv}"
+#				@log Context.kvt "#{@cmd}-test rv", rv
 				if V.type(rv) is "promise"
 #					@log "async test returned Promise"
 					rv.then (resolved) =>
@@ -1054,6 +1069,10 @@ class AsyncTest extends Test				#@AsyncTest @async
 					.catch (ex) =>
 						clearTimeout timer
 						@after @FAIL_EXCEPTION, ex
+				else
+					clearTimeout timer
+					@log "SHOULD HAVE BEEN PROMISE", rv
+					@after @FAIL_ERROR, "UT004 Promise expected but not returned from P-test"
 		.then (resolved) =>
 			@logg trace.UT_RESOLVE_REJECT_VALUE, "RESOLVED:", resolved
 			clearTimeout timer
@@ -1144,6 +1163,9 @@ class UTRunner extends UTBase		#@UTRunner @runner
 				o: "-async"
 				d: "only asychronous tests"
 			,
+				o: "-c ServerStoreUT"
+				d: "run all tests of a specified class (FUTURE)"
+			,
 				o: "-ex key1,key2,..."
 				d: "exit on match"
 			,
@@ -1177,6 +1199,9 @@ class UTRunner extends UTBase		#@UTRunner @runner
 			,
 				o: "-o"
 				d: "offline"
+			,
+				o: "-r test#"
+				d: "recursive test given a section # (FUTURE)"
 			,
 				o: "-s"
 				d: "run the tests in a serial manner, one after another"
@@ -1903,6 +1928,8 @@ class UT_UT extends UT		#@UT_UT		@unittest  @ut
 			@p "rejected", {expect:"EXCEPTION", mType:@NEG}, ->
 				new Promise (resolve, reject) =>
 					reject "I am bad"
+			@p "non-promise", {expect:"ERROR", mType:@NEG}, ->
+				Math.pi
 		@t "trace.T", ->
 			keep = @runner.TL
 			@runner.TL = 55
