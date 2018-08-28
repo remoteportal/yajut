@@ -156,6 +156,8 @@ TODOs
 - pass metrics like # of database hits, etc.
 - test info siloed--none commingled trace and logging.  even though five concurrent tests running, all the trace is separate.  Even threads of particular test are siloed.
 - perhaps put the "assertion library" tightly in it's own silo'ed area?
+- @lt in different text color
+- test setup and teardown in different text color
 
 
 
@@ -254,12 +256,13 @@ class UTBase extends Base		#@UTBase
 #													  FAILURE HANDLER
 		@const "FAIL_ASSERT", 1						# onAssertFail()
 		@const "FAIL_EQ", 2							# onEqFail()
-		@const "FAIL_ERROR", 3						# onError()
+		@const "FAIL_ERROR", 3						# onError() FUTURE
 		@const "FAIL_EXCEPTION", 4					# onException()
-		@const "FAIL_TIMEOUT", 5					# onTimeout()
-		@const "FAIL_UNFAIL", 6						# onUnfail()		something was supposed to fail but didn't!
-		@const "FAIL_UNEXPECTED_PROMISE", 7			# onUnexpectedPromise
-		@const "failTypes", [null, "Assert", "Eq", "Error", "Exception", "Timeout", "Unfail", "UnexpectedPromise"]
+		@const "FAIL_MARKERS", 5					# onMarkers()
+		@const "FAIL_TIMEOUT", 6					# onTimeout()
+		@const "FAIL_UNFAIL", 7						# onUnfail()		something was supposed to fail but didn't!
+		@const "FAIL_UNEXPECTED_PROMISE", 8			# onUnexpectedPromise
+		@const "failTypes", [null, "Assert", "Eq", "Error", "Exception", "Markers", "Timeout", "Unfail", "UnexpectedPromise"]
 
 		@const "FM_FAILFAST", 0
 		@const "FM_FAILTEST", 1
@@ -445,6 +448,7 @@ class Test extends UTBase		#@Test #@test
 		_ = @cmd + ' ' + @path			#		_ = "CN=#{@__CLASS_NAME} PATH=[#{@path}]"
 
 		@bForcePass = false
+		@markers = ""
 		@pass = 0
 		failList_CLOSURE = @failList = []
 
@@ -497,6 +501,14 @@ class Test extends UTBase		#@Test #@test
 #			@log "+ add"
 			@FAIL mFail, null, null, ex_s_null
 #		@log "DUMP IT ALL", @failList
+
+		if @opts.markers
+			if @opts.markers isnt @markers
+				s = """
+markers: expected: #{@opts.markers}
+markers: got     : #{@markers}
+"""
+				@FAIL @FAIL_MARKERS, null, null, s
 
 		expectMap = {}
 		if @opts.expect
@@ -804,8 +816,9 @@ b> #{V.vt b}
 			Util.exit msg
 		#DUP
 		@log			= ->
-			if trace.TL
+			if trace.LT
 				Util.logBase.apply this, ["#{@cname}/#{@tn}", arguments...]
+		@m = (s) => @markers += s
 		MAKE = (mn, mFail) =>
 			do (mn, mFail, that=@) =>		#PATTERN #CURRYING
 #				console.log "mn=#{mn} mFail=#{mFail}"
@@ -968,7 +981,7 @@ TypeError: One of the sources for assign has an enumerable key on the prototype 
 			if @opts.exceptionMessage and !@opts.expect?
 				@opts.expect = "EXCEPTION"
 
-			cmds = ["desc","exceptionMessage","expect","hang","human","internet","key","mType","mutex","onAssert","onEq","onError","onException","onTimeout","onUnfail","onUnexpectedPromise","SO", "RUNTIME_SECS", "timeout", "url", "USER_CNT"]
+			cmds = ["desc","exceptionMessage","expect","hang","human","internet","key","markers","mType","mutex","onAssert","onEq","onError","onException","onTimeout","onUnfail","onUnexpectedPromise","SO", "RUNTIME_SECS", "timeout", "url", "USER_CNT"]
 			cmds.push '_' + cmd for cmd in cmds
 
 			for k of @opts
@@ -1144,12 +1157,12 @@ class UTRunner extends UTBase		#@UTRunner @runner
 
 		#MOVE
 		Object.defineProperties @,
-			TL:
+			LT:
 				enumerable: true
-				get: -> trace.TL
+				get: -> trace.LT
 				set: (v) ->
 #					console.log "set T=#{v}"
-					trace.TL = v
+					trace.LT = v
 
 
 
@@ -1222,7 +1235,7 @@ class UTRunner extends UTBase		#@UTRunner @runner
 				d: "trace No: turn off all trace"
 			,
 				o: "-ty"
-				d: "trace Yes: turn on all trace: naked or -ty TL,... for test logging"  #DOMAIN-SPECIFIC #MOVE #H
+				d: "trace Yes: turn on all trace: naked or -ty lt,... for trace.LT (\"log tests\")"  #DOMAIN-SPECIFIC #MOVE #H
 			,
 				o: "<number>"
 				d: "test number from 1 to the (number of tests)"
@@ -1270,13 +1283,14 @@ class UTRunner extends UTBase		#@UTRunner @runner
 			ta = csv.split ','
 
 			for k in ta
+				k = k.toUpperCase()
 				log "TRACE: #{k} => #{v}"
 				unless trace[k]?
 					er "trace.#{k} doesn't exist"
 				trace[k] = v
 			trace
 
-		traceList = (pattern) ->
+		traceList = (pattern) =>
 			depth = 0
 			last = 'A'
 			for k in Object.keys(trace).sort()
@@ -1365,11 +1379,9 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 					when "-tn"
 						unless maybeGrabTrace false
 							@OPTS.traceOverride = false
-							@_T = false
 					when "-ty"
 						unless maybeGrabTrace true
 							@OPTS.traceOverride = true
-							@_T = true
 					else
 						if NUMBER_CSL_RE.test word
 							@OPTS.testsInclude = word
@@ -1664,10 +1676,9 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 
 #			@log "bOnline", @OPTS.bOnline
 			unless @OPTS.bOnline
-#				@log "OFFLINE"
+				@log "OFFLINE"
 				@selectList = @selectList.filter (i) =>
-#					@log "testIndex", testList[i-1].opts.internet
-					! testList[i-1].opts.internet
+					! ( testList[i-1].opts.key?.internet )
 
 			for i in @selectList
 				testList[i-1].enable()
@@ -1931,14 +1942,14 @@ class UT_UT extends UT		#@UT_UT		@unittest  @ut
 			@p "non-promise", {expect:"ERROR", mType:@NEG}, ->
 				Math.pi
 		@t "trace.T", ->
-			keep = @runner.TL
-			@runner.TL = 55
-			@eq @runner.TL, 55
+			keep = @runner.LT
+			@runner.LT = 55
+			@eq @runner.LT, 55
 #			@log "yes show"	#, @trace
-			@runner.TL = false
-			@eq @runner.TL, false
+			@runner.LT = false
+			@eq @runner.LT, false
 #			@log "no show"	#, @trace
-			@runner.TL = keep
+			@runner.LT = keep
 #		@t "clash with built-in", {mType:@NEG}, (ut) ->
 #			@log "clash"
 #			O.LOG_DRILL this

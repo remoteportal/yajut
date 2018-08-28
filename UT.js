@@ -144,6 +144,8 @@ TODOs
 - pass metrics like # of database hits, etc.
 - test info siloed--none commingled trace and logging.  even though five concurrent tests running, all the trace is separate.  Even threads of particular test are siloed.
 - perhaps put the "assertion library" tightly in it's own silo'ed area?
+- @lt in different text color
+- test setup and teardown in different text color
 
 ROUNDUP:
 - https://medium.com/welldone-software/an-overview-of-javascript-testing-in-2018-f68950900bc3
@@ -251,12 +253,13 @@ UTBase = class UTBase extends Base { //@UTBase
     //													  FAILURE HANDLER
     this.const("FAIL_ASSERT", 1); // onAssertFail()
     this.const("FAIL_EQ", 2); // onEqFail()
-    this.const("FAIL_ERROR", 3); // onError()
+    this.const("FAIL_ERROR", 3); // onError() FUTURE
     this.const("FAIL_EXCEPTION", 4); // onException()
-    this.const("FAIL_TIMEOUT", 5); // onTimeout()
-    this.const("FAIL_UNFAIL", 6); // onUnfail()		something was supposed to fail but didn't!
-    this.const("FAIL_UNEXPECTED_PROMISE", 7); // onUnexpectedPromise
-    this.const("failTypes", [null, "Assert", "Eq", "Error", "Exception", "Timeout", "Unfail", "UnexpectedPromise"]);
+    this.const("FAIL_MARKERS", 5); // onMarkers()
+    this.const("FAIL_TIMEOUT", 6); // onTimeout()
+    this.const("FAIL_UNFAIL", 7); // onUnfail()		something was supposed to fail but didn't!
+    this.const("FAIL_UNEXPECTED_PROMISE", 8); // onUnexpectedPromise
+    this.const("failTypes", [null, "Assert", "Eq", "Error", "Exception", "Markers", "Timeout", "Unfail", "UnexpectedPromise"]);
     this.const("FM_FAILFAST", 0);
     this.const("FM_FAILTEST", 1);
     this.const("FM_RUNALL", 2);
@@ -454,6 +457,7 @@ Test = class Test extends UTBase { //@Test #@test
     }
     _ = this.cmd + ' ' + this.path; //		_ = "CN=#{@__CLASS_NAME} PATH=[#{@path}]"
     this.bForcePass = false;
+    this.markers = "";
     this.pass = 0;
     failList_CLOSURE = this.failList = [];
     this.Fail = class Fail extends UTBase { //@Fail	#@fail   #PATTERN
@@ -515,7 +519,7 @@ Test = class Test extends UTBase { //@Test #@test
   }
 
   after(mFail, ex_s_null) {
-    var EXPECT, PR, _, bFound, detail, expectMap, fail, i, j, k, kUC, l, len, m, ref, ref1, ref2;
+    var EXPECT, PR, _, bFound, detail, expectMap, fail, i, j, k, kUC, l, len, m, ref, ref1, ref2, s;
     //		@log "#".repeat 60
     //		@log "after mFail=#{mFail}: #{@one2()}" #, ex_s_null
 
@@ -526,6 +530,12 @@ Test = class Test extends UTBase { //@Test #@test
       this.FAIL(mFail, null, null, ex_s_null);
     }
     //		@log "DUMP IT ALL", @failList
+    if (this.opts.markers) {
+      if (this.opts.markers !== this.markers) {
+        s = `markers: expected: ${this.opts.markers}\nmarkers: got     : ${this.markers}`;
+        this.FAIL(this.FAIL_MARKERS, null, null, s);
+      }
+    }
     expectMap = {};
     if (this.opts.expect) {
       ref = this.opts.expect.split(',');
@@ -866,9 +876,12 @@ Test = class Test extends UTBase { //@Test #@test
     };
     //DUP
     this.log = function() {
-      if (trace.TL) {
+      if (trace.LT) {
         return Util.logBase.apply(this, [`${this.cname}/${this.tn}`, ...arguments]);
       }
+    };
+    this.m = (s) => {
+      return this.markers += s;
     };
     MAKE = (mn, mFail) => {
       return ((mn, mFail, that) => { //PATTERN #CURRYING
@@ -1044,7 +1057,7 @@ Test = class Test extends UTBase { //@Test #@test
       if (this.opts.exceptionMessage && (this.opts.expect == null)) {
         this.opts.expect = "EXCEPTION";
       }
-      cmds = ["desc", "exceptionMessage", "expect", "hang", "human", "internet", "key", "mType", "mutex", "onAssert", "onEq", "onError", "onException", "onTimeout", "onUnfail", "onUnexpectedPromise", "SO", "RUNTIME_SECS", "timeout", "url", "USER_CNT"];
+      cmds = ["desc", "exceptionMessage", "expect", "hang", "human", "internet", "key", "markers", "mType", "mutex", "onAssert", "onEq", "onError", "onException", "onTimeout", "onUnfail", "onUnexpectedPromise", "SO", "RUNTIME_SECS", "timeout", "url", "USER_CNT"];
       for (j = 0, len = cmds.length; j < len; j++) {
         cmd = cmds[j];
         cmds.push('_' + cmd);
@@ -1249,14 +1262,14 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
     this.thread = null;
     //MOVE
     Object.defineProperties(this, {
-      TL: {
+      LT: {
         enumerable: true,
         get: function() {
-          return trace.TL;
+          return trace.LT;
         },
         set: function(v) {
           //					console.log "set T=#{v}"
-          return trace.TL = v;
+          return trace.LT = v;
         }
       }
     });
@@ -1352,7 +1365,7 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
       },
       {
         o: "-ty",
-        d: "trace Yes: turn on all trace: naked or -ty TL,... for test logging" //DOMAIN-SPECIFIC #MOVE #H
+        d: "trace Yes: turn on all trace: naked or -ty lt,... for trace.LT (\"log tests\")" //DOMAIN-SPECIFIC #MOVE #H
       },
       {
         o: "<number>",
@@ -1412,6 +1425,7 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
       ta = csv.split(',');
       for (j = 0, len = ta.length; j < len; j++) {
         k = ta[j];
+        k = k.toUpperCase();
         log(`TRACE: ${k} => ${v}`);
         if (trace[k] == null) {
           er(`trace.${k} doesn't exist`);
@@ -1420,7 +1434,7 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
       }
       return trace;
     };
-    traceList = function(pattern) {
+    traceList = (pattern) => {
       var depth, j, k, last, len, ref;
       depth = 0;
       last = 'A';
@@ -1543,13 +1557,11 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
           case "-tn":
             if (!maybeGrabTrace(false)) {
               this.OPTS.traceOverride = false;
-              this._T = false;
             }
             break;
           case "-ty":
             if (!maybeGrabTrace(true)) {
               this.OPTS.traceOverride = true;
-              this._T = true;
             }
             break;
           default:
@@ -1909,9 +1921,10 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
 
       //			@log "bOnline", @OPTS.bOnline
       if (!this.OPTS.bOnline) {
-        //				@log "OFFLINE"
+        this.log("OFFLINE");
         this.selectList = this.selectList.filter((i) => {
-          return !testList[i - 1].opts.internet;
+          var ref2;
+          return !((ref2 = testList[i - 1].opts.key) != null ? ref2.internet : void 0);
         });
       }
       ref2 = this.selectList;
@@ -2316,14 +2329,14 @@ UT_UT = class UT_UT extends UT { //@UT_UT		@unittest  @ut
     });
     return this.t("trace.T", function() {
       var keep;
-      keep = this.runner.TL;
-      this.runner.TL = 55;
-      this.eq(this.runner.TL, 55);
+      keep = this.runner.LT;
+      this.runner.LT = 55;
+      this.eq(this.runner.LT, 55);
       //			@log "yes show"	#, @trace
-      this.runner.TL = false;
-      this.eq(this.runner.TL, false);
+      this.runner.LT = false;
+      this.eq(this.runner.LT, false);
       //			@log "no show"	#, @trace
-      return this.runner.TL = keep;
+      return this.runner.LT = keep;
     });
   }
 
