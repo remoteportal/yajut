@@ -520,7 +520,6 @@ markers: got     : #{@markers}
 				else
 					throw Error "Invalid expect type: '#{k}'"
 
-#		@log()
 #		@log "failList.length=#{@failList.length}"
 		for EXPECT of expectMap
 #			@log "EXPECT=#{EXPECT}"
@@ -1331,7 +1330,6 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 			word = a[i++]
 
 			parser.word = word
-#			@log()
 			bActed = @eventFire "CLI-flag", parser
 			unless bActed
 				switch word

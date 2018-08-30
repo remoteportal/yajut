@@ -550,7 +550,6 @@ Test = class Test extends UTBase { //@Test #@test
         }
       }
     }
-//		@log()
 //		@log "failList.length=#{@failList.length}"
     for (EXPECT in expectMap) {
       //			@log "EXPECT=#{EXPECT}"
@@ -1483,7 +1482,6 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
     while (i < a.length) {
       word = a[i++];
       parser.word = word;
-      //			@log()
       bActed = this.eventFire("CLI-flag", parser);
       if (!bActed) {
         switch (word) {
