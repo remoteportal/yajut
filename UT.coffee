@@ -846,7 +846,7 @@ b> #{V.vt b}
 		@logWarning	= (s, o, opt)		->	Util.logBase.apply this, [@one(), "WARNING2", arguments...]
 		@mStage = @STAGE_SETUP
 		@ok = (v) ->		#H #REVISIT #TEST
-	#		O.LOG_DRILL this, grep:"env"
+	#		Context.drill this, grep:"env"
 	#		@env.succ()		#TODO: get reference to @env and tear down resources
 			@resolve v
 		@PASS = -> @bForcePass = true
@@ -854,7 +854,7 @@ b> #{V.vt b}
 
 
 #H
-	#	O.LOG_DRILL @parent
+	#	Context.drill @parent
 	#	for v in Object.getOwnPropertyNames @parent
 	#		log "==> #{v}"
 	#	for k,v of @parent
@@ -1245,7 +1245,7 @@ class UTRunner extends UTBase		#@UTRunner @runner
 
 		CSV2Object = (key) =>
 			if i < a.length
-				if /^[0-9a-zA-Z_]+(,[0-9a-zA-Z_]+)*$/.test (keys = a[i++])			#TODO: pass in RE as argument
+				if /^[\$\.0-9a-zA-Z_]+(,[\$\.0-9a-zA-Z_]+)*$/.test (keys = a[i++])			#TODO: pass in RE as argument	#TODO: allow ANY characters
 #					@log "keys=#{keys}"
 					@OPTS[key] = _ = {}
 					for k in keys.split ','
@@ -1404,8 +1404,8 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 			trace.UT_TEST_PRE_ONE_LINER = true
 #		@log "CLI", @OPTS
 
-		if @OPTS.mFailMode is @FM_FAILFAST
-			trace.tristate true
+#		if @OPTS.mFailMode is @FM_FAILFAST			#POP
+#			trace.tristate true
 
 		if @OPTS.bSerial?
 			for test in testList
@@ -1950,7 +1950,7 @@ class UT_UT extends UT		#@UT_UT		@unittest  @ut
 			@runner.LT = keep
 #		@t "clash with built-in", {mType:@NEG}, (ut) ->
 #			@log "clash"
-#			O.LOG_DRILL this
+#			Context.drill this
 #			@delay = 10			#TODO: do Proxy object and handle 'set' and check pn against all built-in pn's
 #END:UT_UT
 

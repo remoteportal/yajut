@@ -920,7 +920,7 @@ Test = class Test extends UTBase { //@Test #@test
     };
     this.mStage = this.STAGE_SETUP;
     this.ok = function(v) { //H #REVISIT #TEST
-      //		O.LOG_DRILL this, grep:"env"
+      //		Context.drill this, grep:"env"
       //		@env.succ()		
       return this.resolve(v);
     };
@@ -931,7 +931,7 @@ Test = class Test extends UTBase { //@Test #@test
       throw Error(msg);
     };
     //H
-    //	O.LOG_DRILL @parent
+    //	Context.drill @parent
     //	for v in Object.getOwnPropertyNames @parent
     //		log "==> #{v}"
     //	for k,v of @parent
@@ -1375,7 +1375,7 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
     CSV2Object = (key) => {
       var _, j, k, keys, len, ref, results;
       if (i < a.length) {
-        if (/^[0-9a-zA-Z_]+(,[0-9a-zA-Z_]+)*$/.test((keys = a[i++]))) {
+        if (/^[\$\.0-9a-zA-Z_]+(,[\$\.0-9a-zA-Z_]+)*$/.test((keys = a[i++]))) {
           
           //					@log "keys=#{keys}"
           this.OPTS[key] = _ = {};
@@ -1597,9 +1597,9 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
       trace.UT_TEST_PRE_ONE_LINER = true;
     }
     //		@log "CLI", @OPTS
-    if (this.OPTS.mFailMode === this.FM_FAILFAST) {
-      trace.tristate(true);
-    }
+
+    //		if @OPTS.mFailMode is @FM_FAILFAST			#POP
+    //			trace.tristate true
     if (this.OPTS.bSerial != null) {
       for (j = 0, len = testList.length; j < len; j++) {
         test = testList[j];
@@ -2342,7 +2342,7 @@ UT_UT = class UT_UT extends UT { //@UT_UT		@unittest  @ut
 
 //		@t "clash with built-in", {mType:@NEG}, (ut) ->
 //			@log "clash"
-//			O.LOG_DRILL this
+//			Context.drill this
 //			@delay = 10			
 //END:UT_UT
 module.exports = EXPORTED;
