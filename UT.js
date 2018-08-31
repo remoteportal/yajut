@@ -120,8 +120,6 @@ TODOs
 - run all asynch tests at same time concurrently
 - classify tests: positive, negative, boundary, stress, unspecified, etc.
 - run all tests < or > than so many milliseconds
-- node -cat  show all unit tests
-- node -grep xxx   grep all matching tests
 - capitalize section ("S") overrides to run entire sections
 - purposeful 1000ms delay between tests to let things settle
 - count the number of disabled tests
@@ -519,10 +517,18 @@ Test = class Test extends UTBase { //@Test #@test
   }
 
   after(mFail, ex_s_null) {
-    var EXPECT, PR, _, bFound, detail, expectMap, fail, i, j, k, kUC, l, len, m, ref, ref1, ref2, s;
+    var EXPECT, PR, _, bFound, detail, expectMap, fail, i, j, k, kUC, l, len, m, ref, ref1, ref10, ref2, ref3, ref4, ref5, ref6, ref7, ref8, ref9, s;
     //		@log "#".repeat 60
     //		@log "after mFail=#{mFail}: #{@one2()}" #, ex_s_null
 
+    //		@log "@env", @env
+    //		@log "not delivered: #{@env.server.deliverObj.config.deliverList.length}"
+    if (((ref = this.env) != null ? (ref1 = ref.server) != null ? (ref2 = ref1.deliverObj) != null ? (ref3 = ref2.config) != null ? (ref4 = ref3.deliverList) != null ? ref4.length : void 0 : void 0 : void 0 : void 0 : void 0) > 1) {
+      console.log(`server: not delivered: ${this.env.server.deliverObj.config.deliverList.length}`);
+    }
+    if ((ref5 = this.env) != null ? (ref6 = ref5.server) != null ? (ref7 = ref6.deliverObj) != null ? ref7.queuedCntGet() : void 0 : void 0 : void 0) {
+      console.log("AFTER: " + this.env.server.deliverObj.oneQ());
+    }
     //		@log "failList.length=#{@failList.length}"
     if (mFail === this.FAIL_ERROR || mFail === this.FAIL_EXCEPTION || mFail === this.FAIL_TIMEOUT || mFail === this.UNEXPECTED_PROMISE) {
       //			@log "on-the-fly append mFail to failList"
@@ -538,9 +544,9 @@ Test = class Test extends UTBase { //@Test #@test
     }
     expectMap = {};
     if (this.opts.expect) {
-      ref = this.opts.expect.split(',');
-      for (j = 0, len = ref.length; j < len; j++) {
-        k = ref[j];
+      ref8 = this.opts.expect.split(',');
+      for (j = 0, len = ref8.length; j < len; j++) {
+        k = ref8[j];
         kUC = k.toUpperCase();
         if (_ = this[`FAIL_${kUC}`]) {
           //					@log "after: expectMap[#{kUC}]=#{_}"
@@ -554,9 +560,9 @@ Test = class Test extends UTBase { //@Test #@test
     for (EXPECT in expectMap) {
       //			@log "EXPECT=#{EXPECT}"
       bFound = false;
-      ref1 = this.failList;
-      for (i = l = ref1.length - 1; l >= 0; i = l += -1) {
-        fail = ref1[i];
+      ref9 = this.failList;
+      for (i = l = ref9.length - 1; l >= 0; i = l += -1) {
+        fail = ref9[i];
         this.log(`--> ${fail.one()}   (compare ${this.failTypes[fail.mFail].toUpperCase()} vs ${EXPECT
         //, fail
 })`);
@@ -573,9 +579,9 @@ Test = class Test extends UTBase { //@Test #@test
     if (this.opts.exceptionMessage != null) {
       //			@log "scanning for #{@opts.exceptionMessage}"
       bFound = false;
-      ref2 = this.failList;
-      for (i = m = ref2.length - 1; m >= 0; i = m += -1) {
-        fail = ref2[i];
+      ref10 = this.failList;
+      for (i = m = ref10.length - 1; m >= 0; i = m += -1) {
+        fail = ref10[i];
         //				@log "--> #{fail.one()}" #, fail
         if (fail.mFail === this.FAIL_EXCEPTION) {
           //					@log "found exception"
@@ -599,7 +605,7 @@ Test = class Test extends UTBase { //@Test #@test
     //WORKAROUND: only have a single handler... only guaranteed to work with a single handler
     //ARCHITECTURE: or guarantee serial handler execution
     PR = new Promise((resolve, reject) => {
-      var THAT, a, afterHandler, mn, n, ref3, ref4, ref5, rv;
+      var THAT, a, afterHandler, mn, n, ref11, ref12, ref13, rv;
       afterHandler = (fail) => {
         if (!fail.bEnabled) {
           //					@log "onHandler: remove i=#{i}"
@@ -607,10 +613,10 @@ Test = class Test extends UTBase { //@Test #@test
         }
       };
       a = [];
-      ref3 = this.failList;
+      ref11 = this.failList;
       //		@log "look for onHandler"
-      for (i = n = ref3.length - 1; n >= 0; i = n += -1) {
-        fail = ref3[i];
+      for (i = n = ref11.length - 1; n >= 0; i = n += -1) {
+        fail = ref11[i];
         //			@log "--> #{fail.one()}" #, fail
         if (_ = this.opts[mn = `on${this.failTypes[fail.mFail]}`]) {
           //				@log "found #{mn}"
@@ -619,7 +625,7 @@ Test = class Test extends UTBase { //@Test #@test
           //				@opts = Object.assign {}, @runner.OPTS, @runner.OPTS?.perTestOpts?[@cname], @opts, {fail:fail}
           //				@.opts = Object.assign {}, @runner.OPTS, @runner.OPTS?.perTestOpts?[@cname], @opts
           this.fail = fail;
-          THAT = Object.assign({}, this, this.runner.OPTS, (ref4 = this.runner.OPTS) != null ? (ref5 = ref4.perTestOpts) != null ? ref5[this.cname] : void 0 : void 0, this.opts, {
+          THAT = Object.assign({}, this, this.runner.OPTS, (ref12 = this.runner.OPTS) != null ? (ref13 = ref12.perTestOpts) != null ? ref13[this.cname] : void 0 : void 0, this.opts, {
             fail: fail // works but it's a different object
           });
           //				@log "@opts", @opts
@@ -661,12 +667,12 @@ Test = class Test extends UTBase { //@Test #@test
       }
     });
     return PR.then(() => {
-      var len1, len2, n, p, q, ref3, ref4, ref5, t;
-      ref3 = this.failList;
+      var len1, len2, n, p, q, ref11, ref12, ref13, t;
+      ref11 = this.failList;
       //			@log "handlers all done"
       //			@log "EXPECT2"
-      for (i = n = ref3.length - 1; n >= 0; i = n += -1) {
-        fail = ref3[i];
+      for (i = n = ref11.length - 1; n >= 0; i = n += -1) {
+        fail = ref11[i];
         t = this.failTypes[fail.mFail];
         //			@log t.toUpperCase()
         //			@log "--> #{fail.one()} ==> #{t}" #, fail
@@ -680,15 +686,15 @@ Test = class Test extends UTBase { //@Test #@test
       }
       if (this.failList.length) {
         console.log(`${this.failList.length} RESIDUAL ERRORS:`);
-        ref4 = this.failList;
+        ref12 = this.failList;
         // @FAIL @FAIL_TIMEOUT, "[[#{@path}]] TIMEOUT: ut.{resolve,reject} not called within #{ms}ms in asynch test"
-        for (i = p = 0, len1 = ref4.length; p < len1; i = ++p) {
-          fail = ref4[i];
+        for (i = p = 0, len1 = ref12.length; p < len1; i = ++p) {
+          fail = ref12[i];
           console.log(`#${i + 1}  ${fail.one()}`);
         }
-        ref5 = this.failList;
-        for (q = 0, len2 = ref5.length; q < len2; q++) {
-          fail = ref5[q];
+        ref13 = this.failList;
+        for (q = 0, len2 = ref13.length; q < len2; q++) {
+          fail = ref13[q];
           console.log("----------------------------------------------");
           console.log(fail.full());
         }
@@ -1045,7 +1051,7 @@ Test = class Test extends UTBase { //@Test #@test
   //	Test.exit()		#DELEGATE
   exit(mWhy1, msg) {
     this.mWhy = mWhy1;
-    log("Test.exit called");
+    //		log "Test.exit called"
     return this.runner.exit.apply(this.runner, arguments); //PATTERN: PROXY propagate arguments	
   }
 
@@ -1290,8 +1296,8 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
         d: "run all tests of a specified class (FUTURE)"
       },
       {
-        o: "-ex key1,key2,...",
-        d: "exit on match"
+        o: "-eg key1,key2,...",
+        d: "exit grep"
       },
       {
         o: "-f FM#",
@@ -1303,16 +1309,8 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
         d: "like -l (list all tests) but only show matching lines"
       },
       {
-        o: "-gl key1,key2,...",
-        d: "show only matching lines from log"
-      },
-      {
         o: "-h",
         d: "help"
-      },
-      {
-        o: "-hl key1,key2,...",
-        d: "highlight lines in log"
       },
       {
         o: "-i",
@@ -1329,6 +1327,18 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
       {
         o: "-l",
         d: "list all tests"
+      },
+      {
+        o: "-lg key1,key2,...",
+        d: "log grep"
+      },
+      {
+        o: "-lh key1,key2,...",
+        d: "log highlight"
+      },
+      {
+        o: "-llh key1,key2,...",
+        d: "log line highlight (FUTURE)"
       },
       {
         o: "-o",
@@ -1365,10 +1375,6 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
       {
         o: "-ty",
         d: "trace Yes: turn on all trace: naked or -ty lt,... for trace.LT (\"log tests\")" //DOMAIN-SPECIFIC #MOVE #H
-      },
-      {
-        o: "<number>",
-        d: "test number from 1 to the (number of tests)"
       }
     ];
     this.eventFire("CLI-optionList", optionList);
@@ -1470,7 +1476,7 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
       }
     };
     log_help = () => {
-      return console.log(`node tests.js [options]\n\nOPTIONS:${S.autoTable(optionList, {
+      return console.log(`node tests.js [options] test# ...\n\nOPTIONS:${S.autoTable(optionList, {
         bHeader: false
       })}`);
     };
@@ -1502,17 +1508,11 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
               includeCSV: CSV
             }));
             break;
-          case "-ex":
+          case "-eg":
             CSV2Object("exitCSV");
-            break;
-          case "-gl": //MOVE: tests
-            this.OPTS.logGrepPattern = a[i++];
             break;
           case "-h":
             er(log_help());
-            break;
-          case "-hl": //MOVE: tests
-            CSV2Object("logHighlightPattern");
             break;
           case "-i":
             word = a[i++];
@@ -1533,6 +1533,12 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
               bHeader: true,
               includeCSV: CSV
             }));
+            break;
+          case "-lg": //MOVE: tests
+            this.OPTS.logGrepPattern = a[i++];
+            break;
+          case "-lh": //MOVE: tests
+            CSV2Object("logHighlightPattern");
             break;
           case "-o":
             this.OPTS.bOnline = false;
@@ -1563,8 +1569,12 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
             }
             break;
           default:
-            if (NUMBER_CSL_RE.test(word)) {
-              this.OPTS.testsInclude = word;
+            if (NUMBER_CSL_RE.test(word)) { //FUTURE: support ranges (e.g., 10-19)
+              if (this.OPTS.testsInclude) {
+                this.OPTS.testsInclude = this.OPTS.testsInclude + "," + word;
+              } else {
+                this.OPTS.testsInclude = word;
+              }
             } else {
               log_help();
               er(`UT: Illegal CLI option: "${word}".`);

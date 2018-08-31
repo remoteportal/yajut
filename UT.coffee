@@ -132,8 +132,6 @@ TODOs
 - run all asynch tests at same time concurrently
 - classify tests: positive, negative, boundary, stress, unspecified, etc.
 - run all tests < or > than so many milliseconds
-- node -cat  show all unit tests
-- node -grep xxx   grep all matching tests
 - capitalize section ("S") overrides to run entire sections
 - purposeful 1000ms delay between tests to let things settle
 - count the number of disabled tests
@@ -495,7 +493,14 @@ class Test extends UTBase		#@Test #@test
 #		@log "#".repeat 60
 #		@log "after mFail=#{mFail}: #{@one2()}" #, ex_s_null
 
-#		@log "failList.length=#{@failList.length}"
+#		@log "@env", @env
+#		@log "not delivered: #{@env.server.deliverObj.config.deliverList.length}"
+		if @env?.server?.deliverObj?.config?.deliverList?.length > 1
+			console.log "server: not delivered: #{@env.server.deliverObj.config.deliverList.length}"
+		if @env?.server?.deliverObj?.queuedCntGet()
+			console.log "AFTER: " + @env.server.deliverObj.oneQ()
+
+		#		@log "failList.length=#{@failList.length}"
 		if mFail in [@FAIL_ERROR, @FAIL_EXCEPTION, @FAIL_TIMEOUT, @UNEXPECTED_PROMISE]
 #			@log "on-the-fly append mFail to failList"
 #			@log "+ add"
@@ -969,7 +974,7 @@ TypeError: One of the sources for assign has an enumerable key on the prototype 
 
 #	Test.exit()		#DELEGATE
 	exit: (@mWhy, msg) ->
-		log "Test.exit called"
+#		log "Test.exit called"
 		@runner.exit.apply @runner, arguments				#PATTERN: PROXY propagate arguments	#TODO: add this UT to Proof.coffee
 
 
@@ -1178,8 +1183,8 @@ class UTRunner extends UTBase		#@UTRunner @runner
 				o: "-c ServerStoreUT"
 				d: "run all tests of a specified class (FUTURE)"
 			,
-				o: "-ex key1,key2,..."
-				d: "exit on match"
+				o: "-eg key1,key2,..."
+				d: "exit grep"
 			,
 				o: "-f FM#"
 #				d: "mFailMode: 0=run all, 1=fail at test (after possible healing), 2=fail fast (before healing)"
@@ -1188,14 +1193,8 @@ class UTRunner extends UTBase		#@UTRunner @runner
 				o: "-g testPattern"
 				d: "like -l (list all tests) but only show matching lines"
 			,
-				o: "-gl key1,key2,..."
-				d: "show only matching lines from log"
-			,
 				o: "-h"
 				d: "help"
-			,
-				o: "-hl key1,key2,..."
-				d: "highlight lines in log"
 			,
 				o: "-i"
 				d: "ignore test#,test#,..."
@@ -1208,6 +1207,15 @@ class UTRunner extends UTBase		#@UTRunner @runner
 			,
 				o: "-l"
 				d: "list all tests"
+			,
+				o: "-lg key1,key2,..."
+				d: "log grep"
+			,
+				o: "-lh key1,key2,..."
+				d: "log highlight"
+			,
+				o: "-llh key1,key2,..."
+				d: "log line highlight (FUTURE)"
 			,
 				o: "-o"
 				d: "offline"
@@ -1235,9 +1243,6 @@ class UTRunner extends UTBase		#@UTRunner @runner
 			,
 				o: "-ty"
 				d: "trace Yes: turn on all trace: naked or -ty lt,... for trace.LT (\"log tests\")"  #DOMAIN-SPECIFIC #MOVE #H
-			,
-				o: "<number>"
-				d: "test number from 1 to the (number of tests)"
 		]
 
 		@eventFire "CLI-optionList", optionList
@@ -1315,7 +1320,7 @@ class UTRunner extends UTBase		#@UTRunner @runner
 
 		log_help = =>
 			console.log """
-node tests.js [options]
+node tests.js [options] test# ...
 
 OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 
@@ -1342,14 +1347,10 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 					when "-g"
 						testPattern = a[i++]
 						er S.autoTable(testList, bHeader:true, grep:testPattern, includeCSV:CSV)
-					when "-ex"
+					when "-eg"
 						CSV2Object "exitCSV"
-					when "-gl"			#MOVE: tests
-						@OPTS.logGrepPattern = a[i++]
 					when "-h"
 						er log_help()
-					when "-hl"			#MOVE: tests
-						CSV2Object "logHighlightPattern"
 					when "-i"
 						word = a[i++]
 						if NUMBER_CSL_RE.test word
@@ -1362,6 +1363,10 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 						getKeys true
 					when "-l"
 						er S.autoTable(testList, bHeader:true, includeCSV:CSV)
+					when "-lg"			#MOVE: tests
+						@OPTS.logGrepPattern = a[i++]
+					when "-lh"			#MOVE: tests
+						CSV2Object "logHighlightPattern"
 					when "-o"
 						@OPTS.bOnline = false
 					when "-s"
@@ -1381,8 +1386,11 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 						unless maybeGrabTrace true
 							@OPTS.traceOverride = true
 					else
-						if NUMBER_CSL_RE.test word
-							@OPTS.testsInclude = word
+						if NUMBER_CSL_RE.test word			#FUTURE: support ranges (e.g., 10-19)
+							if @OPTS.testsInclude
+								@OPTS.testsInclude = @OPTS.testsInclude + "," + word
+							else
+								@OPTS.testsInclude = word
 						else
 							log_help()
 							er "UT: Illegal CLI option: \"#{word}\"."
