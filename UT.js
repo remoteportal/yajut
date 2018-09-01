@@ -183,8 +183,9 @@ testStack = [];
 
 testList = [];
 
+//BAD
 log = function() {
-  return global.log.apply(this, arguments); //PATTERN
+  return global.log.apply(this, arguments); //PATTERN	#URGENT
 };
 
 bag = Object.create({
@@ -477,25 +478,24 @@ Test = class Test extends UTBase { //@Test #@test
         } else {
 
         }
-        //				https://www.stacktracejs.com
-        //					console.log "console.trace():"
-        //					console.trace()
-        //					err = new Error @msg
-        //					@stack = err.stack
-        //				@log "stack", stack
-        //					@log "111******************************** stack.length=#{@stack?.length}"
-        //					@log "222******************************** stack.length=#{@stack?.length}", @ex
-        this.DEANNA = ">>>>>>>>>>>>>> WILL BE HOME SOON";
       }
 
+      //				https://www.stacktracejs.com
+      //					console.log "console.trace():"
+      //					console.trace()
+      //					err = new Error @msg
+      //					@stack = err.stack
+      //				@log "stack", stack
       //				O.LOG @
       //				@log "******************************** mFail=#{@mFail}"
       //				@log "******************************** summary=#{@summary}"
       //				@log "******************************** detail=#{@detail}"
       //				@log "******************************** o=#{@o}"
       //				@log "******************************** stack.length=#{@stack?.length}"
+      //					@log "111******************************** stack.length=#{@stack?.length}"
+      //					@log "222******************************** stack.length=#{@stack?.length}", @ex
       full() {
-        return Util.red(`${this.one()}\n\n${this.detail}\n${this.stack}`);
+        return Context.textFormat.red(`${this.one()}\n\n${this.detail}\n${this.stack}`);
       }
 
       heal() {
@@ -521,14 +521,14 @@ Test = class Test extends UTBase { //@Test #@test
     //		@log "#".repeat 60
     //		@log "after mFail=#{mFail}: #{@one2()}" #, ex_s_null
 
-    //		@log "@env", @env
-    //		@log "not delivered: #{@env.server.deliverObj.config.deliverList.length}"
+    //H #DOMAIN: remove this from UT.coffee... onAfter()      	perhaps @env.onAfter()
     if (((ref = this.env) != null ? (ref1 = ref.server) != null ? (ref2 = ref1.deliverObj) != null ? (ref3 = ref2.config) != null ? (ref4 = ref3.deliverList) != null ? ref4.length : void 0 : void 0 : void 0 : void 0 : void 0) > 1) {
       console.log(`server: not delivered: ${this.env.server.deliverObj.config.deliverList.length}`);
     }
     if ((ref5 = this.env) != null ? (ref6 = ref5.server) != null ? (ref7 = ref6.deliverObj) != null ? ref7.queuedCntGet() : void 0 : void 0 : void 0) {
       console.log("AFTER: " + this.env.server.deliverObj.oneQ());
     }
+    
     //		@log "failList.length=#{@failList.length}"
     if (mFail === this.FAIL_ERROR || mFail === this.FAIL_EXCEPTION || mFail === this.FAIL_TIMEOUT || mFail === this.UNEXPECTED_PROMISE) {
       //			@log "on-the-fly append mFail to failList"
@@ -705,7 +705,7 @@ Test = class Test extends UTBase { //@Test #@test
       //			@log "calling @done()"
       return this.done();
     }).catch((ex) => {
-      return this.logCatch("after chain", ex);
+      return this.logCatch("Test.after chain", ex);
     });
   }
 
@@ -727,7 +727,7 @@ Test = class Test extends UTBase { //@Test #@test
       return b;
     };
     this.bag = proxyBag;
-    this.context = "CONTEXT set in decorateJustObject";
+    this.context = "CONTEXT set in decorateJustObject"; //H
     this.defined = function(v, msg) {
       var _, b;
       _ = msg ? `: ${msg}` : "";
@@ -879,8 +879,9 @@ Test = class Test extends UTBase { //@Test #@test
       this.exit(this.WHY_FATAL, msg);
       return Util.exit(msg);
     };
-    //DUP
+    //DUP: this is principal @log of unit tests
     this.log = function() {
+      //			console.log "trace.LT=#{trace.LT}"
       if (trace.LT) {
         return Util.logBase.apply(this, [`${this.cname}/${this.tn}`, ...arguments]);
       }

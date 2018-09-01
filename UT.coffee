@@ -191,8 +191,8 @@ testList = []
 
 
 
-
-log = -> global.log.apply this, arguments		#PATTERN
+#BAD
+log = -> global.log.apply this, arguments		#PATTERN	#URGENT
 
 
 
@@ -450,6 +450,7 @@ class Test extends UTBase		#@Test #@test
 		@pass = 0
 		failList_CLOSURE = @failList = []
 
+		#TODO: move to Log.coffee?
 		class @Fail extends UTBase		#@Fail	#@fail   #PATTERN
 			constructor: (@mFail, @summary, @detail, @o) ->
 				super()
@@ -471,14 +472,13 @@ class Test extends UTBase		#@Test #@test
 #					err = new Error @msg
 #					@stack = err.stack
 #				@log "stack", stack
-				@DEANNA = ">>>>>>>>>>>>>> WILL BE HOME SOON"
 #				O.LOG @
 #				@log "******************************** mFail=#{@mFail}"
 #				@log "******************************** summary=#{@summary}"
 #				@log "******************************** detail=#{@detail}"
 #				@log "******************************** o=#{@o}"
 #				@log "******************************** stack.length=#{@stack?.length}"
-			full: -> Util.red "#{@one()}\n\n#{@detail}\n#{@stack}"
+			full: -> Context.textFormat.red "#{@one()}\n\n#{@detail}\n#{@stack}"
 			heal: -> @bEnabled = false
 			one: -> "Fail: #{@failTypes[@mFail]}(#{@mFail})#{if @msg then " #{@msg}" else ""}: #{@summary}"
 
@@ -493,14 +493,15 @@ class Test extends UTBase		#@Test #@test
 #		@log "#".repeat 60
 #		@log "after mFail=#{mFail}: #{@one2()}" #, ex_s_null
 
-#		@log "@env", @env
-#		@log "not delivered: #{@env.server.deliverObj.config.deliverList.length}"
+#H #DOMAIN: remove this from UT.coffee... onAfter()      	perhaps @env.onAfter()
 		if @env?.server?.deliverObj?.config?.deliverList?.length > 1
+			#TODO: call @FAIL
 			console.log "server: not delivered: #{@env.server.deliverObj.config.deliverList.length}"
 		if @env?.server?.deliverObj?.queuedCntGet()
 			console.log "AFTER: " + @env.server.deliverObj.oneQ()
+			#TODO: call @FAIL
 
-		#		@log "failList.length=#{@failList.length}"
+#		@log "failList.length=#{@failList.length}"
 		if mFail in [@FAIL_ERROR, @FAIL_EXCEPTION, @FAIL_TIMEOUT, @UNEXPECTED_PROMISE]
 #			@log "on-the-fly append mFail to failList"
 #			@log "+ add"
@@ -639,7 +640,7 @@ markers: got     : #{@markers}
 #			@log "calling @done()"
 			@done()
 		.catch (ex) =>
-			@logCatch "after chain", ex
+			@logCatch "Test.after chain", ex
 
 
 
@@ -659,7 +660,7 @@ markers: got     : #{@markers}
 
 			b
 		@bag = proxyBag
-		@context = "CONTEXT set in decorateJustObject"
+		@context = "CONTEXT set in decorateJustObject"		#H
 		@defined = (v, msg) ->
 			_ = if msg then ": #{msg}" else ""
 
@@ -818,8 +819,10 @@ b> #{V.vt b}
 			console.error "fatal: #{msg}"
 			@exit @WHY_FATAL, msg
 			Util.exit msg
-		#DUP
-		@log			= ->
+
+		#DUP: this is principal @log of unit tests
+		@log = ->
+#			console.log "trace.LT=#{trace.LT}"
 			if trace.LT
 				Util.logBase.apply this, ["#{@cname}/#{@tn}", arguments...]
 		@m = (s) => @markers += s
