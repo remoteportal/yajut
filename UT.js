@@ -97,14 +97,11 @@ TODOs
 		traceAll.txt
 		src/...
 - if run all TESTS report how many are disabled _
-- change ut to t?
-- target=SERVER command line switch
 - put cleanup in opts  but that means @client and @server or implement our own timeout mechanism, again, inside here:
 - onPost -> @testHub.directoryRemoveRecursiveForce()
 - actually:  @testHub.directoryGetTempInstanceSpace
 - test auto-discovery so don't need to explicity list in tests.coffee
 - add @rnd() functions
-- add milepost functionality
 - validate system-level options parameter names
 - validate per-unit test on-the-fly options for mispellings
 - @defined x
@@ -847,11 +844,8 @@ Test = class Test extends UTBase { //@Test #@test
     //			.catch (ex) =>  try commenting-out
     //				@logCatch ex
     this.ex = function(ex) {
-      log("@ex: aaaaa");
       this.logCatch(ex);
-      log("@ex: bbbbb");
-      this.reject(ex);
-      return log("@ex: ccccc");
+      return this.reject(ex);
     };
     this.FAIL = function(mFail, summary, detail, o) {
       var _, fail;
@@ -926,7 +920,7 @@ Test = class Test extends UTBase { //@Test #@test
       return Util.logBase.apply(this, [this.one(), "WARNING2", ...arguments]);
     };
     this.mStage = this.STAGE_SETUP;
-    this.ok = function(v) { //H #REVISIT #TEST
+    this.ok = function(v) {
       //		Context.drill this, grep:"env"
       //		@env.succ()		
       return this.resolve(v);
@@ -937,19 +931,6 @@ Test = class Test extends UTBase { //@Test #@test
     this.throw = function(msg) {
       throw Error(msg);
     };
-    //H
-    //	Context.drill @parent
-    //	for v in Object.getOwnPropertyNames @parent
-    //		log "==> #{v}"
-    //	for k,v of @parent
-    //		log "==> #{k}"
-    //		if me2[k]
-    //			throw "You are not allowed to define the method named '#{k}' because it clashes with a built-in property"
-
-    //	k = "alloc"
-    //	me2[k] = @parent[k]
-
-    //		O.LOG "@parent", @common
     //H: what is this?  write test for it
     // I JUST DO NOT UNDERSTAND THIS!!!
     // in ServerStoreUT it moves alloc() to be reachable from unit test
@@ -976,8 +957,6 @@ Test = class Test extends UTBase { //@Test #@test
     //		@log "DONE DONE DONE DONE DONE: Test.done: #{@one2()}"
     Base.auditEnsureClosed();
     //		process.exit 1
-
-    // @stack()
     this.auditMark("" + this.one2());
     if (this.mState !== this.STATE_RUNNING) {
       throw "state";
@@ -1199,7 +1178,6 @@ AsyncTest = (function() {
     isAsyncRunnable() {
       //		O.LOG "OPTS", @runner.OPTS
       if (this.bSync) {
-        //			@log "isAsyncRunnable: bSync"
         return false;
       //		else if @runner.OPTS.bSerial
       //			# force serial
@@ -1842,14 +1820,6 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
     ];
     this.runningCnt--;
     this.logg(trace.UT, `testDone: p/f=${this.pass}/${this.failList.length} concurrent=${this.runningCnt}: ${test.one()}: [${this.one()}]`);
-    //		console.log "\n\n\n\nDDDDDDDDDDDDDDDDDDDDDDDDD"
-    //		try
-    //			throw Error "WHY"
-    //		catch ex
-    //			console.log ex
-    //			process.exit 1
-
-    //		console.log @stack()
     if (test.failList.length && this.OPTS.mFailMode === this.FM_FAILTEST) {
       //			@stack _="mFailMode=@FM_FAILTEST: test failure without recovery: #{test.one2()}"
       _ = `mFailMode=@FM_FAILTEST: test failure without recovery: ${test.one2()}`;
@@ -2047,7 +2017,6 @@ UT_UT = class UT_UT extends UT { //@UT_UT		@unittest  @ut
       this.human("ut.opts", ut.opts);
       this.eq(ut.opts.aaa, "AAA");
       this.log("@opts=", this.opts);
-      //			@log "bbb"
       this.eq(this.opts.aaa, "AAA");
       return this.eq(this.get42(), 42);
     });
@@ -2076,12 +2045,6 @@ UT_UT = class UT_UT extends UT { //@UT_UT		@unittest  @ut
       });
     });
     this.s("sync nesting test", function() {
-      //			@log "SYNC"
-      //			t = 0
-      //			@log "div 0"
-      //			t = t / t
-      //			O.LOG this
-      //			@log "hello"
       return this.s("a", (ut) => {
         //				@log "section log"
         //				@logError "section logError"
@@ -2270,9 +2233,6 @@ UT_UT = class UT_UT extends UT { //@UT_UT		@unittest  @ut
       this.human(this.one());
       return this.human(this.one2());
     });
-    this.s("misc", function() {});
-    //			@A "don't close", (ut) ->
-    //				@log "something doesn't stop"
     this.a("mutex", {
       mutex: "J"
     }, function(ut) {

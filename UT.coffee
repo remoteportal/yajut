@@ -109,14 +109,11 @@ TODOs
 		traceAll.txt
 		src/...
 - if run all TESTS report how many are disabled _
-- change ut to t?
-- target=SERVER command line switch
 - put cleanup in opts  but that means @client and @server or implement our own timeout mechanism, again, inside here:
 - onPost -> @testHub.directoryRemoveRecursiveForce()
 - actually:  @testHub.directoryGetTempInstanceSpace
 - test auto-discovery so don't need to explicity list in tests.coffee
 - add @rnd() functions
-- add milepost functionality
 - validate system-level options parameter names
 - validate per-unit test on-the-fly options for mispellings
 - @defined x
@@ -790,11 +787,8 @@ b> #{V.vt b}
 #			.catch (ex) =>  try commenting-out
 #				@logCatch ex
 		@ex = (ex) ->
-			log "@ex: aaaaa"
 			@logCatch ex
-			log "@ex: bbbbb"
 			@reject ex
-			log "@ex: ccccc"
 		@FAIL = (mFail, summary, detail, o) ->
 			throw Error "bad mFail" unless mFail
 #			console.log "\n\n\n"
@@ -853,7 +847,7 @@ b> #{V.vt b}
 	#	@logWarning	= (s, o, opt)		->	Util.logBase.apply this, [@one(), "WARNING2", arguments...]
 		@logWarning	= (s, o, opt)		->	Util.logBase.apply this, [@one(), "WARNING2", arguments...]
 		@mStage = @STAGE_SETUP
-		@ok = (v) ->		#H #REVISIT #TEST
+		@ok = (v) ->
 	#		Context.drill this, grep:"env"
 	#		@env.succ()		#TODO: get reference to @env and tear down resources
 			@resolve v
@@ -861,20 +855,7 @@ b> #{V.vt b}
 		@throw = (msg) -> throw Error msg
 
 
-#H
-	#	Context.drill @parent
-	#	for v in Object.getOwnPropertyNames @parent
-	#		log "==> #{v}"
-	#	for k,v of @parent
-	#		log "==> #{k}"
-	#		if me2[k]
-	#			throw "You are not allowed to define the method named '#{k}' because it clashes with a built-in property"
 
-	#	k = "alloc"
-	#	me2[k] = @parent[k]
-
-
-#		O.LOG "@parent", @common
 #H: what is this?  write test for it
 # I JUST DO NOT UNDERSTAND THIS!!!
 # in ServerStoreUT it moves alloc() to be reachable from unit test
@@ -900,7 +881,6 @@ b> #{V.vt b}
 		Base.auditEnsureClosed()
 #		process.exit 1
 
-		# @stack()
 		@auditMark "" + @one2()
 		throw "state" unless @mState is @STATE_RUNNING
 
@@ -1107,7 +1087,6 @@ class AsyncTest extends Test				#@AsyncTest @async
 	isAsyncRunnable: ->
 #		O.LOG "OPTS", @runner.OPTS
 		if @bSync
-#			@log "isAsyncRunnable: bSync"
 			false
 #		else if @runner.OPTS.bSerial
 #			# force serial
@@ -1618,15 +1597,6 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 
 		@logg trace.UT, "testDone: p/f=#{@pass}/#{@failList.length} concurrent=#{@runningCnt}: #{test.one()}: [#{@one()}]"
 
-#		console.log "\n\n\n\nDDDDDDDDDDDDDDDDDDDDDDDDD"
-#		try
-#			throw Error "WHY"
-#		catch ex
-#			console.log ex
-#			process.exit 1
-
-#		console.log @stack()
-
 		if test.failList.length and @OPTS.mFailMode is @FM_FAILTEST
 #			@stack _="mFailMode=@FM_FAILTEST: test failure without recovery: #{test.one2()}"
 			_ = "mFailMode=@FM_FAILTEST: test failure without recovery: #{test.one2()}"
@@ -1771,9 +1741,7 @@ class UT_UT extends UT		#@UT_UT		@unittest  @ut
 			@human "ut.opts", ut.opts
 			@eq ut.opts.aaa, "AAA"
 			@log "@opts=", @opts
-#			@log "bbb"
 			@eq @opts.aaa, "AAA"
-
 			@eq @get42(), 42
 		@s "bag", ->
 			@t "set", ->
@@ -1793,12 +1761,6 @@ class UT_UT extends UT		#@UT_UT		@unittest  @ut
 				catch ex
 					@PASS()
 		@s "sync nesting test", ->
-#			@log "SYNC"
-#			t = 0
-#			@log "div 0"
-#			t = t / t
-#			O.LOG this
-#			@log "hello"
 			@s "a", (ut) =>
 #				@log "section log"
 #				@logError "section logError"
@@ -1911,9 +1873,6 @@ class UT_UT extends UT		#@UT_UT		@unittest  @ut
 		@t "one", (ut) ->
 			@human @one()
 			@human @one2()
-		@s "misc", ->
-#			@A "don't close", (ut) ->
-#				@log "something doesn't stop"
 		@a "mutex", {mutex:"J"}, (ut) ->
 			@log "inside MUTEX"
 			ut.resolve()
