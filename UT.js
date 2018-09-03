@@ -468,6 +468,7 @@ Test = class Test extends UTBase { //@Test #@test
     validOptsMap = null;
     validTagsMap = {
       daemon: "daemon must be running",
+      human: "meant only to be run manually by a human (not in a suite of tests)",
       internet: "only run test if connected to the Internet if '-tagy internet' option specified",
       localdaemon: "HELP: local daemon must be running at: ws://localhost:4000"
     };
