@@ -86,12 +86,16 @@ NON-FEATURES:
 - human "sentence" readable assertion library: dot.dot.dot crap.   For me, brevity is way more important
 
 
-ERRORS:
+ERRORS:		#TODO: out this in structure  #EASY
 UT001 Unknown test option: $
 UT002 Unknown mType=$
 UT003 You are not allowed to define the method named '$' because it clashes with a built-in property
 UT004 Promise expected but not returned from P-test
 UT005 P-tests aren't supported by ReactNative
+UT006 opts must be object
+UT007 opts.tags must be CSV
+UT008 asynch opt not allowed with $
+UT009 Invalid test tag: $
 
 
 GENERALIZE:
@@ -188,7 +192,7 @@ testList = []
 
 
 
-#BAD
+#REVISIT
 log = -> global.log.apply this, arguments		#PATTERN	#URGENT
 
 
@@ -242,6 +246,7 @@ handler =	# "traps"
 proxyBag = new Proxy target, handler
 
 
+
 class UTBase extends Base		#@UTBase
 	constructor: ->
 		super()
@@ -263,7 +268,6 @@ class UTBase extends Base		#@UTBase
 		@const "FM_FAILTEST", 1
 		@const "FM_RUNALL", 2
 
-
 		@const "STAGE_SETUP", 1
 		@const "STAGE_RUN", 2
 		@const "STAGE_TEARDOWN", 3
@@ -277,13 +281,14 @@ class UTBase extends Base		#@UTBase
 		@const "WHY_FATAL", 3
 		@const "WHY_TOLD_TO_STOP", 4
 		@const "WHY_CLI", 5
-		@const "whyList", [null, "ALL_TESTS_RUN", "FAIL_FAST", "FATAL", "TOLD_TO_STOP", "CLI"]
+		@const "WHY_NO_TESTS_FOUND", 6
+		@const "WHY_LIST", [null, "ALL_TESTS_RUN", "FAIL_FAST", "FATAL", "TOLD_TO_STOP", "CLI", "WHY_NO_TESTS_FOUND"]
 
 
 
 
-#TODO: combine aGenerate and testGenerate?
-aGenerate = (cmd) =>
+#TODO: combine MAKEa and MAKEt?
+MAKEa = (cmd) =>
 	(tn, fn) ->
 		if Object::toString.call(fn) is '[object Object]'
 			opts = fn
@@ -302,15 +307,16 @@ aGenerate = (cmd) =>
 			cname: @__CLASS_NAME
 			common: Object.getOwnPropertyNames(Object.getPrototypeOf(this)).filter (mn) -> mn not in ["constructor","run"]
 			fn: fn
+			hier: "#{path}/#{tn}"
 			tn: tn
-			opts: opts ? {}
+			opts: opts
 			parent: this
 #			path: "cn=#{@__CLASS_NAME} path=(#{path}) tn=#{tn}"
 			path: "#{@__CLASS_NAME} #{path}/#{tn}"
 
 
 
-testGenerate = (cmd) =>
+MAKEt = (cmd) =>
 	(tn, fn) ->
 		if Object::toString.call(fn) is '[object Object]'
 			opts = fn
@@ -323,15 +329,16 @@ testGenerate = (cmd) =>
 			cmd: cmd
 			cname: @__CLASS_NAME
 			fn: fn
+			hier: "#{path}/#{tn}"
 			tn: tn
-			opts: opts ? {}
+			opts: opts
 			parent: this
 			path: "#{@__CLASS_NAME} #{path}/#{tn}"
 
 
 
 #TODO: combine these three somehow
-sectionGenerate = (cmd) =>
+MAKEs = (cmd) =>
 	(tn, fn) ->
 		throw 0 unless typeof tn is "string"
 		throw 0 unless typeof fn is "function"
@@ -346,16 +353,16 @@ sectionGenerate = (cmd) =>
 		testStack.push tn
 
 		path = testStack.join '/'
-#		log "BEG: sectionGenerate: #{path}"
+#		log "BEG: MAKEs: #{path}"
 
 		fn.bind(this)
-			opts: opts ? {}
-			parent: this	#H
+			opts: opts
+			parent: this
 			tn: tn
 
 		testStack.pop()
 		path = testStack.join '/'
-#		log "END: sectionGenerate: #{path}"
+#		log "END: MAKEs: #{path}"
 #END:UTBase
 
 
@@ -394,8 +401,8 @@ EXPORTED = class UT extends UTBase			#@UT
 	#COMMAND: asynchronous test
 	_A: (a, b, c) ->
 	_a: (a, b, c) ->
-	A: (a, b, c) -> aGenerate('A').bind(this) a, b, c
-	a: (a, b, c) -> aGenerate('a').bind(this) a, b, c
+	A: (a, b, c) -> MAKEa('A').bind(this) a, b, c		#URGENT: apply...
+	a: (a, b, c) -> MAKEa('a').bind(this) a, b, c
 
 	#COMMAND: asynchronous test
 	_P: (a, b, c) ->
@@ -404,24 +411,24 @@ EXPORTED = class UT extends UTBase			#@UT
 	P: (a, b, c) -> throw Error "UT005 P-tests aren't supported by ReactNative"
 	p: (a, b, c) -> throw Error "UT005 P-tests aren't supported by ReactNative"
 #else
-	P: (a, b, c) -> aGenerate('P').bind(this) a, b, c
-	p: (a, b, c) -> aGenerate('p').bind(this) a, b, c
+	P: (a, b, c) -> MAKEa('P').bind(this) a, b, c
+	p: (a, b, c) -> MAKEa('p').bind(this) a, b, c
 #endif
 
 	#COMMAND: section / to build a hierarchy of tests
 	_S: (a, b, c) ->
 	_s: (a, b, c) ->
-	S: (a, b, c) -> sectionGenerate('S').bind(this) a, b, c
-	s: (a, b, c) -> sectionGenerate('s').bind(this) a, b, c
+	S: (a, b, c) -> MAKEs('S').bind(this) a, b, c
+	s: (a, b, c) -> MAKEs('s').bind(this) a, b, c
 
 	#COMMAND: synchronous test
 	_T: (a, b, c) ->
 	_t: (a, b, c) ->
-	T: (a, b, c) -> testGenerate('T').bind(this) a, b, c
-	t: (a, b, c) -> testGenerate('t').bind(this) a, b, c
+	T: (a, b, c) -> MAKEt('T').bind(this) a, b, c
+	t: (a, b, c) -> MAKEt('t').bind(this) a, b, c
 
 	@s_runner: -> UTRunner				#WORKAROUND: so don't have to change all the individual tests
-	@UTRunner: -> UTRunner				#WORKAROUND: so don't have to change all the individual tests   #PATTERN: not sure why can't just pass UTRunner itself (instead of function returning value)
+	@UTRunner: -> UTRunner				#PATTERN: not sure why can't just pass UTRunner itself (instead of function returning value)
 	@s_ut: -> new UT_UT().run()
 #END:UT
 
@@ -431,13 +438,15 @@ EXPORTED = class UT extends UTBase			#@UT
 
 #TODO: expose these for customization
 class Test extends UTBase		#@Test #@test
-	constructor: (stuff, stuff2) ->
-		super()		# @log "Test constructor: got stuff", stuff
+	constructor: (optsOrig, optsMore) ->
+		super()
 
-		for k,v of stuff
+#		@log "Test constructor: optsOrig", optsOrig
+
+		for k,v of optsOrig
 			@[k] = v
 
-		for k,v of stuff2
+		for k,v of optsMore
 			@[k] = v
 
 		_ = @cmd + ' ' + @path			#		_ = "CN=#{@__CLASS_NAME} PATH=[#{@path}]"
@@ -446,6 +455,51 @@ class Test extends UTBase		#@Test #@test
 		@markers = ""
 		@pass = 0
 		failList_CLOSURE = @failList = []
+
+
+		#GENERALIZE #PRODUCTIONIZE
+		validOptsMap = null		#TODO #EASY #RECONCILE: already handled by validate() function... do it all here?
+		validTagsMap =
+			daemon: "daemon must be running"
+			internet: "only run test if connected to the Internet if '-tagy internet' option specified"
+			localdaemon: "HELP: local daemon must be running at: ws://localhost:4000"
+
+		if @opts
+			unless Context.IS.o @opts
+				console.log "UT006 pre-flight failure: opts must be object: #{@path}"
+				O.LOG @opts
+				return undefined
+		if @opts?.tags
+			unless Context.IS.csv @opts.tags
+				console.log "UT007 pre-flight failure: opts.tags must be CSV: #{@path}"
+				O.LOG @opts.tags
+				return undefined
+
+		@opts = @opts ? {}
+		@opts.tags = @opts.tags ? ""
+		@tags = {}
+		if @opts.tags.length
+			for k in @opts.tags.split ','
+				if k of validTagsMap
+					@tags[k] = true
+				else
+					console.log S.autoTable validTagsMap, headerMap:{key:"tag",value:"description"}
+					console.log()
+					console.log "UT009 Invalid test tag:"
+					console.log S.autoTable
+						"file:": @cname
+						"path:": @hier
+						"tag:": k
+					return undefined
+#				console.log "> tag: #{k}"
+		@optsCSV = Object.getOwnPropertyNames(@opts).filter((tag) => tag isnt "tags").sort().join ','
+		@tagsCSV = @opts.tags
+		delete @opts.tags				# remove from options since it's been promoted to top-level
+#		console.log @optsCSV
+#		console.log @tagsCSV
+#		O.LOG @opts
+#		O.LOG @tags
+#		@log()
 
 		#TODO: move to Log.coffee?
 		class @Fail extends UTBase		#@Fail	#@fail   #PATTERN
@@ -968,7 +1022,7 @@ TypeError: One of the sources for assign has an enumerable key on the prototype 
 			if @opts.exceptionMessage and !@opts.expect?
 				@opts.expect = "EXCEPTION"
 
-			cmds = ["desc","exceptionMessage","expect","hang","human","internet","key","markers","mType","mutex","onAssert","onEq","onError","onException","onTimeout","onUnfail","onUnexpectedPromise","SO", "RUNTIME_SECS", "timeout", "url", "USER_CNT"]
+			cmds = ["desc","exceptionMessage","expect","hang","markers","mType","mutex","onAssert","onEq","onError","onException","onTimeout","onUnfail","onUnexpectedPromise","SO", "RUNTIME_SECS", "tags","timeout", "url", "USER_CNT"]
 			cmds.push '_' + cmd for cmd in cmds
 
 			for k of @opts
@@ -976,7 +1030,7 @@ TypeError: One of the sources for assign has an enumerable key on the prototype 
 					@logFatal "[[#{@path}]] UT001 Unknown test option: '#{k}'", @opts
 
 			if (@opts.onTimeout or @opts.timeout) and @cmd not in ["_a","a","_A","A","_p","p","_P","P"]
-				@logFatal "[[#{@path}]] asynch opt not allowed with '#{@cmd}' cmd", @opts
+				@logFatal "[[#{@path}]] UT008 asynch opt not allowed with '#{@cmd}' cmd", @opts
 
 			if @opts.mType?
 #				@log "opts.mType=#{@opts.mType}"
@@ -991,10 +1045,10 @@ TypeError: One of the sources for assign has an enumerable key on the prototype 
 
 
 class SyncTest extends Test		#@SyncTest @sync
-	constructor: (stuff) ->
-		super stuff,
+	constructor: (optsOrig) ->
+		super optsOrig,
 			bSync: true
-			bWasException: false		#R: move to Test and get rid of altogether
+			bWasException: false		#URGENT #R: move to Test and get rid of altogether
 
 
 
@@ -1027,8 +1081,8 @@ class AsyncTest extends Test				#@AsyncTest @async
 
 
 
-	constructor: (stuff) ->
-		super stuff, bSync:false
+	constructor: (optsOrig) ->
+		super optsOrig, bSync:false
 
 
 
@@ -1122,14 +1176,16 @@ syncTestsCount = 0	#HACK
 
 class UTRunner extends UTBase		#@UTRunner @runner
 	constructor: (@argv=["",""], @opts={}, @cb=(->)) ->
-		super "I DO NOT UNDERSTAND WHY I CANNOT PASS @__CLASS_NAME HERE and I don't know why it works when I don't!!!"
+		super "I DO NOT UNDERSTAND WHY I CANNOT PASS @__CLASS_NAME and I don't know why it works when I don't!!!"
 #		log "UT CONSTRUCTOR IMPLICIT CALL: #{@WORK_AROUND_UT_CLASS_NAME_OVERRIDE} #{@constructor.name}"
 #		O.LOG @opts
 		@OPTS = @opts	#HACK
 		@OPTS.bOnline ?= true
 		@OPTS.timeout ?= 3000
 		O.propertiesCheck @OPTS, "bOnline,bSerial,decorate,mFailMode,perTestOpts,timeout,userDefined"
-		
+
+#		console.log "UT.UTRunner.constructor: WORK_AROUND_UT_CLASS_NAME_OVERRIDE=#{@WORK_AROUND_UT_CLASS_NAME_OVERRIDE}"
+#		console.log "UT.UTRunner.constructor: constructor.name=#{@constructor.name}"
 		@__CLASS_NAME = @WORK_AROUND_UT_CLASS_NAME_OVERRIDE ? @constructor.name
 
 		#INIT
@@ -1156,6 +1212,14 @@ class UTRunner extends UTBase		#@UTRunner @runner
 #TODO: make this a subroutine to be shared with deamon.coffee?
 	CLI: (a) ->
 		optionList = [
+#EASY #TODO
+###
+    -o		"g"														the actual ASCII option minus the dash
+    -n		"grep tests"											the short name (title)
+    -u		"pattern"												use to manufactor "-g pattern"
+    -d		"list tests that match grep pattern"					short sentence description
+    -s		"The g option greps the name and description..."		multi-line description
+###
 				o: "-a"
 				d: "force all tests to be run (ignore individual test overrides)"
 			,
@@ -1180,12 +1244,6 @@ class UTRunner extends UTBase		#@UTRunner @runner
 			,
 				o: "-i"
 				d: "ignore test#,test#,..."
-			,
-				o: "-kn"
-				d: "exclude key1,key2,..."
-			,
-				o: "-ky"
-				d: "include key1,key2,,..."
 			,
 				o: "-l"
 				d: "list all tests"
@@ -1213,6 +1271,12 @@ class UTRunner extends UTBase		#@UTRunner @runner
 			,
 				o: "-sync"
 				d: "only sychronous tests"
+			,
+				o: "-tagn"
+				d: "exclude tag1,tag2,... (FUTURE)"
+			,
+				o: "-tagy"
+				d: "include tag1,tag2,,... (FUTURE)"
 			,
 				o: "-tl"
 				d: "trace list"
@@ -1306,7 +1370,7 @@ node tests.js [options] test# ...
 
 OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 
-		CSV = "testIndex,cmd,path"
+		CSV = "testIndex,cmd,path,optsCSV,tagsCSV"
 		NUMBER_CSL_RE = /^\d+(,\d+)*$/
 
 		class CLIParser extends Base
@@ -1399,6 +1463,9 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 
 		if @OPTS.bSerial?
 			for test in testList
+				unless test.opts
+					console.log "xxxxx"
+					O.LOG test
 				test.opts.mutex = "same"
 			return
 
@@ -1454,7 +1521,8 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 
 		#TODO: stop all running async tests if any still running
 
-#		@log "^^^^^^^^^^^^^^^ Runner.exit: why=#{@whyList[@mWhy]}(#{@mWhy}) msg=#{msg}"
+		whyPhrase = "#{@WHY_LIST[@mWhy]}(#{@mWhy})#{if msg then " details=#{msg}" else ""}"
+#		@log "Runner.exit: #{whyPhrase}"
 #		@log @one()
 
 		@secsElapsed = Math.ceil((Date.now() - @msStart) / 1000)
@@ -1471,15 +1539,16 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 			frag: @frag = "[#{@secsElapsed}s]  pass=#{@pass} fail=#{@failList.length}"
 			mWhy: @mWhy
 			pass: @pass
-			why: @whyList[@mWhy]
+			why: @WHY_LIST[@mWhy]
+			whyPhrase: whyPhrase 
 			whyMsg: msg
 
 #		@log "report.summary", @summary
 
-		@eventFire "runner-done", {mWHy:@mWhy, msg:msg}
+		@eventFire "runner-done", {mWhy:@mWhy, msg:msg}
 
 		if @failList.length
-			@log "calling reject"
+#			@log "calling reject"
 			@reject this
 		else
 			if trace.TRACE_DURATION_REPORT and testList.length
@@ -1527,6 +1596,7 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 
 
 
+# Runner.run
 	run: ->
 		Object.defineProperties @,
 			"@who":
@@ -1540,12 +1610,13 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 			@CLI @argv.slice 2
 
 #H: runner-done can be called without runner-start
-
+#			console.log "bRunning=#{@bRunning}"
 			if @bRunning
 				@eventFire "runner-start"
 				@testsValidate()
 				@testsEnable()
 
+#				console.log "count(STATE_WAITING)=#{@count @STATE_WAITING}"
 				if @count(@STATE_WAITING) > 0
 					# now that cleanup can be async can't run all sync tests instantly because after() code contains Promise code
 	#				for testIndex,i in @selectList by -1
@@ -1562,8 +1633,7 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 					,
 						REMOVE_ME_MS
 				else
-					@frag = "no tests enabled"
-					@resolve this
+					@exit @WHY_NO_TESTS_FOUND			#H: what if tests still RUNNING? (not just waiting)
 
 
 
@@ -1657,7 +1727,7 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 			unless @OPTS.bOnline
 				@log "OFFLINE"
 				@selectList = @selectList.filter (i) =>
-					! ( testList[i-1].opts.key?.internet )
+					! ( testList[i-1].opts.tags.INTERNET )
 
 			for i in @selectList
 				testList[i-1].enable()
@@ -1720,7 +1790,6 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 
 
 
-# exceptionMessage:"",
 class UT_UT extends UT		#@UT_UT		@unittest  @ut
 	run: ->
 		@s "top", ->
