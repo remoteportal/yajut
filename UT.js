@@ -1023,7 +1023,7 @@ Test = class Test extends UTBase { //@Test #@test
   done(who) {
     syncTestsCount--;
     //		@log "DONE DONE DONE DONE DONE: Test.done: #{@one2()}"
-    Base.auditEnsureClosed();
+    Base.auditEnsureClosed("Test.done");
     //		process.exit 1
     this.auditMark("" + this.one2());
     if (this.mState !== this.STATE_RUNNING) {
@@ -2247,7 +2247,7 @@ UT_UT = class UT_UT extends UT { //@UT_UT		@unittest  @ut
       this.t("single parameter", {
         expect: "EQ,EQ",
         onEq: function(fail) {
-          return this.log("inside onEq @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+          return this.log("inside onEq");
         }
       }, function() {        //					fail.heal()
         this.eq(1, 2);

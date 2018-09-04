@@ -933,7 +933,7 @@ b> #{V.vt b}
 	done: (who) ->
 		syncTestsCount--
 #		@log "DONE DONE DONE DONE DONE: Test.done: #{@one2()}"
-		Base.auditEnsureClosed()
+		Base.auditEnsureClosed "Test.done"
 #		process.exit 1
 
 		@auditMark "" + @one2()
@@ -1905,7 +1905,7 @@ class UT_UT extends UT		#@UT_UT		@unittest  @ut
 			@t "single parameter", {
 				expect: "EQ,EQ"
 				onEq: (fail) ->
-					@log "inside onEq @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+					@log "inside onEq"
 #					fail.heal()
 			}, ->
 				@eq 1,2
