@@ -519,6 +519,7 @@ Test = class Test extends UTBase { //@Test #@test
     }).sort().join(',');
     this.tagsCSV = this.opts.tags;
     delete this.opts.tags; // remove from options since it's been promoted to top-level
+    //		@log()
     //		console.log @optsCSV
     //		console.log @tagsCSV
     //		O.LOG @opts
@@ -576,8 +577,12 @@ Test = class Test extends UTBase { //@Test #@test
       return `#${this.testIndex} ${_}`;
     };
     this.one2 = function() {
-      return `Test: #${this.testIndex} ${_}: cmd=${this.cmd} enabled=${this.bEnabled} mState=${this.mState} mStage=${this.mStage}${(this.opts.mutex ? ` mutex=${this.opts.mutex}` : "")} pf=${this.pass}/${this.failList.length}`;
+      return `Test: ${this.one()}: cmd=${this.cmd} enabled=${this.bEnabled} mState=${this.mState} mStage=${this.mStage}${(this.opts.mutex ? ` mutex=${this.opts.mutex}` : "")} pf=${this.pass}/${this.failList.length}`;
     };
+    this.one3 = function() {
+      return `${this.one2()} [${this.optsCSV}]`;
+    };
+    //		@one3 = -> "[#{@optsCSV}]"
     testList.unshift(this);
   }
 
@@ -815,11 +820,11 @@ Test = class Test extends UTBase { //@Test #@test
         msEnd: null
       };
       return new Promise((resolve) => { //NEEEDED
-        this.logg(trace.DELAY, `BEG: delay ${ms}`);
+        //				@logg trace.DELAY, "BEG: delay #{ms}"
         return setTimeout(() => {
           to.msEnd = Date.now();
           to.msActual = to.msEnd - to.msBeg;
-          this.logg(trace.DELAY_END, `END: delay ${ms} ********************************`, to);
+          //						@logg trace.DELAY_END, "END: delay #{ms} ********************************", to
           return resolve(to);
         }, ms);
       });
@@ -1110,7 +1115,7 @@ Test = class Test extends UTBase { //@Test #@test
       if (this.opts.exceptionMessage && (this.opts.expect == null)) {
         this.opts.expect = "EXCEPTION";
       }
-      cmds = ["desc", "exceptionMessage", "expect", "hang", "markers", "mType", "mutex", "onAssert", "onEq", "onError", "onException", "onTimeout", "onUnfail", "onUnexpectedPromise", "SO", "RUNTIME_SECS", "tags", "timeout", "url", "USER_CNT"];
+      cmds = "bManual,desc,exceptionMessage,expect,hang,markers,mType,mutex,onAssert,onEq,onError,onException,onTimeout,onUnfail,onUnexpectedPromise,SO,RUNTIME_SECS,tags,timeout,url,USER_CNT".split(',');
       for (j = 0, len = cmds.length; j < len; j++) {
         cmd = cmds[j];
         cmds.push('_' + cmd);
@@ -1921,15 +1926,23 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
       add = (test) => {
         return this.selectList.unshift(test.testIndex);
       };
+      
+      //			testList.forEach (test) =>
+      //				@log ">" + test.one3()
+      //				if test.opts.bManual
+      //					@log "MANUAL"
+
       // 			-a always overrides capitals (if any happen to be set)
       if (this.OPTS.testsAll) {
         testList.forEach((test) => {
-          return add(test);
+          if (!test.opts.bManual) {
+            return add(test);
+          }
         });
       } else if (this.OPTS.keystrue) {
         for (j = 0, len = testList.length; j < len; j++) {
           test = testList[j];
-          if (O.INTERSECTION(test.keys, this.OPTS.keystrue)) {
+          if (O.INTERSECTION(test.keys, this.OPTS.keystrue)) { //FUTURE
             add(test);
           }
         }
@@ -1937,14 +1950,18 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
         for (l = 0, len1 = testList.length; l < len1; l++) {
           test = testList[l];
           if (/^[aA]$/.test(test.cmd)) {
-            add(test);
+            if (!test.opts.bManual) {
+              add(test);
+            }
           }
         }
       } else if (this.OPTS.bSync) {
         for (m = 0, len2 = testList.length; m < len2; m++) {
           test = testList[m];
           if (/^[tT]$/.test(test.cmd)) {
-            add(test);
+            if (!test.opts.bManual) {
+              add(test);
+            }
           }
         }
       } else if (this.OPTS.testsInclude) {
@@ -1965,7 +1982,9 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
       if (this.selectList.length === 0) {
         // 				default scenario: no CLI #, no CLI -a, no capital overrides
         testList.forEach((test) => {
-          return add(test);
+          if (!test.opts.bManual) {
+            return add(test);
+          }
         });
       }
       if (this.OPTS.testsIgnore) {
@@ -1987,7 +2006,7 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
       if (!this.OPTS.bOnline) {
         this.log("OFFLINE");
         this.selectList = this.selectList.filter((i) => {
-          return !testList[i - 1].opts.tags.INTERNET;
+          return !testList[i - 1].tags.internet;
         });
       }
       ref2 = this.selectList;
@@ -2194,11 +2213,10 @@ UT_UT = class UT_UT extends UT { //@UT_UT		@unittest  @ut
               return this.assert(false, "Sunday");
             });
           });
-          this._t("bManual: fatal", {
-            comment: "can't test because it exits node",
+          this.t("bManual: fatal", {
+            desc: "can't test because it exits node",
             bManual: true
           }, function() {
-            //						TODO: skip if bManual is true
             this.fatal();
             return this.fatal("display me on console");
           });
@@ -2231,7 +2249,7 @@ UT_UT = class UT_UT extends UT { //@UT_UT		@unittest  @ut
           this.eq(ut.opts.timeout, 1000);
           return ut.resolve();
         });
-        return this._t("seek exception but don't get one", {
+        return this.t("seek exception but don't get one", {
           bManual: true,
           expect: "EXCEPTION",
           mType: this.NEG

@@ -496,6 +496,7 @@ class Test extends UTBase		#@Test #@test
 		@optsCSV = Object.getOwnPropertyNames(@opts).filter((tag) => tag isnt "tags").sort().join ','
 		@tagsCSV = @opts.tags
 		delete @opts.tags				# remove from options since it's been promoted to top-level
+#		@log()
 #		console.log @optsCSV
 #		console.log @tagsCSV
 #		O.LOG @opts
@@ -535,7 +536,10 @@ class Test extends UTBase		#@Test #@test
 			one: -> "Fail: #{@failTypes[@mFail]}(#{@mFail})#{if @msg then " #{@msg}" else ""}: #{@summary}"
 
 		@one = -> "##{@testIndex} #{_}"
-		@one2 = -> "Test: ##{@testIndex} #{_}: cmd=#{@cmd} enabled=#{@bEnabled} mState=#{@mState} mStage=#{@mStage}#{if @opts.mutex then " mutex=#{@opts.mutex}" else ""} pf=#{@pass}/#{@failList.length}"
+		@one2 = -> "Test: #{@one()}: cmd=#{@cmd} enabled=#{@bEnabled} mState=#{@mState} mStage=#{@mStage}#{if @opts.mutex then " mutex=#{@opts.mutex}" else ""} pf=#{@pass}/#{@failList.length}"
+			#HERE
+		@one3 = -> "#{@one2()} [#{@optsCSV}]"
+#		@one3 = -> "[#{@optsCSV}]"
 		testList.unshift this
 
 
@@ -735,12 +739,12 @@ markers: got     : #{@markers}
 				msEnd: null
 
 			new Promise (resolve) =>	#NEEEDED
-				@logg trace.DELAY, "BEG: delay #{ms}"
+#				@logg trace.DELAY, "BEG: delay #{ms}"
 
 				setTimeout =>
 						to.msEnd = Date.now()
 						to.msActual = to.msEnd - to.msBeg
-						@logg trace.DELAY_END, "END: delay #{ms} ********************************", to
+#						@logg trace.DELAY_END, "END: delay #{ms} ********************************", to
 						resolve to
 					,
 						ms
@@ -1023,7 +1027,7 @@ TypeError: One of the sources for assign has an enumerable key on the prototype 
 			if @opts.exceptionMessage and !@opts.expect?
 				@opts.expect = "EXCEPTION"
 
-			cmds = ["desc","exceptionMessage","expect","hang","markers","mType","mutex","onAssert","onEq","onError","onException","onTimeout","onUnfail","onUnexpectedPromise","SO", "RUNTIME_SECS", "tags","timeout", "url", "USER_CNT"]
+			cmds = "bManual,desc,exceptionMessage,expect,hang,markers,mType,mutex,onAssert,onEq,onError,onException,onTimeout,onUnfail,onUnexpectedPromise,SO,RUNTIME_SECS,tags,timeout,url,USER_CNT".split ','
 			cmds.push '_' + cmd for cmd in cmds
 
 			for k of @opts
@@ -1683,22 +1687,31 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 		if testList.length > 0
 			add = (test) => @selectList.unshift test.testIndex
 
+				#HERE
+#			testList.forEach (test) =>
+#				@log ">" + test.one3()
+#				if test.opts.bManual
+#					@log "MANUAL"
+
 # 			-a always overrides capitals (if any happen to be set)
 			if @OPTS.testsAll
 				testList.forEach (test) =>
-					add test
+					unless test.opts.bManual
+						add test
 			else if @OPTS.keystrue
 				for test in testList
-					if O.INTERSECTION test.keys, @OPTS.keystrue
+					if O.INTERSECTION test.keys, @OPTS.keystrue		#FUTURE
 						add test
 			else if @OPTS.bAsync
 				for test in testList
 					if /^[aA]$/.test test.cmd
-						add test
+						unless test.opts.bManual
+							add test
 			else if @OPTS.bSync
 				for test in testList
 					if /^[tT]$/.test test.cmd
-						add test
+						unless test.opts.bManual
+							add test
 			else if @OPTS.testsInclude
 				for testIndex in @OPTS.testsInclude.split ','
 					@selectList.unshift testIndex * 1			#PATTERN
@@ -1712,7 +1725,8 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 			if @selectList.length is 0
 # 				default scenario: no CLI #, no CLI -a, no capital overrides
 				testList.forEach (test) =>
-					add test
+					unless test.opts.bManual
+						add test
 
 			if @OPTS.testsIgnore
 # 				doesn't matter if default all (no capital overrides), -a, include list, or override capitals, you can always ignore specific tests
@@ -1728,7 +1742,7 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 			unless @OPTS.bOnline
 				@log "OFFLINE"
 				@selectList = @selectList.filter (i) =>
-					! ( testList[i-1].opts.tags.INTERNET )
+					! ( testList[i-1].tags.internet )
 
 			for i in @selectList
 				testList[i-1].enable()
@@ -1872,8 +1886,7 @@ class UT_UT extends UT		#@UT_UT		@unittest  @ut
 							@assert true, "Saturday"
 						@t "neg", {expect:"ASSERT", mType:@NEG}, ->
 							@assert false, "Sunday"
-					@_t "bManual: fatal", {comment:"can't test because it exits node",bManual:true}, ->
-#						TODO: skip if bManual is true
+					@t "bManual: fatal", {desc:"can't test because it exits node",bManual:true}, ->
 						@fatal()
 						@fatal "display me on console"
 					@a "promise timeout", {timeout:10, expect:"TIMEOUT", mType:@NEG}, (ut) ->
@@ -1896,7 +1909,7 @@ class UT_UT extends UT		#@UT_UT		@unittest  @ut
 #					O.LOG ut.opts
 					@eq ut.opts.timeout, 1000
 					ut.resolve()
-				@_t "seek exception but don't get one", {bManual:true, expect:"EXCEPTION", mType:@NEG}, ->
+				@t "seek exception but don't get one", {bManual:true, expect:"EXCEPTION", mType:@NEG}, ->
 					@log "hello"
 		@s "eq", ->
 			#UT: two pass
