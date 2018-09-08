@@ -144,7 +144,9 @@ TODOs
 - test info siloed--none commingled trace and logging.  even though five concurrent tests running, all the trace is separate.  Even threads of particular test are siloed.
 - perhaps put the "assertion library" tightly in it's own silo'ed area?
 - @lt in different text color
+- @lt "I'm green", color:green
 - test setup and teardown in different text color
+- ut -hi		implement a shell-type history... shows last 30 unique commands with a number... type number: 14<return>
 
 ROUNDUP:
 - https://medium.com/welldone-software/an-overview-of-javascript-testing-in-2018-f68950900bc3
