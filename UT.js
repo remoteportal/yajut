@@ -757,24 +757,26 @@ Test = class Test extends UTBase { //@Test #@test
         this.failList.length = 0;
       }
       if (this.failList.length) {
-        console.log(`${this.failList.length} RESIDUAL ERRORS:`);
+        console.log('-'.repeat(75));
+        console.log(`${this.path}: ${this.failList.length} RESIDUAL ERROR${(this.failList.length === 1 ? "" : "S")}`);
+        console.log('-'.repeat(75));
         ref12 = this.failList;
         // @FAIL @FAIL_TIMEOUT, "[[#{@path}]] TIMEOUT: ut.{resolve,reject} not called within #{ms}ms in asynch test"
         for (i = p = 0, len1 = ref12.length; p < len1; i = ++p) {
           fail = ref12[i];
-          console.log(`#${i + 1}  ${fail.one()}`);
+          console.log(`SHORT: #${i + 1}  ${fail.one()}`);
         }
         ref13 = this.failList;
         for (q = 0, len2 = ref13.length; q < len2; q++) {
           fail = ref13[q];
           console.log("----------------------------------------------");
+          console.log("LONG:");
           console.log(fail.full());
         }
       } else if (!this.pass) {
         //			@log "pass++"
         this.pass++;
       }
-      //			@log "calling @done()"
       return this.done();
     }).catch((ex) => {
       return this.logCatch("Test.after chain", ex);

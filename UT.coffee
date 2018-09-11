@@ -682,20 +682,22 @@ markers: got     : #{@markers}
 				@failList.length = 0
 
 			if @failList.length
-				console.log "#{@failList.length} RESIDUAL ERRORS:"
+				console.log '-'.repeat 75
+				console.log "#{@path}: #{@failList.length} RESIDUAL ERROR#{if @failList.length is 1 then "" else "S"}"
+				console.log '-'.repeat 75
 
 				# @FAIL @FAIL_TIMEOUT, "[[#{@path}]] TIMEOUT: ut.{resolve,reject} not called within #{ms}ms in asynch test"
 				for fail,i in @failList
-					console.log "##{i+1}  #{fail.one()}"
+					console.log "SHORT: ##{i+1}  #{fail.one()}"
 
 				for fail in @failList
 					console.log "----------------------------------------------"
+					console.log "LONG:"
 					console.log fail.full()
 			else unless @pass
 	#			@log "pass++"
 				@pass++
 
-#			@log "calling @done()"
 			@done()
 		.catch (ex) =>
 			@logCatch "Test.after chain", ex
