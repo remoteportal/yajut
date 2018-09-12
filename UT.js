@@ -92,7 +92,6 @@ GENERALIZE:
 
 TODOs
 - "COMMMAND" or "PRIMATIVE"... standardize!
-- ut() to fulfill async?
 - log EVERY run to new timestamp directory with tests ran in the directory name... store ALL data
 	- two files: currently enabled trace and ALL TRACE
 	- auto-zip at end
@@ -188,7 +187,7 @@ testList = [];
 
 //REVISIT
 log = function() {
-  return global.log.apply(this, arguments); //PATTERN	#URGENT
+  return global.log.apply(this, arguments); //PATTERN	#T
 };
 
 bag = Object.create({
@@ -383,7 +382,7 @@ EXPORTED = UT = class UT extends UTBase { //@UT
   _a(a, b, c) {}
 
   A(a, b, c) {
-    return MAKEa('A').bind(this)(a, b, c); //URGENT: apply...
+    return MAKEa('A').bind(this)(a, b, c); //REVISIT: apply...
   }
 
   a(a, b, c) {
@@ -521,12 +520,6 @@ Test = class Test extends UTBase { //@Test #@test
     }).sort().join(',');
     this.tagsCSV = this.opts.tags;
     delete this.opts.tags; // remove from options since it's been promoted to top-level
-    //		@log()
-    //		console.log @optsCSV
-    //		console.log @tagsCSV
-    //		O.LOG @opts
-    //		O.LOG @tags
-    //		@log()
     this.Fail = class Fail extends UTBase { //@Fail	#@fail   #PATTERN
       constructor(mFail1, summary1, detail1, o1) {
         super();
@@ -584,7 +577,6 @@ Test = class Test extends UTBase { //@Test #@test
     this.one3 = function() {
       return `${this.one2()} [${this.optsCSV}]`;
     };
-    //		@one3 = -> "[#{@optsCSV}]"
     testList.unshift(this);
   }
 
@@ -691,19 +683,10 @@ Test = class Test extends UTBase { //@Test #@test
         fail = ref11[i];
         //			@log "--> #{fail.one()}" #, fail
         if (_ = this.opts[mn = `on${this.failTypes[fail.mFail]}`]) {
-          //				@log "found #{mn}"
-          //					@log "-----> fail", fail
-          //				@log "ex", fail.ex
-          //				@opts = Object.assign {}, @runner.OPTS, @runner.OPTS?.perTestOpts?[@cname], @opts, {fail:fail}
-          //				@.opts = Object.assign {}, @runner.OPTS, @runner.OPTS?.perTestOpts?[@cname], @opts
           this.fail = fail;
           THAT = Object.assign({}, this, this.runner.OPTS, (ref12 = this.runner.OPTS) != null ? (ref13 = ref12.perTestOpts) != null ? ref13[this.cname] : void 0 : void 0, this.opts, {
             fail: fail // works but it's a different object
           });
-          //				@log "@opts", @opts
-          //				@log "@opts.fail", @opts.fail
-          //				_.bind(THAT) THAT		# call onHandler																# works but it's a different object
-          //				@log "calling"
           rv = _.bind(this)(this);
           if (V.type(rv) === "promise") {
             //						@log "handler returned Promise. Pushing..."
@@ -725,16 +708,13 @@ Test = class Test extends UTBase { //@Test #@test
         }
       }
       if (a.length > 0) {
-        //				@log "a.length > 0"
         return Promise.all(a).then(() => {
-          //					@log "all array resolved"
           return resolve();
         }).catch((ex) => {
-          this.logCatch("CATCH", ex);
+          this.logCatch("Promise.all", ex);
           return reject();
         });
       } else {
-        //				@log "a empty"
         return resolve();
       }
     });
@@ -742,11 +722,9 @@ Test = class Test extends UTBase { //@Test #@test
       var len1, len2, n, p, q, ref11, ref12, ref13, t;
       ref11 = this.failList;
       //			@log "handlers all done"
-      //			@log "EXPECT2"
       for (i = n = ref11.length - 1; n >= 0; i = n += -1) {
         fail = ref11[i];
         t = this.failTypes[fail.mFail];
-        //			@log t.toUpperCase()
         //			@log "--> #{fail.one()} ==> #{t}" #, fail
         if (expectMap[t.toUpperCase()]) {
           //				@log "EXPECT2: remove: i=#{i}"
@@ -774,7 +752,6 @@ Test = class Test extends UTBase { //@Test #@test
           console.log(fail.full());
         }
       } else if (!this.pass) {
-        //			@log "pass++"
         this.pass++;
       }
       return this.done();
@@ -1150,7 +1127,7 @@ SyncTest = class SyncTest extends Test { //@SyncTest @sync
   constructor(optsOrig) {
     super(optsOrig, {
       bSync: true,
-      bWasException: false //URGENT #R: move to Test and get rid of altogether
+      bWasException: false //R: move to Test and get rid of altogether
     });
   }
 
@@ -1930,7 +1907,6 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
       add = (test) => {
         return this.selectList.unshift(test.testIndex);
       };
-      
       //			testList.forEach (test) =>
       //				@log ">" + test.one3()
       //				if test.opts.bManual

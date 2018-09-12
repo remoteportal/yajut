@@ -104,7 +104,6 @@ GENERALIZE:
 
 TODOs
 - "COMMMAND" or "PRIMATIVE"... standardize!
-- ut() to fulfill async?
 - log EVERY run to new timestamp directory with tests ran in the directory name... store ALL data
 	- two files: currently enabled trace and ALL TRACE
 	- auto-zip at end
@@ -195,7 +194,7 @@ testList = []
 
 
 #REVISIT
-log = -> global.log.apply this, arguments		#PATTERN	#URGENT
+log = -> global.log.apply this, arguments		#PATTERN	#T
 
 
 
@@ -403,7 +402,7 @@ EXPORTED = class UT extends UTBase			#@UT
 	#COMMAND: asynchronous test
 	_A: (a, b, c) ->
 	_a: (a, b, c) ->
-	A: (a, b, c) -> MAKEa('A').bind(this) a, b, c		#URGENT: apply...
+	A: (a, b, c) -> MAKEa('A').bind(this) a, b, c		#REVISIT: apply...
 	a: (a, b, c) -> MAKEa('a').bind(this) a, b, c
 
 	#COMMAND: asynchronous test
@@ -498,12 +497,7 @@ class Test extends UTBase		#@Test #@test
 		@optsCSV = Object.getOwnPropertyNames(@opts).filter((tag) => tag isnt "tags").sort().join ','
 		@tagsCSV = @opts.tags
 		delete @opts.tags				# remove from options since it's been promoted to top-level
-#		@log()
-#		console.log @optsCSV
-#		console.log @tagsCSV
-#		O.LOG @opts
-#		O.LOG @tags
-#		@log()
+
 
 		#TODO: move to Log.coffee?
 		class @Fail extends UTBase		#@Fail	#@fail   #PATTERN
@@ -539,9 +533,7 @@ class Test extends UTBase		#@Test #@test
 
 		@one = -> "##{@testIndex} #{_}"
 		@one2 = -> "Test: #{@one()}: cmd=#{@cmd} enabled=#{@bEnabled} mState=#{@mState} mStage=#{@mStage}#{if @opts.mutex then " mutex=#{@opts.mutex}" else ""} pf=#{@pass}/#{@failList.length}"
-			#HERE
 		@one3 = -> "#{@one2()} [#{@optsCSV}]"
-#		@one3 = -> "[#{@optsCSV}]"
 		testList.unshift this
 
 
@@ -628,17 +620,8 @@ markers: got     : #{@markers}
 			for fail,i in @failList by -1
 	#			@log "--> #{fail.one()}" #, fail
 				if _=@opts[mn="on#{@failTypes[fail.mFail]}"]
-	#				@log "found #{mn}"
-#					@log "-----> fail", fail
-	#				@log "ex", fail.ex
-	#				@opts = Object.assign {}, @runner.OPTS, @runner.OPTS?.perTestOpts?[@cname], @opts, {fail:fail}
-	#				@.opts = Object.assign {}, @runner.OPTS, @runner.OPTS?.perTestOpts?[@cname], @opts
 					@fail = fail
 					THAT = Object.assign {}, @, @runner.OPTS, @runner.OPTS?.perTestOpts?[@cname], @opts, {fail:fail}		# works but it's a different object
-	#				@log "@opts", @opts
-	#				@log "@opts.fail", @opts.fail
-	#				_.bind(THAT) THAT		# call onHandler																# works but it's a different object
-	#				@log "calling"
 					rv = _.bind(@) @
 
 					if V.type(rv) is "promise"
@@ -656,23 +639,18 @@ markers: got     : #{@markers}
 #						@log "didn't return a promise"
 						afterHandler fail
 			if a.length > 0
-#				@log "a.length > 0"
 				Promise.all a
 				.then =>
-#					@log "all array resolved"
 					resolve()
 				.catch (ex) =>
-					@logCatch "CATCH", ex
+					@logCatch "Promise.all", ex
 					reject()
 			else
-#				@log "a empty"
 				resolve()
 		PR.then =>
 #			@log "handlers all done"
-#			@log "EXPECT2"
 			for fail,i in @failList by -1
 				t = @failTypes[fail.mFail]
-	#			@log t.toUpperCase()
 	#			@log "--> #{fail.one()} ==> #{t}" #, fail
 				if expectMap[t.toUpperCase()]
 	#				@log "EXPECT2: remove: i=#{i}"
@@ -695,7 +673,6 @@ markers: got     : #{@markers}
 					console.log "LONG:"
 					console.log fail.full()
 			else unless @pass
-	#			@log "pass++"
 				@pass++
 
 			@done()
@@ -1057,7 +1034,7 @@ class SyncTest extends Test		#@SyncTest @sync
 	constructor: (optsOrig) ->
 		super optsOrig,
 			bSync: true
-			bWasException: false		#URGENT #R: move to Test and get rid of altogether
+			bWasException: false		#R: move to Test and get rid of altogether
 
 
 
@@ -1691,7 +1668,6 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 		if testList.length > 0
 			add = (test) => @selectList.unshift test.testIndex
 
-				#HERE
 #			testList.forEach (test) =>
 #				@log ">" + test.one3()
 #				if test.opts.bManual
