@@ -697,6 +697,7 @@ markers: got     : #{@markers}
 
 			b
 		@bag = proxyBag
+		@box = (s) -> console.log Context.textFormat.format s, "red,box"
 		@context = "CONTEXT set in decorateJustObject"		#H
 		@defined = (v, msg) ->
 			_ = if msg then ": #{msg}" else ""
@@ -853,7 +854,7 @@ b> #{V.vt b}
 			console.error "fatal: #{msg}"
 			@exit @WHY_FATAL, msg
 			Util.exit msg
-
+		@h = (msg) -> console.log Context.textFormat.format msg, "blue,bold,uc"
 		#DUP: this is principal @log of unit tests
 		@log = ->
 #			console.log "trace.LT=#{trace.LT}"

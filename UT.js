@@ -778,6 +778,9 @@ Test = class Test extends UTBase { //@Test #@test
       return b;
     };
     this.bag = proxyBag;
+    this.box = function(s) {
+      return console.log(Context.textFormat.format(s, "red,box"));
+    };
     this.context = "CONTEXT set in decorateJustObject"; //H
     this.defined = function(v, msg) {
       var _, b;
@@ -926,6 +929,9 @@ Test = class Test extends UTBase { //@Test #@test
       console.error(`fatal: ${msg}`);
       this.exit(this.WHY_FATAL, msg);
       return Util.exit(msg);
+    };
+    this.h = function(msg) {
+      return console.log(Context.textFormat.format(msg, "blue,bold,uc"));
     };
     //DUP: this is principal @log of unit tests
     this.log = function() {
