@@ -34,6 +34,11 @@ yajut -s conffile			save current code-specified configuration into confifile for
 EXTENDS: Base
 
 
+TERMINOLOGY: #CHALLENGE
+    command			-lcmd		"called inside test": @eq (string equality), @log (log), @m (milestone)
+    primative		-lprim		"structure of tests": @s (section), @t (sync test), @a (asynchronous test), @p (promise-returning test)
+
+
 DESCRIPTION:
 The goal of JAJUT is to be absolutely the least-friction most-terse easiest to use JS unit test system.
 
@@ -75,6 +80,14 @@ runner-start
 test-done
 test-start
 
+
+@ASSERTION LIBRARY	@ASSERTLIB	@ALIB:		#EASY: ut -al (show assertion library) or -la (list assertions) or -lcmd (list commands)  #H:what are these ut.method and @method's called?
+    eq			a, b, msg, o				as string equal (EQ-NOT-STRICT)				pass: (new String "6") eq 6
+    Eq			a, b, msg, o				value not type (EQ-MID-STRICT)				pass: (new String "6") Eq "6"
+    EQ			a, b, msg, o				value and type (EQ-STRICT)					pass: (new String "6") EQ (new String "6")
+    EQO			a, b, msg, o				same object (EQ-SAME)						pass: o EQO o
+    eqfile_pr	a, b, msg, o				file contents (EQ-FILE)						pass: read(file) compare read(file)
+#RENAME:eqfile_pr => eqfile
 
 
 FEATURES:
@@ -558,11 +571,14 @@ class Test extends UTBase		#@Test #@test
 			@FAIL mFail, null, null, ex_s_null
 #		@log "DUMP IT ALL", @failList
 
-		if @opts.markers
+		if @opts.markers?
 			if @opts.markers isnt @markers
 				s = """
+
+-----------------------
 markers: expected: #{@opts.markers}
 markers: got     : #{@markers}
+-----------------------
 """
 				@FAIL @FAIL_MARKERS, null, null, s
 
@@ -661,7 +677,7 @@ markers: got     : #{@markers}
 
 			if @failList.length
 				console.log '-'.repeat 75
-				console.log "#{@path}: #{@failList.length} RESIDUAL ERROR#{if @failList.length is 1 then "" else "S"}"
+				console.log "#{@one()}: #{@failList.length} RESIDUAL ERROR#{if @failList.length is 1 then "" else "S"}"
 				console.log '-'.repeat 75
 
 				# @FAIL @FAIL_TIMEOUT, "[[#{@path}]] TIMEOUT: ut.{resolve,reject} not called within #{ms}ms in asynch test"
@@ -731,9 +747,13 @@ markers: got     : #{@markers}
 					,
 						ms
 		@eq = (a, b, msg, o) ->
+			#EQ-NOT-STRICT: "as string equal"	(new String "6") eq 6
+#TODO: make helper function that does the actual heavy lifting and pass in the eq, Eq, EQ, EQO, eqfile, etc.
+#H: what if object passed in... use json?  #NEXT
 #			@log "eq:BEG: a=#{a} b=#{b}"
 			if !(a?) and !(b?)
 				@log "both undefined: msg=#{msg}", o
+				@logg trace.UT_EQ, "eq pass: #{a} vs #{b}: both undefined [#{msg}]"
 				return true
 #			else unless V.type(a) is V.type(b)
 #				@log "bad types ((((((((((((((((((((((("
@@ -753,8 +773,11 @@ b> #{V.vt b}
 #{if msg then "MSG: #{msg}" else ""}
 """
 				@FAIL @FAIL_EQ, "eq #{a} vs. #{b}", "#{s}\n#{S.COMPARE_REPORT a, b}", o
+				@logg trace.UT_EQ, "eq fail: #{a} vs #{b} [#{msg}]"
 				false
 			else
+				#TODO: helper function that ALWAYS logs silently even if trace is off
+				@logg trace.UT_EQ, "eq pass: #{a} vs #{b} [#{msg}]"		#TODO: move to other eq's
 				@logSilent "inside eq: PASS: #{msg}", o
 				@logSilent V.vt a
 				@logSilent V.vt b
@@ -762,6 +785,7 @@ b> #{V.vt b}
 				@logSilent "eq: pass=#{@pass}"
 				true
 		@Eq = (a, b, msg, o) ->
+			#EQ-MID-STRICT: "value not type"	(new String "6") Eq "6"
 #			@log "Eq:BEG: a=#{a} b=#{b}"
 			if !(a?) and !(b?)
 				@log "both undefined: msg=#{msg}", o
@@ -788,6 +812,7 @@ b> #{V.vt b}
 				@logSilent "eq: pass=#{@pass}"
 				true
 		@EQ = (a, b, msg, o) ->
+			#EQ-STRICT: "value and type"	(new String "6") EQ (new String "6")
 #			@log "Eq:BEG: a=#{a} b=#{b}"
 			if !(a?) and !(b?)
 				@log "both undefined: msg=#{msg}", o
@@ -813,7 +838,31 @@ b> #{V.vt b}
 				@pass++
 				@logSilent "eq: pass=#{@pass}"
 				true
+		@EQO = (a, b, msg, o) ->
+			#EQ-SAME: "same object"	o EQO o
+			if !(a?) and !(b?)
+				@log "both undefined: msg=#{msg}", o
+			else unless a is b
+				s = "@eq values violation"
+
+			if s
+				s += """
+
+a> #{V.vt a}
+b> #{V.vt b}
+#{if msg then "MSG: #{msg}" else ""}
+"""
+				@FAIL @FAIL_EQ, "eq #{a} vs. #{b}", "#{s}\n#{V.COMPARE_REPORT a, b}", o
+				false
+			else
+				@logSilent "inside eq: PASS: #{msg}", o
+				@logSilent V.vt a
+				@logSilent V.vt b
+				@pass++
+				@logSilent "eq: pass=#{@pass}"
+				true
 		@eqfile_pr = (a, b) ->		#CONVENTION
+			#EQ-FILE-CONTENTS: "file contents"	path eqfile_pr path
 			@log "a: #{a}"
 			@log "b: #{b}"
 
@@ -830,23 +879,32 @@ b> #{V.vt b}
 		@ex = (ex) ->
 			@logCatch ex
 			@reject ex
-		@FAIL = (mFail, summary, detail, o) ->
+		@FAIL = (mFail, summary, detail, v) ->
 			throw Error "bad mFail" unless mFail
 #			console.log "\n\n\n"
 #			log "FAIL CALLED"
 
-			fail = new @Fail mFail, summary, detail, o
+			fail = new @Fail mFail, summary, detail, v
 
 			_ = "FAIL: #{if summary then "#{summary}: " else ""}fail=#{@failList.length}"
 
-			if o
-				@log _, o
+			if v
+				Context.O.DUMP v
+				if Context.IS.s v
+					if Context.IS.ml v
+						@log _
+						console.log v
+					else
+						@log "#{_}: #{v}"
+				else
+					@log _, v
 			else
 				@log _
 
 			if @runner.OPTS.mFailMode is @FM_FAILFAST
 				log fail.full()
 				@exit @WHY_FAIL_FAST, summary
+				log @one()
 				Util.abort "FM_FAILFAST: #{_}"
 
 			false
@@ -1855,11 +1913,44 @@ class UT_UT extends UT		#@UT_UT		@unittest  @ut
 					@s "b2c1", (ut) ->
 						@a "b2c1d1", (ut) ->
 							ut.resolve()
+		@a "@delay", (ut) ->
+			@delay 50
+			.then (to) =>
+				@log "timed out", to
+				ut.resolve to
+		@s "equate", ->
+			@t "single parameter", {
+				expect: "EQ,EQ"
+				onEq: (fail) ->
+					@log "inside onEq"
+#					fail.heal()
+			}, ->
+				@eq 1,2
+				@eq "only passed one parameter"
+				@eq 1,2
+			@t "differing types (loose)", {desc:"@eq is NOT strict, i.e., it checks VALUE only (string vs. integer is okay and passes"}, ->
+				@eq "5", 5
+			@t "differing types (kinda POS)", {desc:"@Eq is kinda strict, i.e., it checks VALUE only (string vs. string is okay and passes"}, ->
+				@Eq "peter", "peter"
+			@t "differing types (kinda NEG)", {expect:"EQ", desc:"@Eq is kinda strict", mType:@NEG}, ->
+				@Eq "5", 5
+			@t "differing types (strict POS)", {}, ->
+				@EQ new String("peter"), new String("peter")
+			@t "differing types (strict NEG)", {expect:"EQ", desc:"@EQ is strict!, i.e., VALUE and TYPE must agree!", mType:@NEG}, ->
+				@EQ "peter", new String "peter"
+			@t "EQO", {desc:"@EQO same object"}, ->
+				o = {a: "a"}
+				@EQO o, o, "same object"
+			@t "EQO neg", {expect:"EQ", desc:"@EQO same object", mType:@NEG}, ->
+				@EQO {a: "a"}, {a: "a"}, "different objects (with same object signatures)"
+		@s "exceptions", ->
+			@a "throw exception", {expect:"EXCEPTION", mType:@NEG}, ->
+				throw Error "this is error"
 		@s "options", ->
 			@s "general", ->
 				@t "commented out", _desc:"this is not used", ->
 			@s "specific", ->
-				@t "exceptionMessage", exceptionMessage:"Deanna is beautiful", ->
+				@t "exceptionMessage", exceptionMessage:"Deanna is beautiful",mType:@NEG, ->
 					throw Error "Deanna is beautiful"
 				@s "expect", ->
 					@s "assert", ->
@@ -1892,39 +1983,6 @@ class UT_UT extends UT		#@UT_UT		@unittest  @ut
 					ut.resolve()
 				@t "seek exception but don't get one", {bManual:true, expect:"EXCEPTION", mType:@NEG}, ->
 					@log "hello"
-		@s "eq", ->
-			#UT: two pass
-			#UT: two fail
-			#UT: third parameter description supported
-			@t "single parameter", {
-				expect: "EQ,EQ"
-				onEq: (fail) ->
-					@log "inside onEq"
-#					fail.heal()
-			}, ->
-				@eq 1,2
-				@eq "only passed one parameter"
-				@eq 1,2
-			@t "differing types (loose)", {desc:"@eq is NOT strict, i.e., it checks VALUE only (string vs. integer is okay and passes"}, ->
-				@eq "5", 5
-			@t "differing types (kinda POS)", {desc:"@Eq is kinda strict, i.e., it checks VALUE only (string vs. string is okay and passes"}, ->
-				@Eq "peter", "peter"
-			@t "differing types (kinda NEG)", {expect:"EQ", desc:"@Eq is kinda strict", mType:@NEG}, ->
-				@Eq "5", 5
-			@t "differing types (strict POS)", {}, ->
-				@EQ new String("peter"), new String("peter")
-			@t "differing types (strict NEG)", {expect:"EQ", desc:"@EQ is strict!, i.e., VALUE and TYPE must agree!", mType:@NEG}, ->
-				@EQ "peter", new String "peter"
-		@a "@delay", (ut) ->
-			@log "before"
-			@delay 50
-			.then (to) =>
-				@log "timed out", to
-				ut.resolve to
-			.catch (ex) =>
-				@log "catch"
-				@logCatch "CATCH", ex
-			@log "after"
 		@s "logging", ->
 			@t "log no arguments", ->
 				if trace.HUMAN

@@ -33,6 +33,10 @@ yajut -s conffile			save current code-specified configuration into confifile for
 
 EXTENDS: Base
 
+TERMINOLOGY: #CHALLENGE
+    command			-lcmd		"called inside test": @eq (string equality), @log (log), @m (milestone)
+    primative		-lprim		"structure of tests": @s (section), @t (sync test), @a (asynchronous test), @p (promise-returning test)
+
 DESCRIPTION:
 The goal of JAJUT is to be absolutely the least-friction most-terse easiest to use JS unit test system.
 
@@ -68,6 +72,14 @@ runner-done
 runner-start
 test-done
 test-start
+
+@ASSERTION LIBRARY	@ASSERTLIB	@ALIB:		#EASY: ut -al (show assertion library) or -la (list assertions) or -lcmd (list commands)  #H:what are these ut.method and @method's called?
+    eq			a, b, msg, o				as string equal (EQ-NOT-STRICT)				pass: (new String "6") eq 6
+    Eq			a, b, msg, o				value not type (EQ-MID-STRICT)				pass: (new String "6") Eq "6"
+    EQ			a, b, msg, o				value and type (EQ-STRICT)					pass: (new String "6") EQ (new String "6")
+    EQO			a, b, msg, o				same object (EQ-SAME)						pass: o EQO o
+    eqfile_pr	a, b, msg, o				file contents (EQ-FILE)						pass: read(file) compare read(file)
+#RENAME:eqfile_pr => eqfile
 
 FEATURES:
 - ability to add or remove flags run-over-run: +flag  /flag or something
@@ -600,9 +612,9 @@ Test = class Test extends UTBase { //@Test #@test
       this.FAIL(mFail, null, null, ex_s_null);
     }
     //		@log "DUMP IT ALL", @failList
-    if (this.opts.markers) {
+    if (this.opts.markers != null) {
       if (this.opts.markers !== this.markers) {
-        s = `markers: expected: ${this.opts.markers}\nmarkers: got     : ${this.markers}`;
+        s = `\n-----------------------\nmarkers: expected: ${this.opts.markers}\nmarkers: got     : ${this.markers}\n-----------------------`;
         this.FAIL(this.FAIL_MARKERS, null, null, s);
       }
     }
@@ -736,7 +748,7 @@ Test = class Test extends UTBase { //@Test #@test
       }
       if (this.failList.length) {
         console.log('-'.repeat(75));
-        console.log(`${this.path}: ${this.failList.length} RESIDUAL ERROR${(this.failList.length === 1 ? "" : "S")}`);
+        console.log(`${this.one()}: ${this.failList.length} RESIDUAL ERROR${(this.failList.length === 1 ? "" : "S")}`);
         console.log('-'.repeat(75));
         ref12 = this.failList;
         // @FAIL @FAIL_TIMEOUT, "[[#{@path}]] TIMEOUT: ut.{resolve,reject} not called within #{ms}ms in asynch test"
@@ -817,6 +829,7 @@ Test = class Test extends UTBase { //@Test #@test
       var s;
       if (!(a != null) && !(b != null)) {
         this.log(`both undefined: msg=${msg}`, o);
+        this.logg(trace.UT_EQ, `eq pass: ${a} vs ${b}: both undefined [${msg}]`);
         return true;
       }
       //			else unless V.type(a) is V.type(b)
@@ -830,8 +843,10 @@ Test = class Test extends UTBase { //@Test #@test
       if (s) {
         s += `\na> ${V.vt(a)}\nb> ${V.vt(b)}\n${(msg ? `MSG: ${msg}` : "")}`;
         this.FAIL(this.FAIL_EQ, `eq ${a} vs. ${b}`, `${s}\n${S.COMPARE_REPORT(a, b)}`, o);
+        this.logg(trace.UT_EQ, `eq fail: ${a} vs ${b} [${msg}]`);
         return false;
       } else {
+        this.logg(trace.UT_EQ, `eq pass: ${a} vs ${b} [${msg}]`);
         this.logSilent(`inside eq: PASS: ${msg}`, o);
         this.logSilent(V.vt(a));
         this.logSilent(V.vt(b));
@@ -886,8 +901,29 @@ Test = class Test extends UTBase { //@Test #@test
         return true;
       }
     };
+    this.EQO = function(a, b, msg, o) {
+      var s;
+      if (!(a != null) && !(b != null)) {
+        this.log(`both undefined: msg=${msg}`, o);
+      } else if (a !== b) {
+        s = "@eq values violation";
+      }
+      if (s) {
+        s += `\na> ${V.vt(a)}\nb> ${V.vt(b)}\n${(msg ? `MSG: ${msg}` : "")}`;
+        this.FAIL(this.FAIL_EQ, `eq ${a} vs. ${b}`, `${s}\n${V.COMPARE_REPORT(a, b)}`, o);
+        return false;
+      } else {
+        this.logSilent(`inside eq: PASS: ${msg}`, o);
+        this.logSilent(V.vt(a));
+        this.logSilent(V.vt(b));
+        this.pass++;
+        this.logSilent(`eq: pass=${this.pass}`);
+        return true;
+      }
+    };
     this.eqfile_pr = function(a, b) { //CONVENTION
       var size_a;
+      //EQ-FILE-CONTENTS: "file contents"	path eqfile_pr path
       this.log(`a: ${a}`);
       this.log(`b: ${b}`);
       size_a = null;
@@ -904,23 +940,34 @@ Test = class Test extends UTBase { //@Test #@test
       this.logCatch(ex);
       return this.reject(ex);
     };
-    this.FAIL = function(mFail, summary, detail, o) {
+    this.FAIL = function(mFail, summary, detail, v) {
       var _, fail;
       if (!mFail) {
         throw Error("bad mFail");
       }
       //			console.log "\n\n\n"
       //			log "FAIL CALLED"
-      fail = new this.Fail(mFail, summary, detail, o);
+      fail = new this.Fail(mFail, summary, detail, v);
       _ = `FAIL: ${(summary ? `${summary}: ` : "")}fail=${this.failList.length}`;
-      if (o) {
-        this.log(_, o);
+      if (v) {
+        Context.O.DUMP(v);
+        if (Context.IS.s(v)) {
+          if (Context.IS.ml(v)) {
+            this.log(_);
+            console.log(v);
+          } else {
+            this.log(`${_}: ${v}`);
+          }
+        } else {
+          this.log(_, v);
+        }
       } else {
         this.log(_);
       }
       if (this.runner.OPTS.mFailMode === this.FM_FAILFAST) {
         log(fail.full());
         this.exit(this.WHY_FAIL_FAST, summary);
+        log(this.one());
         Util.abort(`FM_FAILFAST: ${_}`);
       }
       return false;
@@ -2175,6 +2222,79 @@ UT_UT = class UT_UT extends UT { //@UT_UT		@unittest  @ut
         });
       });
     });
+    this.a("@delay", function(ut) {
+      return this.delay(50).then((to) => {
+        this.log("timed out", to);
+        return ut.resolve(to);
+      });
+    });
+    this.s("equate", function() {
+      this.t("single parameter", {
+        expect: "EQ,EQ",
+        onEq: function(fail) {
+          return this.log("inside onEq");
+        }
+      }, function() {        //					fail.heal()
+        this.eq(1, 2);
+        this.eq("only passed one parameter");
+        return this.eq(1, 2);
+      });
+      this.t("differing types (loose)", {
+        desc: "@eq is NOT strict, i.e., it checks VALUE only (string vs. integer is okay and passes"
+      }, function() {
+        return this.eq("5", 5);
+      });
+      this.t("differing types (kinda POS)", {
+        desc: "@Eq is kinda strict, i.e., it checks VALUE only (string vs. string is okay and passes"
+      }, function() {
+        return this.Eq("peter", "peter");
+      });
+      this.t("differing types (kinda NEG)", {
+        expect: "EQ",
+        desc: "@Eq is kinda strict",
+        mType: this.NEG
+      }, function() {
+        return this.Eq("5", 5);
+      });
+      this.t("differing types (strict POS)", {}, function() {
+        return this.EQ(new String("peter"), new String("peter"));
+      });
+      this.t("differing types (strict NEG)", {
+        expect: "EQ",
+        desc: "@EQ is strict!, i.e., VALUE and TYPE must agree!",
+        mType: this.NEG
+      }, function() {
+        return this.EQ("peter", new String("peter"));
+      });
+      this.t("EQO", {
+        desc: "@EQO same object"
+      }, function() {
+        var o;
+        o = {
+          a: "a"
+        };
+        return this.EQO(o, o, "same object");
+      });
+      return this.t("EQO neg", {
+        expect: "EQ",
+        desc: "@EQO same object",
+        mType: this.NEG
+      }, function() {
+        return this.EQO({
+          a: "a"
+        }, {
+          a: "a"
+        }, "different objects (with same object signatures)");
+      });
+    });
+    this.s("exceptions", function() {
+      return this.a("throw exception", {
+        expect: "EXCEPTION",
+        mType: this.NEG
+      }, function() {
+        throw Error("this is error");
+      });
+    });
     this.s("options", function() {
       this.s("general", function() {
         return this.t("commented out", {
@@ -2183,7 +2303,8 @@ UT_UT = class UT_UT extends UT { //@UT_UT		@unittest  @ut
       });
       return this.s("specific", function() {
         this.t("exceptionMessage", {
-          exceptionMessage: "Deanna is beautiful"
+          exceptionMessage: "Deanna is beautiful",
+          mType: this.NEG
         }, function() {
           throw Error("Deanna is beautiful");
         });
@@ -2243,59 +2364,6 @@ UT_UT = class UT_UT extends UT { //@UT_UT		@unittest  @ut
           return this.log("hello");
         });
       });
-    });
-    this.s("eq", function() {
-      //UT: two pass
-      //UT: two fail
-      //UT: third parameter description supported
-      this.t("single parameter", {
-        expect: "EQ,EQ",
-        onEq: function(fail) {
-          return this.log("inside onEq");
-        }
-      }, function() {        //					fail.heal()
-        this.eq(1, 2);
-        this.eq("only passed one parameter");
-        return this.eq(1, 2);
-      });
-      this.t("differing types (loose)", {
-        desc: "@eq is NOT strict, i.e., it checks VALUE only (string vs. integer is okay and passes"
-      }, function() {
-        return this.eq("5", 5);
-      });
-      this.t("differing types (kinda POS)", {
-        desc: "@Eq is kinda strict, i.e., it checks VALUE only (string vs. string is okay and passes"
-      }, function() {
-        return this.Eq("peter", "peter");
-      });
-      this.t("differing types (kinda NEG)", {
-        expect: "EQ",
-        desc: "@Eq is kinda strict",
-        mType: this.NEG
-      }, function() {
-        return this.Eq("5", 5);
-      });
-      this.t("differing types (strict POS)", {}, function() {
-        return this.EQ(new String("peter"), new String("peter"));
-      });
-      return this.t("differing types (strict NEG)", {
-        expect: "EQ",
-        desc: "@EQ is strict!, i.e., VALUE and TYPE must agree!",
-        mType: this.NEG
-      }, function() {
-        return this.EQ("peter", new String("peter"));
-      });
-    });
-    this.a("@delay", function(ut) {
-      this.log("before");
-      this.delay(50).then((to) => {
-        this.log("timed out", to);
-        return ut.resolve(to);
-      }).catch((ex) => {
-        this.log("catch");
-        return this.logCatch("CATCH", ex);
-      });
-      return this.log("after");
     });
     this.s("logging", function() {
       this.t("log no arguments", function() {
