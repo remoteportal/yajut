@@ -912,7 +912,9 @@ b> #{V.vt b}
 			console.error "fatal: #{msg}"
 			@exit @WHY_FATAL, msg
 			Util.exit msg
-		@h = (msg) -> console.log Context.textFormat.format msg, "blue,bold,uc"
+		@h = (msg) ->
+			if trace.LT
+				console.log Context.textFormat.format msg, "blue,bold,uc"
 		#DUP: this is principal @log of unit tests
 		@log = ->
 #			console.log "trace.LT=#{trace.LT}"
