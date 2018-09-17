@@ -171,6 +171,7 @@ TODOs
 - @lt "I'm green", color:green
 - test setup and teardown in different text color
 - ut -hi		implement a shell-type history... shows last 30 unique commands with a number... type number: 14<return>
+- on test failure, read each and every file in the test.directory and add to the log for post-mortem analysis
 
 
 
@@ -1245,7 +1246,7 @@ class UTRunner extends UTBase		#@UTRunner @runner
 		@runningCnt = 0
 		@pass = 0
 		@selectList = []
-		@thread = null
+		@runnerThread = null
 
 		#MOVE
 		Object.defineProperties @,
@@ -1570,7 +1571,7 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 		@assert @mWhy?
 		@tassert @mWhy, "number"
 
-		clearInterval @thread
+		clearInterval @runnerThread
 		@bRunning = false
 
 		#TODO: stop all running async tests if any still running
@@ -1679,7 +1680,7 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 	#						@testStart test
 
 					#HACK: utilize this timer to keep node running until all tests have completed
-					@thread = setInterval =>
+					@runnerThread = setInterval =>
 #						@log "RUNNING: #{@bRunning}"
 
 						if @bRunning

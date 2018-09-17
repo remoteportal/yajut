@@ -158,6 +158,7 @@ TODOs
 - @lt "I'm green", color:green
 - test setup and teardown in different text color
 - ut -hi		implement a shell-type history... shows last 30 unique commands with a number... type number: 14<return>
+- on test failure, read each and every file in the test.directory and add to the log for post-mortem analysis
 
 ROUNDUP:
 - https://medium.com/welldone-software/an-overview-of-javascript-testing-in-2018-f68950900bc3
@@ -1356,7 +1357,7 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
     this.runningCnt = 0;
     this.pass = 0;
     this.selectList = [];
-    this.thread = null;
+    this.runnerThread = null;
     //MOVE
     Object.defineProperties(this, {
       LT: {
@@ -1775,7 +1776,7 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
     this.mWhy = mWhy1;
     this.assert(this.mWhy != null);
     this.tassert(this.mWhy, "number");
-    clearInterval(this.thread);
+    clearInterval(this.runnerThread);
     this.bRunning = false;
     whyPhrase = `${this.WHY_LIST[this.mWhy]}(${this.mWhy})${(msg ? ` details=${msg}` : "")}`;
     //		@log "Runner.exit: #{whyPhrase}"
@@ -1896,7 +1897,7 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
           //						@testStart test
 
           //HACK: utilize this timer to keep node running until all tests have completed
-          return this.thread = setInterval(() => {
+          return this.runnerThread = setInterval(() => {
             //						@log "RUNNING: #{@bRunning}"
             if (this.bRunning) {
               return this.startAnotherMaybe();
