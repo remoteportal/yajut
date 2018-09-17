@@ -207,7 +207,7 @@ testList = []
 
 
 #REVISIT
-log = -> global.log.apply this, arguments		#PATTERN	#T
+log = -> global.log.apply this, arguments		#PATTERN
 
 
 
@@ -881,7 +881,8 @@ b> #{V.vt b}
 			@reject ex
 		@FAIL = (mFail, summary, detail, v) ->
 			throw Error "bad mFail" unless mFail
-#			console.log "\n\n\n"
+			console.log "\n\n\n"		#T #RECENT
+			console.log "X X X X X X X X X"
 #			log "FAIL CALLED"
 
 			fail = new @Fail mFail, summary, detail, v
@@ -920,7 +921,9 @@ b> #{V.vt b}
 #			console.log "trace.LT=#{trace.LT}"
 			if trace.LT
 				Util.logBase.apply this, ["#{@cname}/#{@tn}", arguments...]
-		@m = (s) => @markers += s
+		@m = (s) =>
+			@markers += s
+			console.log Context.textFormat.format "M #{s}", "blue,bold,uc"
 		MAKE = (mn, mFail) =>
 			do (mn, mFail, that=@) =>		#PATTERN #CURRYING
 #				console.log "mn=#{mn} mFail=#{mFail}"
@@ -1223,7 +1226,7 @@ syncTestsCount = 0	#HACK
 
 class UTRunner extends UTBase		#@UTRunner @runner
 	constructor: (@argv=["",""], @opts={}, @cb=(->)) ->
-		super "I DO NOT UNDERSTAND WHY I CANNOT PASS @__CLASS_NAME and I don't know why it works when I don't!!!"
+		super "I DO NOT UNDERSTAND WHY I CANNOT PASS @__CLASS_NAME and I don't know why it works when I don't!!!"	#RESEARCH
 #		log "UT CONSTRUCTOR IMPLICIT CALL: #{@WORK_AROUND_UT_CLASS_NAME_OVERRIDE} #{@constructor.name}"
 #		O.LOG @opts
 		@OPTS = @opts	#HACK
@@ -1342,12 +1345,15 @@ class UTRunner extends UTBase		#@UTRunner @runner
 		#TODO: sort
 
 		CSV2Object = (key) =>
+#			console.log "CSV2Object: global.#{key}"
+
 			if i < a.length
 				if /^[\$\.0-9a-zA-Z_]+(,[\$\.0-9a-zA-Z_]+)*$/.test (keys = a[i++])			#TODO: pass in RE as argument	#TODO: allow ANY characters
 #					@log "keys=#{keys}"
-					@OPTS[key] = _ = {}
+					global[key] = @OPTS[key] = _ = {}
 					for k in keys.split ','
 						_[k.toUpperCase()] = true
+						console.log "CSV2Object: global[#{key}][#{k.toUpperCase()}] = true"
 #					@log "CSV2Object @OPTS[#{key}]=", _
 				else
 					er "UT: #{a[i-2]}: argument isn't in correct comma-separated format: #{keys}"
@@ -1500,9 +1506,10 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 		if @OPTS.bSummary?
 			trace.summary()
 
-		if @OPTS.traceOverride?
-			trace.tristate @OPTS.traceOverride
-			trace.UT_TEST_PRE_ONE_LINER = true
+#		if @OPTS.traceOverride?
+#			console.log "calling TRISTATE"
+#			trace.tristate @OPTS.traceOverride
+#			trace.UT_TEST_PRE_ONE_LINER = true
 #		@log "CLI", @OPTS
 
 #		if @OPTS.mFailMode is @FM_FAILFAST			#POP
