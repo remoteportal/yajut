@@ -172,6 +172,7 @@ TODOs
 - test setup and teardown in different text color
 - ut -hi		implement a shell-type history... shows last 30 unique commands with a number... type number: 14<return>
 - on test failure, read each and every file in the test.directory and add to the log for post-mortem analysis
+- client/server with different trace colors
 
 
 
@@ -714,7 +715,7 @@ markers: got     : #{@markers}
 
 			b
 		@bag = proxyBag
-		@box = (s) -> console.log Context.textFormat.format s, "red,box"
+#		@box = (s) -> console.log Context.textFormat.format s, "red,box"
 		@context = "CONTEXT set in decorateJustObject"		#H
 		@defined = (v, msg) ->
 			_ = if msg then ": #{msg}" else ""
