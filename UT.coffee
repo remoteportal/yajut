@@ -883,19 +883,18 @@ b> #{V.vt b}
 			@reject ex
 		@FAIL = (mFail, summary, detail, v) ->
 			throw Error "bad mFail" unless mFail
-			console.log "\n\n\n"		#T #RECENT
-			console.log "X X X X X X X X X"
-#			log "FAIL CALLED"
+#			console.log "\n\n\nX X X X X X X X X"		#POP
 
 			fail = new @Fail mFail, summary, detail, v
 
 			_ = "FAIL: #{if summary then "#{summary}: " else ""}fail=#{@failList.length}"
 
 			if v
-				Context.O.DUMP v
+#				Context.O.DUMP v
 				if Context.IS.s v
 					if Context.IS.ml v
 						@log _
+						console.log "multi-line dump:"
 						console.log v
 					else
 						@log "#{_}: #{v}"
@@ -925,7 +924,8 @@ b> #{V.vt b}
 				Util.logBase.apply this, ["#{@cname}/#{@tn}", arguments...]
 		@m = (s) =>
 			@markers += s
-			console.log Context.textFormat.format "M #{s}", "blue,bold,uc"
+			if trace.LT
+				console.log Context.textFormat.format "M #{s}", "blue,bold,uc"
 		MAKE = (mn, mFail) =>
 			do (mn, mFail, that=@) =>		#PATTERN #CURRYING
 #				console.log "mn=#{mn} mFail=#{mFail}"

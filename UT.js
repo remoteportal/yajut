@@ -945,16 +945,15 @@ Test = class Test extends UTBase { //@Test #@test
       if (!mFail) {
         throw Error("bad mFail");
       }
-      console.log("\n\n\n"); //T 
-      console.log("X X X X X X X X X");
-      //			log "FAIL CALLED"
+      //			console.log "\n\n\nX X X X X X X X X"		#POP
       fail = new this.Fail(mFail, summary, detail, v);
       _ = `FAIL: ${(summary ? `${summary}: ` : "")}fail=${this.failList.length}`;
       if (v) {
-        Context.O.DUMP(v);
+        //				Context.O.DUMP v
         if (Context.IS.s(v)) {
           if (Context.IS.ml(v)) {
             this.log(_);
+            console.log("multi-line dump:");
             console.log(v);
           } else {
             this.log(`${_}: ${v}`);
@@ -992,7 +991,9 @@ Test = class Test extends UTBase { //@Test #@test
     };
     this.m = (s) => {
       this.markers += s;
-      return console.log(Context.textFormat.format(`M ${s}`, "blue,bold,uc"));
+      if (trace.LT) {
+        return console.log(Context.textFormat.format(`M ${s}`, "blue,bold,uc"));
+      }
     };
     MAKE = (mn, mFail) => {
       return ((mn, mFail, that) => { //PATTERN #CURRYING
