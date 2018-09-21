@@ -254,7 +254,7 @@ handler =	# "traps"
 	set: (target, pn, pv) ->
 #H: 	I don't know why this following line isn't green with -hl CLI
 		global.log "UT handler: set: #{pn}=#{pv} <#{typeof pv}>"										if trace.UT_BAG_SET
-		throw "clear is not appropriate" if pn is "clear"
+		throw Error "clear is not appropriate" if pn is "clear"
 		bag[pn] = pv
 
 
@@ -972,7 +972,7 @@ b> #{V.vt b}
 				if @[mn]
 #					console.log "@common:"
 #					O.LOG @common
-					throw "UT003 You are not allowed to define the method named '#{mn}' because it clashes with a built-in property"
+					throw Error "UT003 You are not allowed to define the method named '#{mn}' because it clashes with a built-in property"
 				@[mn] = @parent[mn]
 
 
@@ -988,7 +988,7 @@ b> #{V.vt b}
 #		process.exit 1
 
 		@auditMark "" + @one2()
-		throw "state" unless @mState is @STATE_RUNNING
+		throw Error "state" unless @mState is @STATE_RUNNING
 
 		@mState = @STATE_DONE
 		@msEnd = Date.now()
@@ -1163,17 +1163,18 @@ class AsyncTest extends Test				#@AsyncTest @async
 #				throw new Error "REALLY?  I really don't see how this could be triggered!!!"  it's not a promise... it's  TRY..CATCH... that's why!
 				return @after @FAIL_EXCEPTION, ex
 
-#			@log "returned from asynch test!"
+			@log "returned from asynch test!"
 			if @cmd.toLowerCase() is 'p'
-#				@log Context.kvt "#{@cmd}-test rv", rv
+				@log Context.kvt "#{@cmd}-test rv ******************************", rv
 				if V.type(rv) is "promise"
-#					@log "async test returned Promise"
+					@log "async test returned Promise"
 					rv.then (resolved) =>
 						clearTimeout timer
-#						@log "FOUND RESOLVED PROMISE"
+						@log "@p test resolved &&&&&&&&&&&&"
 						@after null, null
 					.catch (ex) =>
 						clearTimeout timer
+						@log "@p test rejected &&&&&&&&&&&&"
 						@after @FAIL_EXCEPTION, ex
 				else
 					clearTimeout timer
@@ -1563,7 +1564,7 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 			when "test-start"
 				@onEventTestStart primative, test, _opts
 #			else
-#				throw "UT004 EVENT NOT HANDLED: eventName=#{eventName}: Did subclass override methods pass all parameters to super.onEvent?"
+#				throw Error "UT004 EVENT NOT HANDLED: eventName=#{eventName}: Did subclass override methods pass all parameters to super.onEvent?"
 
 
 
@@ -2035,11 +2036,9 @@ class UT_UT extends UT		#@UT_UT		@unittest  @ut
 				ut.resolve()
 		@s "async return implicit Promise", ->
 			@p "resolved", ->
-				new Promise (resolve, reject) =>
-					resolve "I am good"
+				Promise.resolve "I am good"
 			@p "rejected", {expect:"EXCEPTION", mType:@NEG}, ->
-				new Promise (resolve, reject) =>
-					reject "I am bad"
+				Promise.reject "I am bad"
 			@p "non-promise", {expect:"ERROR", mType:@NEG}, ->
 				Math.pi
 		@t "trace.T", ->

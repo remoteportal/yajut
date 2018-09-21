@@ -252,7 +252,7 @@ handler = { // "traps"
       global.log(`UT handler: set: ${pn}=${pv} <${typeof pv}>`);
     }
     if (pn === "clear") {
-      throw "clear is not appropriate";
+      throw Error("clear is not appropriate");
     }
     return bag[pn] = pv;
   }
@@ -1055,7 +1055,7 @@ Test = class Test extends UTBase { //@Test #@test
         if (this[mn]) {
           //					console.log "@common:"
           //					O.LOG @common
-          throw `UT003 You are not allowed to define the method named '${mn}' because it clashes with a built-in property`;
+          throw Error(`UT003 You are not allowed to define the method named '${mn}' because it clashes with a built-in property`);
         }
         this[mn] = this.parent[mn];
       }
@@ -1071,7 +1071,7 @@ Test = class Test extends UTBase { //@Test #@test
     //		process.exit 1
     this.auditMark("" + this.one2());
     if (this.mState !== this.STATE_RUNNING) {
-      throw "state";
+      throw Error("state");
     }
     this.mState = this.STATE_DONE;
     this.msEnd = Date.now();
@@ -1257,17 +1257,18 @@ AsyncTest = (function() {
           //				throw new Error "REALLY?  I really don't see how this could be triggered!!!"  it's not a promise... it's  TRY..CATCH... that's why!
           return this.after(this.FAIL_EXCEPTION, ex);
         }
-        //			@log "returned from asynch test!"
+        this.log("returned from asynch test!");
         if (this.cmd.toLowerCase() === 'p') {
-          //				@log Context.kvt "#{@cmd}-test rv", rv
+          this.log(Context.kvt(`${this.cmd}-test rv ******************************`, rv));
           if (V.type(rv) === "promise") {
-            //					@log "async test returned Promise"
+            this.log("async test returned Promise");
             return rv.then((resolved) => {
               clearTimeout(timer);
-              //						@log "FOUND RESOLVED PROMISE"
+              this.log("@p test resolved &&&&&&&&&&&&");
               return this.after(null, null);
             }).catch((ex) => {
               clearTimeout(timer);
+              this.log("@p test rejected &&&&&&&&&&&&");
               return this.after(this.FAIL_EXCEPTION, ex);
             });
           } else {
@@ -1768,7 +1769,7 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
   }
 
   //			else
-  //				throw "UT004 EVENT NOT HANDLED: eventName=#{eventName}: Did subclass override methods pass all parameters to super.onEvent?"
+  //				throw Error "UT004 EVENT NOT HANDLED: eventName=#{eventName}: Did subclass override methods pass all parameters to super.onEvent?"
 
   //	Runner.exit
   exit(mWhy1, msg) {
@@ -2438,17 +2439,13 @@ UT_UT = class UT_UT extends UT { //@UT_UT		@unittest  @ut
     });
     this.s("async return implicit Promise", function() {
       this.p("resolved", function() {
-        return new Promise((resolve, reject) => {
-          return resolve("I am good");
-        });
+        return Promise.resolve("I am good");
       });
       this.p("rejected", {
         expect: "EXCEPTION",
         mType: this.NEG
       }, function() {
-        return new Promise((resolve, reject) => {
-          return reject("I am bad");
-        });
+        return Promise.reject("I am bad");
       });
       return this.p("non-promise", {
         expect: "ERROR",
