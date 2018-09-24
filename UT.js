@@ -1257,23 +1257,23 @@ AsyncTest = (function() {
           //				throw new Error "REALLY?  I really don't see how this could be triggered!!!"  it's not a promise... it's  TRY..CATCH... that's why!
           return this.after(this.FAIL_EXCEPTION, ex);
         }
-        this.log("returned from asynch test!");
+        //			@log "returned from asynch test!"
         if (this.cmd.toLowerCase() === 'p') {
-          this.log(Context.kvt(`${this.cmd}-test rv ******************************`, rv));
+          //				@log Context.kvt "#{@cmd}-test rv ******************************", rv
           if (V.type(rv) === "promise") {
-            this.log("async test returned Promise");
+            //					@log "async test returned Promise"
             return rv.then((resolved) => {
               clearTimeout(timer);
-              this.log("@p test resolved &&&&&&&&&&&&");
+              //						@log "@p test resolved &&&&&&&&&&&&"
               return this.after(null, null);
             }).catch((ex) => {
               clearTimeout(timer);
-              this.log("@p test rejected &&&&&&&&&&&&");
+              //						@log "@p test rejected &&&&&&&&&&&&"
               return this.after(this.FAIL_EXCEPTION, ex);
             });
           } else {
             clearTimeout(timer);
-            this.log("SHOULD HAVE BEEN PROMISE", rv);
+            //					@log "SHOULD HAVE BEEN PROMISE", rv
             return this.after(this.FAIL_ERROR, "UT004 Promise expected but not returned from P-test");
           }
         }
@@ -1555,7 +1555,7 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
           depth++;
         }
         if (!pattern || k.includes(pattern.toUpperCase())) {
-          log(`${" ".repeat(depth * 5)}${k}`);
+          console.log(`${" ".repeat(depth * 5)}${k}`);
         }
       }
       return this.exit(this.WHY_CLI);
@@ -1792,7 +1792,7 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
     }
     this.summary = {
       fail: this.failList.length,
-      frag: this.frag = `[${this.secsElapsed}s]  pass=${this.pass} fail=${this.failList.length}`,
+      frag: this.frag = `[${this.secsElapsed}s]  passHERE=${this.pass} fail=${this.failList.length}`,
       mWhy: this.mWhy,
       pass: this.pass,
       why: this.WHY_LIST[this.mWhy],
@@ -2417,6 +2417,33 @@ UT_UT = class UT_UT extends UT { //@UT_UT		@unittest  @ut
       return this.delay(1000).then(() => {
         this.log("P2: after");
         return ut.resolve();
+      });
+    });
+    //		@a "@pass", ->		#URGENT
+    //			@passSetup 1, 2, (pass, passRec) =>
+    //#				console.log "PASS: #{pass} #{@passNbr} #{@pass_resolve}"
+    //				passRec.resolve()
+    this.a("pass without explicit promise pattern", function() {
+      var _resolve, doPass, promiseCreator;
+      _resolve = null;
+      promiseCreator = () => {
+        return new Promise((resolve) => {
+          return _resolve = resolve;
+        });
+      };
+      doPass = (pass) => {
+        var pr;
+        pr = promiseCreator();
+        this.h(`PASS=${pass}`);
+        if (pass === 1) {
+          _resolve();
+        } else {
+          this.resolve();
+        }
+        return pr;
+      };
+      return doPass(1).then(() => {
+        return doPass(2);
       });
     });
     this.a("mutex1", {

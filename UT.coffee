@@ -1163,22 +1163,22 @@ class AsyncTest extends Test				#@AsyncTest @async
 #				throw new Error "REALLY?  I really don't see how this could be triggered!!!"  it's not a promise... it's  TRY..CATCH... that's why!
 				return @after @FAIL_EXCEPTION, ex
 
-			@log "returned from asynch test!"
+#			@log "returned from asynch test!"
 			if @cmd.toLowerCase() is 'p'
-				@log Context.kvt "#{@cmd}-test rv ******************************", rv
+#				@log Context.kvt "#{@cmd}-test rv ******************************", rv
 				if V.type(rv) is "promise"
-					@log "async test returned Promise"
+#					@log "async test returned Promise"
 					rv.then (resolved) =>
 						clearTimeout timer
-						@log "@p test resolved &&&&&&&&&&&&"
+#						@log "@p test resolved &&&&&&&&&&&&"
 						@after null, null
 					.catch (ex) =>
 						clearTimeout timer
-						@log "@p test rejected &&&&&&&&&&&&"
+#						@log "@p test rejected &&&&&&&&&&&&"
 						@after @FAIL_EXCEPTION, ex
 				else
 					clearTimeout timer
-					@log "SHOULD HAVE BEEN PROMISE", rv
+#					@log "SHOULD HAVE BEEN PROMISE", rv
 					@after @FAIL_ERROR, "UT004 Promise expected but not returned from P-test"
 		.then (resolved) =>
 			@logg trace.UT_RESOLVE_REJECT_VALUE, "RESOLVED:", resolved
@@ -1404,7 +1404,7 @@ class UTRunner extends UTBase		#@UTRunner @runner
 					last = k[0]
 					depth++
 				if !pattern or k.includes pattern.toUpperCase()
-					log "#{" ".repeat depth * 5}#{k}"
+					console.log "#{" ".repeat depth * 5}#{k}"
 			@exit @WHY_CLI
 
 		getKeys = (bEnable) =>		#TODO: leverage CSV2Object
@@ -1593,7 +1593,7 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 
 		@summary =
 			fail: @failList.length
-			frag: @frag = "[#{@secsElapsed}s]  pass=#{@pass} fail=#{@failList.length}"
+			frag: @frag = "[#{@secsElapsed}s]  passHERE=#{@pass} fail=#{@failList.length}"
 			mWhy: @mWhy
 			pass: @pass
 			why: @WHY_LIST[@mWhy]
@@ -2022,6 +2022,26 @@ class UT_UT extends UT		#@UT_UT		@unittest  @ut
 			.then =>
 				@log "P2: after"
 				ut.resolve()
+#		@a "@pass", ->		#URGENT
+#			@passSetup 1, 2, (pass, passRec) =>
+##				console.log "PASS: #{pass} #{@passNbr} #{@pass_resolve}"
+#				passRec.resolve()
+		@a "pass without explicit promise pattern", ->
+			_resolve = null
+			promiseCreator = =>
+				new Promise (resolve) =>
+					_resolve = resolve
+			doPass = (pass) =>
+				pr = promiseCreator()
+				@h "PASS=#{pass}"
+				if pass is 1
+					_resolve()
+				else
+					@resolve()
+				pr
+			doPass 1
+			.then =>
+				doPass 2
 		@a "mutex1", {mutex:"orange"}, (ut) ->
 			@log "M1: before"
 			@delay 1000
