@@ -274,7 +274,7 @@ UTBase = class UTBase extends Base { //@UTBase
     this.const("FAIL_TIMEOUT", 6); // onTimeout()
     this.const("FAIL_UNFAIL", 7); // onUnfail()		something was supposed to fail but didn't!
     this.const("FAIL_UNEXPECTED_PROMISE", 8); // onUnexpectedPromise
-    this.const("failTypes", [null, "Assert", "Eq", "Error", "Exception", "Markers", "Timeout", "Unfail", "UnexpectedPromise"]);
+    this.const("failTypes", [null, "Assert", "Eq", "Error", "Exception", "Markers", "Timeout", "Unfail", "Unexpected_Promise"]);
     this.const("FM_FAILFAST", 0);
     this.const("FM_FAILTEST", 1);
     this.const("FM_RUNALL", 2);
@@ -597,8 +597,9 @@ Test = class Test extends UTBase { //@Test #@test
   after(mFail, ex_s_null) {
     var EXPECT, PR, _, bFound, detail, expectMap, fail, i, j, k, kUC, l, len, m, ref, ref1, ref10, ref2, ref3, ref4, ref5, ref6, ref7, ref8, ref9, s;
     //		@log "#".repeat 60
-    //		@log "after mFail=#{mFail}: #{@one2()}" #, ex_s_null
-
+    this.log(`after mFail=${mFail}: ${this.one2() //, ex_s_null
+}`);
+    
     //H #DOMAIN: remove this from UT.coffee... onAfter()      	perhaps @env.onAfter()
     if (((ref = this.env) != null ? (ref1 = ref.server) != null ? (ref2 = ref1.deliverObj) != null ? (ref3 = ref2.config) != null ? (ref4 = ref3.deliverList) != null ? ref4.length : void 0 : void 0 : void 0 : void 0 : void 0) > 1) {
       console.log(`server: not delivered: ${this.env.server.deliverObj.config.deliverList.length}`);
@@ -606,11 +607,9 @@ Test = class Test extends UTBase { //@Test #@test
     if ((ref5 = this.env) != null ? (ref6 = ref5.server) != null ? (ref7 = ref6.deliverObj) != null ? ref7.queuedCntGet() : void 0 : void 0 : void 0) {
       console.log("AFTER: " + this.env.server.deliverObj.oneQ());
     }
-    
-    //		@log "failList.length=#{@failList.length}"
-    if (mFail === this.FAIL_ERROR || mFail === this.FAIL_EXCEPTION || mFail === this.FAIL_TIMEOUT || mFail === this.UNEXPECTED_PROMISE) {
-      //			@log "on-the-fly append mFail to failList"
-      //			@log "+ add"
+    this.log(`failList.length=${this.failList.length}`);
+    if (mFail === this.FAIL_ERROR || mFail === this.FAIL_EXCEPTION || mFail === this.FAIL_TIMEOUT || mFail === this.FAIL_UNEXPECTED_PROMISE) { //MANAGE #ADD-HERE #OTF
+      this.log("on-the-fly append mFail to failList");
       this.FAIL(mFail, null, null, ex_s_null);
     }
     //		@log "DUMP IT ALL", @failList
@@ -636,7 +635,7 @@ Test = class Test extends UTBase { //@Test #@test
     }
 //		@log "failList.length=#{@failList.length}"
     for (EXPECT in expectMap) {
-      //			@log "EXPECT=#{EXPECT}"
+      this.log(`EXPECT=${EXPECT}`);
       bFound = false;
       ref9 = this.failList;
       for (i = l = ref9.length - 1; l >= 0; i = l += -1) {
@@ -645,12 +644,12 @@ Test = class Test extends UTBase { //@Test #@test
         //, fail
 })`);
         if (this.failTypes[fail.mFail].toUpperCase() === EXPECT) {
-          //					@log "  found"
+          this.log("  found");
           bFound = true;
         }
       }
       if (!bFound) {
-        //				@log "+ add"
+        this.log("+ add");
         this.FAIL(this.FAIL_UNFAIL, `Expected ${EXPECT} but didn't find one`, null, null);
       }
     }
@@ -947,10 +946,14 @@ Test = class Test extends UTBase { //@Test #@test
       }
       //			console.log "\n\n\nX X X X X X X X X"		#POP
       fail = new this.Fail(mFail, summary, detail, v);
+      this.log(`TYPE: ${Context.TYPE(v)}`);
       _ = `FAIL: ${(summary ? `${summary}: ` : "")}fail=${this.failList.length}`;
       if (v) {
         //				Context.O.DUMP v
-        if (Context.IS.s(v)) {
+        if (typeof v === "object") {
+          //					console.log "a"
+          this.log(_, v);
+        } else {
           if (Context.IS.ml(v)) {
             this.log(_);
             console.log("multi-line dump:");
@@ -958,8 +961,6 @@ Test = class Test extends UTBase { //@Test #@test
           } else {
             this.log(`${_}: ${v}`);
           }
-        } else {
-          this.log(_, v);
         }
       } else {
         this.log(_);
@@ -1201,9 +1202,16 @@ SyncTest = class SyncTest extends Test { //@SyncTest @sync
       this.log("sync had exception");
       return this.after(this.FAIL_EXCEPTION, ex);
     }
-    if (Object.prototype.toString.call(rv) === "[object Promise]") { //NEEDTEST  make recoverable
+    this.log(`********************* ${typeof rv}`);
+    this.log(`********************* ${Context.IS.pr(rv)}`);
+    this.log(`********************* ${Context.IS.who(rv)}`);
+    this.drill(rv);
+    this.log("lloogg", rv);
+    if (Context.IS.pr(rv)) {
+      this.log("SHOULD BE HERE");
       return this.after(this.FAIL_UNEXPECTED_PROMISE, rv);
     } else {
+      this.log("no no");
       return this.after(null, null);
     }
   }
@@ -2391,7 +2399,7 @@ UT_UT = class UT_UT extends UT { //@UT_UT		@unittest  @ut
         return this.logError("this is logError");
       });
     });
-    this.t("one", function(ut) {
+    this.t("one", function() {
       this.human(this.one());
       return this.human(this.one2());
     });
@@ -2400,6 +2408,24 @@ UT_UT = class UT_UT extends UT { //@UT_UT		@unittest  @ut
     }, function(ut) {
       this.log("inside MUTEX");
       return ut.resolve();
+    });
+    this.a("mutex1", {
+      mutex: "orange"
+    }, function(ut) {
+      this.log("M1: before");
+      return this.delay(1000).then(() => {
+        this.log("M1: after");
+        return ut.resolve();
+      });
+    });
+    this.a("mutex2", {
+      mutex: "orange"
+    }, function(ut) {
+      this.log("M2: before");
+      return this.delay(1000).then(() => {
+        this.log("M2: after");
+        return ut.resolve();
+      });
     });
     this.a("parallel 1", {
       mutex: "P1"
@@ -2446,23 +2472,11 @@ UT_UT = class UT_UT extends UT { //@UT_UT		@unittest  @ut
         return doPass(2);
       });
     });
-    this.a("mutex1", {
-      mutex: "orange"
-    }, function(ut) {
-      this.log("M1: before");
-      return this.delay(1000).then(() => {
-        this.log("M1: after");
-        return ut.resolve();
-      });
-    });
-    this.a("mutex2", {
-      mutex: "orange"
-    }, function(ut) {
-      this.log("M2: before");
-      return this.delay(1000).then(() => {
-        this.log("M2: after");
-        return ut.resolve();
-      });
+    this.t("synchronous promise", {
+      expect: "UNEXPECTED_PROMISE",
+      mType: this.NEG
+    }, function() {
+      return Promise.resolve();
     });
     this.s("async return implicit Promise", function() {
       this.p("resolved", function() {

@@ -278,7 +278,7 @@ class UTBase extends Base		#@UTBase
 		@const "FAIL_TIMEOUT", 6					# onTimeout()
 		@const "FAIL_UNFAIL", 7						# onUnfail()		something was supposed to fail but didn't!
 		@const "FAIL_UNEXPECTED_PROMISE", 8			# onUnexpectedPromise
-		@const "failTypes", [null, "Assert", "Eq", "Error", "Exception", "Markers", "Timeout", "Unfail", "UnexpectedPromise"]
+		@const "failTypes", [null, "Assert", "Eq", "Error", "Exception", "Markers", "Timeout", "Unfail", "Unexpected_Promise"]
 
 		@const "FM_FAILFAST", 0
 		@const "FM_FAILTEST", 1
@@ -556,7 +556,7 @@ class Test extends UTBase		#@Test #@test
 #TODO: even sync tests should be run with timer because they could take too long!
 	after: (mFail, ex_s_null) ->
 #		@log "#".repeat 60
-#		@log "after mFail=#{mFail}: #{@one2()}" #, ex_s_null
+		@log "after mFail=#{mFail}: #{@one2()}" #, ex_s_null
 
 #H #DOMAIN: remove this from UT.coffee... onAfter()      	perhaps @env.onAfter()
 		if @env?.server?.deliverObj?.config?.deliverList?.length > 1
@@ -566,10 +566,9 @@ class Test extends UTBase		#@Test #@test
 			console.log "AFTER: " + @env.server.deliverObj.oneQ()
 			#TODO: call @FAIL
 
-#		@log "failList.length=#{@failList.length}"
-		if mFail in [@FAIL_ERROR, @FAIL_EXCEPTION, @FAIL_TIMEOUT, @UNEXPECTED_PROMISE]
-#			@log "on-the-fly append mFail to failList"
-#			@log "+ add"
+		@log "failList.length=#{@failList.length}"
+		if mFail in [@FAIL_ERROR, @FAIL_EXCEPTION, @FAIL_TIMEOUT, @FAIL_UNEXPECTED_PROMISE]		#MANAGE #ADD-HERE #OTF
+			@log "on-the-fly append mFail to failList"
 			@FAIL mFail, null, null, ex_s_null
 #		@log "DUMP IT ALL", @failList
 
@@ -596,15 +595,15 @@ markers: got     : #{@markers}
 
 #		@log "failList.length=#{@failList.length}"
 		for EXPECT of expectMap
-#			@log "EXPECT=#{EXPECT}"
+			@log "EXPECT=#{EXPECT}"
 			bFound = false
 			for fail,i in @failList by -1
 				@log "--> #{fail.one()}   (compare #{@failTypes[fail.mFail].toUpperCase()} vs #{EXPECT})" #, fail
 				if @failTypes[fail.mFail].toUpperCase() is EXPECT
-#					@log "  found"
+					@log "  found"
 					bFound = true
 			unless bFound
-#				@log "+ add"
+				@log "+ add"
 				@FAIL @FAIL_UNFAIL, "Expected #{EXPECT} but didn't find one", null, null
 
 		if @opts.exceptionMessage?
@@ -886,20 +885,22 @@ b> #{V.vt b}
 #			console.log "\n\n\nX X X X X X X X X"		#POP
 
 			fail = new @Fail mFail, summary, detail, v
+			@log "TYPE: #{Context.TYPE v}"
 
 			_ = "FAIL: #{if summary then "#{summary}: " else ""}fail=#{@failList.length}"
 
 			if v
 #				Context.O.DUMP v
-				if Context.IS.s v
+				if typeof v is "object"
+#					console.log "a"
+					@log _, v
+				else
 					if Context.IS.ml v
 						@log _
 						console.log "multi-line dump:"
 						console.log v
 					else
 						@log "#{_}: #{v}"
-				else
-					@log _, v
 			else
 				@log _
 
@@ -1114,9 +1115,16 @@ class SyncTest extends Test		#@SyncTest @sync
 			@log "sync had exception"
 			return @after @FAIL_EXCEPTION, ex
 
-		if Object::toString.call(rv) is "[object Promise]"		#NEEDTEST  make recoverable
+		@log "********************* #{typeof rv}"
+		@log "********************* #{Context.IS.pr rv}"
+		@log "********************* #{Context.IS.who rv}"
+		@drill rv
+		@log "lloogg", rv
+		if Context.IS.pr rv
+			@log "SHOULD BE HERE"
 			@after @FAIL_UNEXPECTED_PROMISE, rv
 		else
+			@log "no no"
 			@after null, null
 #END:SyncBase
 
@@ -1940,23 +1948,23 @@ class UT_UT extends UT		#@UT_UT		@unittest  @ut
 				@eq 1,2
 				@eq "only passed one parameter"
 				@eq 1,2
-			@t "differing types (loose)", {desc:"@eq is NOT strict, i.e., it checks VALUE only (string vs. integer is okay and passes"}, ->
+			@t "differing types (loose)", desc:"@eq is NOT strict, i.e., it checks VALUE only (string vs. integer is okay and passes", ->
 				@eq "5", 5
-			@t "differing types (kinda POS)", {desc:"@Eq is kinda strict, i.e., it checks VALUE only (string vs. string is okay and passes"}, ->
+			@t "differing types (kinda POS)", desc:"@Eq is kinda strict, i.e., it checks VALUE only (string vs. string is okay and passes", ->
 				@Eq "peter", "peter"
-			@t "differing types (kinda NEG)", {expect:"EQ", desc:"@Eq is kinda strict", mType:@NEG}, ->
+			@t "differing types (kinda NEG)", expect:"EQ", desc:"@Eq is kinda strict", mType:@NEG, ->
 				@Eq "5", 5
 			@t "differing types (strict POS)", {}, ->
 				@EQ new String("peter"), new String("peter")
-			@t "differing types (strict NEG)", {expect:"EQ", desc:"@EQ is strict!, i.e., VALUE and TYPE must agree!", mType:@NEG}, ->
+			@t "differing types (strict NEG)", expect:"EQ", desc:"@EQ is strict!, i.e., VALUE and TYPE must agree!", mType:@NEG, ->
 				@EQ "peter", new String "peter"
-			@t "EQO", {desc:"@EQO same object"}, ->
+			@t "EQO", desc:"@EQO same object", ->
 				o = {a: "a"}
 				@EQO o, o, "same object"
-			@t "EQO neg", {expect:"EQ", desc:"@EQO same object", mType:@NEG}, ->
+			@t "EQO neg", expect:"EQ", desc:"@EQO same object", mType:@NEG, ->
 				@EQO {a: "a"}, {a: "a"}, "different objects (with same object signatures)"
 		@s "exceptions", ->
-			@a "throw exception", {expect:"EXCEPTION", mType:@NEG}, ->
+			@a "throw exception", expect:"EXCEPTION", mType:@NEG, ->
 				throw Error "this is error"
 		@s "options", ->
 			@s "general", ->
@@ -2000,23 +2008,35 @@ class UT_UT extends UT		#@UT_UT		@unittest  @ut
 				if trace.HUMAN
 					@["log"]()
 					@["log"]()
-			@t "logCatch", {expect:"EXCEPTION"}, ->
+			@t "logCatch", expect:"EXCEPTION", ->
 				@logCatch "this is logCatch"
-			@t "logError", {expect:"ERROR"}, ->
+			@t "logError", expect:"ERROR", ->
 				@logError "this is logError"
-		@t "one", (ut) ->
+		@t "one", ->
 			@human @one()
 			@human @one2()
-		@a "mutex", {mutex:"J"}, (ut) ->
+		@a "mutex", mutex:"J", (ut) ->
 			@log "inside MUTEX"
 			ut.resolve()
-		@a "parallel 1", {mutex:"P1"}, (ut) ->
+		@a "mutex1", mutex:"orange", (ut) ->
+			@log "M1: before"
+			@delay 1000
+			.then =>
+				@log "M1: after"
+				ut.resolve()
+		@a "mutex2", mutex:"orange", (ut) ->
+			@log "M2: before"
+			@delay 1000
+			.then =>
+				@log "M2: after"
+				ut.resolve()
+		@a "parallel 1", mutex:"P1", (ut) ->
 			@log "P1: before"
 			@delay 1000
 			.then =>
 				@log "P1: after"
 				ut.resolve()
-		@a "parallel 2", {mutex:"P2"}, (ut) ->
+		@a "parallel 2", mutex:"P2", (ut) ->
 			@log "P2: before"
 			@delay 1000
 			.then =>
@@ -2042,24 +2062,14 @@ class UT_UT extends UT		#@UT_UT		@unittest  @ut
 			doPass 1
 			.then =>
 				doPass 2
-		@a "mutex1", {mutex:"orange"}, (ut) ->
-			@log "M1: before"
-			@delay 1000
-			.then =>
-				@log "M1: after"
-				ut.resolve()
-		@a "mutex2", {mutex:"orange"}, (ut) ->
-			@log "M2: before"
-			@delay 1000
-			.then =>
-				@log "M2: after"
-				ut.resolve()
+		@t "synchronous promise", expect:"UNEXPECTED_PROMISE", mType:@NEG, ->
+			Promise.resolve()
 		@s "async return implicit Promise", ->
 			@p "resolved", ->
 				Promise.resolve "I am good"
-			@p "rejected", {expect:"EXCEPTION", mType:@NEG}, ->
+			@p "rejected", expect:"EXCEPTION", mType:@NEG, ->
 				Promise.reject "I am bad"
-			@p "non-promise", {expect:"ERROR", mType:@NEG}, ->
+			@p "non-promise", expect:"ERROR", mType:@NEG, ->
 				Math.pi
 		@t "trace.T", ->
 			keep = @runner.LT
