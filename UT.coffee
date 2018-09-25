@@ -201,6 +201,8 @@ KNOWN BUGS:
 #import V
 
 
+IS = Context.IS
+
 
 #EASY #TODO: minimize these global variables
 path = ''
@@ -483,12 +485,12 @@ class Test extends UTBase		#@Test #@test
 			localdaemon: "HELP: local daemon must be running at: ws://localhost:4000"
 
 		if @opts
-			unless Context.IS.o @opts
+			unless IS.o @opts
 				console.log "UT006 pre-flight failure: opts must be object: #{@path}"
 				O.LOG @opts
 				return undefined
 		if @opts?.tags
-			unless Context.IS.csv @opts.tags
+			unless IS.csv @opts.tags
 				console.log "UT007 pre-flight failure: opts.tags must be CSV: #{@path}"
 				O.LOG @opts.tags
 				return undefined
@@ -888,7 +890,7 @@ b> #{V.vt b}
 			fail = new @Fail mFail, summary, detail, v
 #			@log "TYPE: #{Context.TYPE v}"
 
-			_ = "FAIL: #{if summary then "#{summary}: " else ""}fail=#{@failList.length}"
+			_ = "FAIL: #{if summary then "#{summary}: " else ""}fail666=#{@failList.length}"
 
 			if v
 #				Context.O.DUMP v
@@ -896,7 +898,7 @@ b> #{V.vt b}
 #					console.log "a"
 					@log _, v
 				else
-					if Context.IS.ml v
+					if IS.ml v
 						@log _
 						console.log "multi-line dump:"
 						console.log v
@@ -1117,11 +1119,11 @@ class SyncTest extends Test		#@SyncTest @sync
 			return @after @FAIL_EXCEPTION, ex
 
 #		@log "********************* #{typeof rv}"
-#		@log "********************* #{Context.IS.pr rv}"
-#		@log "********************* #{Context.IS.who rv}"
+#		@log "********************* #{IS.pr rv}"
+#		@log "********************* #{IS.who rv}"
 #		@drill rv
 #		@log "lloogg", rv
-		if Context.IS.pr rv
+		if IS.pr rv
 			@after @FAIL_UNEXPECTED_PROMISE, rv
 		else
 			@after null, null
@@ -1165,15 +1167,16 @@ class AsyncTest extends Test				#@AsyncTest @async
 			try
 				rv = @fnTest @			# ASYNC
 			catch ex
+				console.log "catch: asynch test"
 				clearTimeout timer
 				#YES_CODE_PATH: I've seen this but sure why... you'd think that "catch" would be run instead
 #				throw new Error "REALLY?  I really don't see how this could be triggered!!!"  it's not a promise... it's  TRY..CATCH... that's why!
 				return @after @FAIL_EXCEPTION, ex
 
-#			@log "returned from asynch test!"
+			@log "returned from asynch test! #{Context.kvt "rv", rv}"
 			if @cmd.toLowerCase() is 'p'
 #				@log Context.kvt "#{@cmd}-test rv ******************************", rv
-				if V.type(rv) is "promise"
+				if V.type(rv) is "promise"		#TRY: IS.pr(rv)
 #					@log "async test returned Promise"
 					rv.then (resolved) =>
 						clearTimeout timer
@@ -1187,6 +1190,21 @@ class AsyncTest extends Test				#@AsyncTest @async
 					clearTimeout timer
 #					@log "SHOULD HAVE BEEN PROMISE", rv
 					@after @FAIL_ERROR, "UT004 Promise expected but not returned from P-test"
+			else
+				#RECENT #RECENT #RECENT #RECENT #RECENT #RECENT #RECENT #RECENT: #WTF: how come never hit this before?  Maybe because a-test doesn't call @reject or @env.catch, etc.!!!
+				if IS.pr rv
+					@log "got back promise.  Should use @p instead of @a maybe?"
+					rv.then (v) =>
+						@log "@a returned promise. WHAT DO HERE? resolved value=", v
+					.catch (ex) =>
+#						@logCatch "@a returned promise. WHAT DO HERE? rejected value=", ex
+
+						#TRY:
+						clearTimeout timer
+						@after @FAIL_EXCEPTION, ex
+				else
+					@log "non-promise return value from @a.  rv=", rv
+					@logSilent "non-promise return value from @a.  rv=", rv
 		.then (resolved) =>
 			@logg trace.UT_RESOLVE_REJECT_VALUE, "RESOLVED:", resolved
 			clearTimeout timer
@@ -1600,7 +1618,7 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 
 		@summary =
 			fail: @failList.length
-			frag: @frag = "[#{@secsElapsed}s]  passHERE=#{@pass} fail=#{@failList.length}"
+			frag: @frag = "[#{@secsElapsed}s]  passHERE=#{@pass} fail555=#{@failList.length}"
 			mWhy: @mWhy
 			pass: @pass
 			why: @WHY_LIST[@mWhy]
@@ -2048,10 +2066,10 @@ class UT_UT extends UT		#@UT_UT		@unittest  @ut
 			.then =>
 				@log "P2: after"
 				ut.resolve()
-#		@a "@pass", ->		#URGENT
-#			@passSetup 1, 2, (pass, passRec) =>
-##				console.log "PASS: #{pass} #{@passNbr} #{@pass_resolve}"
-#				passRec.resolve()
+		@p "@pass", ->
+			@passSetup 1, 2, (pass, passRec) =>
+#				console.log "PASS: #{pass} #{@passNbr} #{@pass_resolve}"
+				passRec.resolve()
 		@a "pass without explicit promise pattern", ->
 			_resolve = null
 			promiseCreator = =>
