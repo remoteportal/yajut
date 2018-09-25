@@ -173,6 +173,7 @@ TODOs
 - ut -hi		implement a shell-type history... shows last 30 unique commands with a number... type number: 14<return>
 - on test failure, read each and every file in the test.directory and add to the log for post-mortem analysis
 - client/server with different trace colors
+- track which tests seem to fail occasionally ("which dones are transient failures"); track by name and desc (NOT number)
 
 
 
@@ -885,7 +886,7 @@ b> #{V.vt b}
 #			console.log "\n\n\nX X X X X X X X X"		#POP
 
 			fail = new @Fail mFail, summary, detail, v
-			@log "TYPE: #{Context.TYPE v}"
+#			@log "TYPE: #{Context.TYPE v}"
 
 			_ = "FAIL: #{if summary then "#{summary}: " else ""}fail=#{@failList.length}"
 
@@ -1115,16 +1116,14 @@ class SyncTest extends Test		#@SyncTest @sync
 			@log "sync had exception"
 			return @after @FAIL_EXCEPTION, ex
 
-		@log "********************* #{typeof rv}"
-		@log "********************* #{Context.IS.pr rv}"
-		@log "********************* #{Context.IS.who rv}"
-		@drill rv
-		@log "lloogg", rv
+#		@log "********************* #{typeof rv}"
+#		@log "********************* #{Context.IS.pr rv}"
+#		@log "********************* #{Context.IS.who rv}"
+#		@drill rv
+#		@log "lloogg", rv
 		if Context.IS.pr rv
-			@log "SHOULD BE HERE"
 			@after @FAIL_UNEXPECTED_PROMISE, rv
 		else
-			@log "no no"
 			@after null, null
 #END:SyncBase
 
@@ -1866,6 +1865,13 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 
 class UT_UT extends UT		#@UT_UT		@unittest  @ut
 	run: ->
+		@s "async return implicit Promise", ->
+			@p "resolved", ->
+				Promise.resolve "I am good"
+			@p "rejected", expect:"EXCEPTION", mType:@NEG, ->
+				Promise.reject "I am bad"
+			@p "non-promise", expect:"ERROR", mType:@NEG, ->		#TODO: this is not an ERROR, it's a UT unit test problem, no?
+				Math.pi
 		@s "top", ->
 			@t "test1", ->
 			@t "test2", ->
@@ -1909,17 +1915,17 @@ class UT_UT extends UT		#@UT_UT		@unittest  @ut
 #				@logError "section logError"
 #				@logCatch "section logCatch"
 
-				@s "b1", (ut) ->
-					@t "b1c1", (ut) ->
+				@s "b1", ->
+					@t "b1c1", ->
 #						@log "test log"
 #						@logError "test logError"
 #						@logCatch "test logCatch"
-					@t "b1c2", (ut) ->
-				@s "b2", (ut) ->
-					@s "b2c1", (ut) ->
-						@t "b2c1d1", (ut) ->
-		@s "async nesting test", (ut) ->
-			@s "a", (ut) ->
+					@t "b1c2", ->
+				@s "b2", ->
+					@s "b2c1", ->
+						@t "b2c1d1", ->
+		@s "async nesting test", ->
+			@s "a", ->
 				@s "b1", (ut) ->
 					@a "b1c1", (ut) ->
 						setTimeout (=> ut.resolve()), 10
@@ -1927,17 +1933,17 @@ class UT_UT extends UT		#@UT_UT		@unittest  @ut
 					#						@log "asynch log"
 					#						@logError "asynch logError"
 					#						@logCatch "asynch logCatch"
-					@a "b1c2", (ut) ->
-						ut.resolve()
-				@s "b2", (ut) ->
-					@s "b2c1", (ut) ->
-						@a "b2c1d1", (ut) ->
-							ut.resolve()
-		@a "@delay", (ut) ->
+					@a "b1c2", ->
+						@resolve()
+				@s "b2", ->
+					@s "b2c1", ->
+						@a "b2c1d1", ->
+							@resolve()
+		@a "@delay", ->
 			@delay 50
 			.then (to) =>
 				@log "timed out", to
-				ut.resolve to
+				@resolve to
 		@s "equate", ->
 			@t "single parameter", {
 				expect: "EQ,EQ"
@@ -1981,7 +1987,7 @@ class UT_UT extends UT		#@UT_UT		@unittest  @ut
 					@t "bManual: fatal", {desc:"can't test because it exits node",bManual:true}, ->
 						@fatal()
 						@fatal "display me on console"
-					@a "promise timeout", {timeout:10, expect:"TIMEOUT", mType:@NEG}, (ut) ->
+					@a "promise timeout", {timeout:10, expect:"TIMEOUT", mType:@NEG}, ->
 #						DO NOT CALL ut.resolve()
 				@a "onTimeout", {
 						timeout:10
@@ -1994,9 +2000,9 @@ class UT_UT extends UT		#@UT_UT		@unittest  @ut
 							@log "fail", ut.fail
 							@log "onTimeout called: #{ut.opts.timeout}=#{@opts.timeout}"
 							ut.fail.heal()
-					}, (ut) ->
-						@log "do not call ut.resolve to force timeout"
-				@a "timeout", {timeout:1000}, (ut) ->
+					}, ->
+						@log "do not call resolve in order to force timeout"
+				@a "timeout", timeout:1000, (ut) ->
 #					@log "opts parameter"
 #					O.LOG ut.opts
 					@eq ut.opts.timeout, 1000
@@ -2064,13 +2070,6 @@ class UT_UT extends UT		#@UT_UT		@unittest  @ut
 				doPass 2
 		@t "synchronous promise", expect:"UNEXPECTED_PROMISE", mType:@NEG, ->
 			Promise.resolve()
-		@s "async return implicit Promise", ->
-			@p "resolved", ->
-				Promise.resolve "I am good"
-			@p "rejected", expect:"EXCEPTION", mType:@NEG, ->
-				Promise.reject "I am bad"
-			@p "non-promise", expect:"ERROR", mType:@NEG, ->
-				Math.pi
 		@t "trace.T", ->
 			keep = @runner.LT
 			@runner.LT = 55

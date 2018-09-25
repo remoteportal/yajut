@@ -160,6 +160,7 @@ TODOs
 - ut -hi		implement a shell-type history... shows last 30 unique commands with a number... type number: 14<return>
 - on test failure, read each and every file in the test.directory and add to the log for post-mortem analysis
 - client/server with different trace colors
+- track which tests seem to fail occasionally ("which dones are transient failures"); track by name and desc (NOT number)
 
 ROUNDUP:
 - https://medium.com/welldone-software/an-overview-of-javascript-testing-in-2018-f68950900bc3
@@ -946,7 +947,7 @@ Test = class Test extends UTBase { //@Test #@test
       }
       //			console.log "\n\n\nX X X X X X X X X"		#POP
       fail = new this.Fail(mFail, summary, detail, v);
-      this.log(`TYPE: ${Context.TYPE(v)}`);
+      //			@log "TYPE: #{Context.TYPE v}"
       _ = `FAIL: ${(summary ? `${summary}: ` : "")}fail=${this.failList.length}`;
       if (v) {
         //				Context.O.DUMP v
@@ -1202,16 +1203,14 @@ SyncTest = class SyncTest extends Test { //@SyncTest @sync
       this.log("sync had exception");
       return this.after(this.FAIL_EXCEPTION, ex);
     }
-    this.log(`********************* ${typeof rv}`);
-    this.log(`********************* ${Context.IS.pr(rv)}`);
-    this.log(`********************* ${Context.IS.who(rv)}`);
-    this.drill(rv);
-    this.log("lloogg", rv);
+    //		@log "********************* #{typeof rv}"
+    //		@log "********************* #{Context.IS.pr rv}"
+    //		@log "********************* #{Context.IS.who rv}"
+    //		@drill rv
+    //		@log "lloogg", rv
     if (Context.IS.pr(rv)) {
-      this.log("SHOULD BE HERE");
       return this.after(this.FAIL_UNEXPECTED_PROMISE, rv);
     } else {
-      this.log("no no");
       return this.after(null, null);
     }
   }
@@ -2146,6 +2145,23 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
 //END:UTRunner
 UT_UT = class UT_UT extends UT { //@UT_UT		@unittest  @ut
   run() {
+    this.s("async return implicit Promise", function() {
+      this.p("resolved", function() {
+        return Promise.resolve("I am good");
+      });
+      this.p("rejected", {
+        expect: "EXCEPTION",
+        mType: this.NEG
+      }, function() {
+        return Promise.reject("I am bad");
+      });
+      return this.p("non-promise", {
+        expect: "ERROR",
+        mType: this.NEG
+      }, function() {
+        return Math.pi;
+      });
+    });
     this.s("top", function() {
       this.t("test1", function() {});
       return this.t("test2", function() {});
@@ -2199,22 +2215,22 @@ UT_UT = class UT_UT extends UT { //@UT_UT		@unittest  @ut
         //				@log "section log"
         //				@logError "section logError"
         //				@logCatch "section logCatch"
-        this.s("b1", function(ut) {
-          this.t("b1c1", function(ut) {});
+        this.s("b1", function() {
+          this.t("b1c1", function() {});
           //						@log "test log"
           //						@logError "test logError"
           //						@logCatch "test logCatch"
-          return this.t("b1c2", function(ut) {});
+          return this.t("b1c2", function() {});
         });
-        return this.s("b2", function(ut) {
-          return this.s("b2c1", function(ut) {
-            return this.t("b2c1d1", function(ut) {});
+        return this.s("b2", function() {
+          return this.s("b2c1", function() {
+            return this.t("b2c1d1", function() {});
           });
         });
       });
     });
-    this.s("async nesting test", function(ut) {
-      return this.s("a", function(ut) {
+    this.s("async nesting test", function() {
+      return this.s("a", function() {
         this.s("b1", function(ut) {
           this.a("b1c1", function(ut) {
             return setTimeout((() => {
@@ -2225,23 +2241,23 @@ UT_UT = class UT_UT extends UT { //@UT_UT		@unittest  @ut
           //						@log "asynch log"
           //						@logError "asynch logError"
           //						@logCatch "asynch logCatch"
-          return this.a("b1c2", function(ut) {
-            return ut.resolve();
+          return this.a("b1c2", function() {
+            return this.resolve();
           });
         });
-        return this.s("b2", function(ut) {
-          return this.s("b2c1", function(ut) {
-            return this.a("b2c1d1", function(ut) {
-              return ut.resolve();
+        return this.s("b2", function() {
+          return this.s("b2c1", function() {
+            return this.a("b2c1d1", function() {
+              return this.resolve();
             });
           });
         });
       });
     });
-    this.a("@delay", function(ut) {
+    this.a("@delay", function() {
       return this.delay(50).then((to) => {
         this.log("timed out", to);
-        return ut.resolve(to);
+        return this.resolve(to);
       });
     });
     this.s("equate", function() {
@@ -2347,7 +2363,7 @@ UT_UT = class UT_UT extends UT { //@UT_UT		@unittest  @ut
             timeout: 10,
             expect: "TIMEOUT",
             mType: this.NEG
-          }, function(ut) {});
+          }, function() {});
         });
         //						DO NOT CALL ut.resolve()
         this.a("onTimeout", {
@@ -2361,8 +2377,8 @@ UT_UT = class UT_UT extends UT { //@UT_UT		@unittest  @ut
             this.log(`onTimeout called: ${ut.opts.timeout}=${this.opts.timeout}`);
             return ut.fail.heal();
           }
-        }, function(ut) {
-          return this.log("do not call ut.resolve to force timeout");
+        }, function() {
+          return this.log("do not call resolve in order to force timeout");
         });
         this.a("timeout", {
           timeout: 1000
@@ -2477,23 +2493,6 @@ UT_UT = class UT_UT extends UT { //@UT_UT		@unittest  @ut
       mType: this.NEG
     }, function() {
       return Promise.resolve();
-    });
-    this.s("async return implicit Promise", function() {
-      this.p("resolved", function() {
-        return Promise.resolve("I am good");
-      });
-      this.p("rejected", {
-        expect: "EXCEPTION",
-        mType: this.NEG
-      }, function() {
-        return Promise.reject("I am bad");
-      });
-      return this.p("non-promise", {
-        expect: "ERROR",
-        mType: this.NEG
-      }, function() {
-        return Math.pi;
-      });
     });
     return this.t("trace.T", function() {
       var keep;
