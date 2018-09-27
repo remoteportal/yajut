@@ -603,7 +603,7 @@ markers: got     : #{@markers}
 			for fail,i in @failList by -1
 				@log "--> #{fail.one()}   (compare #{@failTypes[fail.mFail].toUpperCase()} vs #{EXPECT})" #, fail
 				if @failTypes[fail.mFail].toUpperCase() is EXPECT
-					@log "  found"
+					@log "  EXPECT found... so don't call @FAIL"
 					bFound = true
 			unless bFound
 				@log "+ add"
@@ -708,7 +708,7 @@ markers: got     : #{@markers}
 		@assert = (b, msg) ->
 			_ = if msg then ": #{msg}" else ""
 
-			@logSilent "assert: b=#{b}#{_}"
+			@logSilent "UT.docorate.assert: b=#{b}#{_}"
 
 			if b
 				@pass++
@@ -1204,6 +1204,14 @@ class AsyncTest extends Test				#@AsyncTest @async
 						@after @FAIL_EXCEPTION, ex
 				else
 					@log "non-promise return value from @a.  rv=", rv
+					@log "type=#{typeof rv}"
+					@log "who=#{Context.IS.who rv}"
+#__12   [UTScreenUT/register] non-promise return value from @a.  rv=
+#__13  >   (Promise) -> Promise (4)
+#__14  >           ∟ _40: 0
+#__15  >           ∟ _55: NULL
+#__16  >           ∟ _65: 0
+#__17  >           ∟ _72: NULL
 					@logSilent "non-promise return value from @a.  rv=", rv
 		.then (resolved) =>
 			@logg trace.UT_RESOLVE_REJECT_VALUE, "RESOLVED:", resolved

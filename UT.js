@@ -647,7 +647,7 @@ Test = class Test extends UTBase { //@Test #@test
         //, fail
 })`);
         if (this.failTypes[fail.mFail].toUpperCase() === EXPECT) {
-          this.log("  found");
+          this.log("  EXPECT found... so don't call @FAIL");
           bFound = true;
         }
       }
@@ -785,7 +785,7 @@ Test = class Test extends UTBase { //@Test #@test
     this.assert = function(b, msg) {
       var _;
       _ = msg ? `: ${msg}` : "";
-      this.logSilent(`assert: b=${b}${_}`);
+      this.logSilent(`UT.docorate.assert: b=${b}${_}`);
       if (b) {
         this.pass++;
       } else {
@@ -1300,6 +1300,14 @@ AsyncTest = (function() {
             });
           } else {
             this.log("non-promise return value from @a.  rv=", rv);
+            this.log(`type=${typeof rv}`);
+            this.log(`who=${Context.IS.who(rv)}`);
+            //__12   [UTScreenUT/register] non-promise return value from @a.  rv=
+            //__13  >   (Promise) -> Promise (4)
+            //__14  >           ∟ _40: 0
+            //__15  >           ∟ _55: NULL
+            //__16  >           ∟ _65: 0
+            //__17  >           ∟ _72: NULL
             return this.logSilent("non-promise return value from @a.  rv=", rv);
           }
         }
