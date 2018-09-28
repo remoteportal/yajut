@@ -600,9 +600,8 @@ Test = class Test extends UTBase { //@Test #@test
   after(mFail, ex_s_null) {
     var EXPECT, PR, _, bFound, detail, expectMap, fail, i, j, k, kUC, l, len, m, ref, ref1, ref10, ref2, ref3, ref4, ref5, ref6, ref7, ref8, ref9, s;
     //		@log "#".repeat 60
-    this.log(`after mFail=${mFail}: ${this.one2() //, ex_s_null
-}`);
-    
+    //		@log "after: mFail=#{mFail}: #{@one2()}" #, ex_s_null
+
     //H #DOMAIN: remove this from UT.coffee... onAfter()      	perhaps @env.onAfter()
     if (((ref = this.env) != null ? (ref1 = ref.server) != null ? (ref2 = ref1.deliverObj) != null ? (ref3 = ref2.config) != null ? (ref4 = ref3.deliverList) != null ? ref4.length : void 0 : void 0 : void 0 : void 0 : void 0) > 1) {
       console.log(`server: not delivered: ${this.env.server.deliverObj.config.deliverList.length}`);
@@ -610,9 +609,10 @@ Test = class Test extends UTBase { //@Test #@test
     if ((ref5 = this.env) != null ? (ref6 = ref5.server) != null ? (ref7 = ref6.deliverObj) != null ? ref7.queuedCntGet() : void 0 : void 0 : void 0) {
       console.log("AFTER: " + this.env.server.deliverObj.oneQ());
     }
-    this.log(`failList.length=${this.failList.length}`);
+    
+    //		@log "failList.length=#{@failList.length}"
     if (mFail === this.FAIL_ERROR || mFail === this.FAIL_EXCEPTION || mFail === this.FAIL_TIMEOUT || mFail === this.FAIL_UNEXPECTED_PROMISE) { //MANAGE #ADD-HERE #OTF
-      this.log("on-the-fly append mFail to failList");
+      //			@log "on-the-fly append mFail to failList"
       this.FAIL(mFail, null, null, ex_s_null);
     }
     //		@log "DUMP IT ALL", @failList

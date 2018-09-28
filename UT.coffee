@@ -559,7 +559,7 @@ class Test extends UTBase		#@Test #@test
 #TODO: even sync tests should be run with timer because they could take too long!
 	after: (mFail, ex_s_null) ->
 #		@log "#".repeat 60
-		@log "after mFail=#{mFail}: #{@one2()}" #, ex_s_null
+#		@log "after: mFail=#{mFail}: #{@one2()}" #, ex_s_null
 
 #H #DOMAIN: remove this from UT.coffee... onAfter()      	perhaps @env.onAfter()
 		if @env?.server?.deliverObj?.config?.deliverList?.length > 1
@@ -569,9 +569,9 @@ class Test extends UTBase		#@Test #@test
 			console.log "AFTER: " + @env.server.deliverObj.oneQ()
 			#TODO: call @FAIL
 
-		@log "failList.length=#{@failList.length}"
+#		@log "failList.length=#{@failList.length}"
 		if mFail in [@FAIL_ERROR, @FAIL_EXCEPTION, @FAIL_TIMEOUT, @FAIL_UNEXPECTED_PROMISE]		#MANAGE #ADD-HERE #OTF
-			@log "on-the-fly append mFail to failList"
+#			@log "on-the-fly append mFail to failList"
 			@FAIL mFail, null, null, ex_s_null
 #		@log "DUMP IT ALL", @failList
 
