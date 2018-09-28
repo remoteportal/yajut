@@ -175,6 +175,7 @@ A = require('./A');
 //import Base
 Base = require('./Base');
 
+//NOTE: ILLEGAL TO USE context instance in this file!!! only static class methods (why? instance is domain specific)
 //import Context
 Context = require('./Context');
 
@@ -287,6 +288,10 @@ UTBase = class UTBase extends Base { //@UTBase
     this.const("STATE_WAITING", 1);
     this.const("STATE_RUNNING", 2);
     this.const("STATE_DONE", 3);
+    this.const("STATE_LIST", [null, "WAITING", "RUNNING", "DONE"]);
+    this.const("stateFrag", function(m = this.mState) {
+      return `${this.STATE_LIST[m]}(${m})`;
+    });
     this.const("WHY_ALL_TESTS_RUN", 1);
     this.const("WHY_FAIL_FAST", 2);
     this.const("WHY_FATAL", 3);
@@ -589,7 +594,7 @@ Test = class Test extends UTBase { //@Test #@test
       return `#${this.testIndex} ${_}`;
     };
     this.one2 = function() {
-      return `Test: ${this.one()}: cmd=${this.cmd} enabled=${this.bEnabled} mState=${this.mState} mStage=${this.mStage}${(this.opts.mutex ? ` mutex=${this.opts.mutex}` : "")} pf=${this.pass}/${this.failList.length}`;
+      return `Test: ${this.one()}: cmd=${this.cmd} enabled=${this.bEnabled} mState=${this.stateFrag()} mStage=${this.mStage}${(this.opts.mutex ? ` mutex=${this.opts.mutex}` : "")} pf=${this.pass}/${this.failList.length}`;
     };
     this.one3 = function() {
       return `${this.one2()} [${this.optsCSV}]`;
@@ -598,7 +603,7 @@ Test = class Test extends UTBase { //@Test #@test
   }
 
   after(mFail, ex_s_null) {
-    var EXPECT, PR, _, bFound, detail, expectMap, fail, i, j, k, kUC, l, len, m, ref, ref1, ref10, ref2, ref3, ref4, ref5, ref6, ref7, ref8, ref9, s;
+    var EXPECT, PR, _, bFound, detail, expectMap, fail, i, j, k, kUC, l, len, n, ref, ref1, ref10, ref2, ref3, ref4, ref5, ref6, ref7, ref8, ref9, s;
     //		@log "#".repeat 60
     //		@log "after: mFail=#{mFail}: #{@one2()}" #, ex_s_null
 
@@ -660,7 +665,7 @@ Test = class Test extends UTBase { //@Test #@test
       //			@log "scanning for #{@opts.exceptionMessage}"
       bFound = false;
       ref10 = this.failList;
-      for (i = m = ref10.length - 1; m >= 0; i = m += -1) {
+      for (i = n = ref10.length - 1; n >= 0; i = n += -1) {
         fail = ref10[i];
         //				@log "--> #{fail.one()}" #, fail
         if (fail.mFail === this.FAIL_EXCEPTION) {
@@ -685,7 +690,7 @@ Test = class Test extends UTBase { //@Test #@test
     //WORKAROUND: only have a single handler... only guaranteed to work with a single handler
     //ARCHITECTURE: or guarantee serial handler execution
     PR = new Promise((resolve, reject) => {
-      var THAT, a, afterHandler, mn, n, ref11, ref12, ref13, rv;
+      var THAT, a, afterHandler, mn, p, ref11, ref12, ref13, rv;
       afterHandler = (fail) => {
         if (!fail.bEnabled) {
           //					@log "onHandler: remove i=#{i}"
@@ -695,7 +700,7 @@ Test = class Test extends UTBase { //@Test #@test
       a = [];
       ref11 = this.failList;
       //		@log "look for onHandler"
-      for (i = n = ref11.length - 1; n >= 0; i = n += -1) {
+      for (i = p = ref11.length - 1; p >= 0; i = p += -1) {
         fail = ref11[i];
         //			@log "--> #{fail.one()}" #, fail
         if (_ = this.opts[mn = `on${this.failTypes[fail.mFail]}`]) {
@@ -735,10 +740,10 @@ Test = class Test extends UTBase { //@Test #@test
       }
     });
     return PR.then(() => {
-      var len1, len2, n, p, q, ref11, ref12, ref13, t;
+      var len1, len2, p, q, r, ref11, ref12, ref13, t;
       ref11 = this.failList;
       //			@log "handlers all done"
-      for (i = n = ref11.length - 1; n >= 0; i = n += -1) {
+      for (i = p = ref11.length - 1; p >= 0; i = p += -1) {
         fail = ref11[i];
         t = this.failTypes[fail.mFail];
         //			@log "--> #{fail.one()} ==> #{t}" #, fail
@@ -756,13 +761,13 @@ Test = class Test extends UTBase { //@Test #@test
         console.log('-'.repeat(75));
         ref12 = this.failList;
         // @FAIL @FAIL_TIMEOUT, "[[#{@path}]] TIMEOUT: ut.{resolve,reject} not called within #{ms}ms in asynch test"
-        for (i = p = 0, len1 = ref12.length; p < len1; i = ++p) {
+        for (i = q = 0, len1 = ref12.length; q < len1; i = ++q) {
           fail = ref12[i];
           console.log(`SHORT: #${i + 1}  ${fail.one()}`);
         }
         ref13 = this.failList;
-        for (q = 0, len2 = ref13.length; q < len2; q++) {
-          fail = ref13[q];
+        for (r = 0, len2 = ref13.length; r < len2; r++) {
+          fail = ref13[r];
           console.log("----------------------------------------------");
           console.log("LONG:");
           console.log(fail.full());
@@ -990,13 +995,16 @@ Test = class Test extends UTBase { //@Test #@test
     this.log = function() {
       //			console.log "trace.LT=#{trace.LT}"
       if (trace.LT) {
-        return Util.logBase.apply(this, [`${this.cname}/${this.tn}`, ...arguments]);
+        return Util.logBase.apply(this, [
+          `${this.cname}/${this.tn}`,
+          ...arguments //PATTERN: CALL FORWARDING
+        ]);
       }
     };
     this.m = (s) => {
       this.markers += s;
       if (trace.LT) {
-        return console.log(Context.textFormat.format(`M ${s}`, "blue,bold,uc"));
+        return console.log(Context.textFormat.format(`M ${s}`, "blue,bold,uc")); //H: write content through logging system
       }
     };
     MAKE = (mn, mFail) => {
@@ -1030,16 +1038,21 @@ Test = class Test extends UTBase { //@Test #@test
         return Util.exit("logError called with @mFailMode is @FM_RUNALL=false");
       }
     };
-    //	@logWarning	= (s, o, opt)		->	Util.logBase @one(), "WARNING: #{s}", o, opt
-    //	@logWarning	= (s, o, opt)		->	Util.logBase.apply this, [@one(), "WARNING2", arguments...]
     this.logWarning = function(s, o, opt) {
-      return Util.logBase.apply(this, [this.one(), "WARNING2", ...arguments]);
+      if (trace.WARNINGS) { //H: push lower?
+        return Util.logBase.apply(this, [
+          this.one(),
+          "WARNING2",
+          ...arguments //PATTERN: CALL FORWARDING
+        ]);
+      }
     };
     this.mStage = this.STAGE_SETUP;
-    this.ok = function(v) {
+    this.ok = function(vOpt) { //CONVENTION
       //		Context.drill this, grep:"env"
+      this.log("OK", this.env);
       //		@env.succ()		
-      return this.resolve(v);
+      return this.resolve(vOpt);
     };
     this.PASS = function() {
       return this.bForcePass = true;
@@ -1075,7 +1088,7 @@ Test = class Test extends UTBase { //@Test #@test
     //		process.exit 1
     this.auditMark("" + this.one2());
     if (this.mState !== this.STATE_RUNNING) {
-      throw Error("state");
+      throw Error(`done: who=${who}: mState: expected=${this.stateFrag(this.STATE_RUNNING)} got=${this.stateFrag()}`);
     }
     this.mState = this.STATE_DONE;
     this.msEnd = Date.now();
@@ -1267,7 +1280,7 @@ AsyncTest = (function() {
           //				throw new Error "REALLY?  I really don't see how this could be triggered!!!"  it's not a promise... it's  TRY..CATCH... that's why!
           return this.after(this.FAIL_EXCEPTION, ex);
         }
-        this.log(`returned from asynch test! ${Context.kvt("rv", rv)}`);
+        //			@log "returned from asynch test! #{Context.kvt "rv", rv}"
         if (this.cmd.toLowerCase() === 'p') {
           //				@log Context.kvt "#{@cmd}-test rv ******************************", rv
           if (V.type(rv) === "promise") { //TRY: IS.pr(rv)
@@ -1288,7 +1301,7 @@ AsyncTest = (function() {
           }
         } else {
           if (IS.pr(rv)) {
-            this.log("got back promise.  Should use @p instead of @a maybe?");
+            this.logWarning("tip: async test returned a promise; consider using @p instead of @a");
             return rv.then((v) => {
               return this.log("@a returned promise. WHAT DO HERE? resolved value=", v);
             }).catch((ex) => {
@@ -1996,7 +2009,7 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
   }
 
   testsEnable() {
-    var add, i, idx, j, l, len, len1, len2, len3, len4, len5, len6, m, n, p, q, r, ref, ref1, ref2, ref3, test, testIndex;
+    var add, i, idx, j, l, len, len1, len2, len3, len4, len5, len6, n, p, q, r, ref, ref1, ref2, ref3, test, testIndex, u;
     this.assert(this.selectList.length === 0);
     if (testList.length > 0) {
       add = (test) => {
@@ -2031,8 +2044,8 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
           }
         }
       } else if (this.OPTS.bSync) {
-        for (m = 0, len2 = testList.length; m < len2; m++) {
-          test = testList[m];
+        for (n = 0, len2 = testList.length; n < len2; n++) {
+          test = testList[n];
           if (/^[tT]$/.test(test.cmd)) {
             if (!test.opts.bManual) {
               add(test);
@@ -2041,8 +2054,8 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
         }
       } else if (this.OPTS.testsInclude) {
         ref = this.OPTS.testsInclude.split(',');
-        for (n = 0, len3 = ref.length; n < len3; n++) {
-          testIndex = ref[n];
+        for (p = 0, len3 = ref.length; p < len3; p++) {
+          testIndex = ref[p];
           this.selectList.unshift(testIndex * 1); //PATTERN
         }
       } else {
@@ -2065,8 +2078,8 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
       if (this.OPTS.testsIgnore) {
         ref1 = this.OPTS.testsIgnore.split(',');
         // 				doesn't matter if default all (no capital overrides), -a, include list, or override capitals, you can always ignore specific tests
-        for (p = 0, len4 = ref1.length; p < len4; p++) {
-          testIndex = ref1[p];
+        for (q = 0, len4 = ref1.length; q < len4; q++) {
+          testIndex = ref1[q];
           this.selectList = this.selectList.filter(function(i) {
             return i !== testIndex * 1;
           });
@@ -2085,14 +2098,14 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
         });
       }
       ref2 = this.selectList;
-      for (q = 0, len5 = ref2.length; q < len5; q++) {
-        i = ref2[q];
+      for (r = 0, len5 = ref2.length; r < len5; r++) {
+        i = ref2[r];
         testList[i - 1].enable();
       }
       if (0) {
         this.log("-----> VERIFY REVERSE ORDER:");
         ref3 = this.selectList;
-        for (idx = r = 0, len6 = ref3.length; r < len6; idx = ++r) {
+        for (idx = u = 0, len6 = ref3.length; u < len6; idx = ++u) {
           i = ref3[idx];
           this.log(`[${idx}] -----> ${i} -> ${testList[i - 1].one2()}`);
         }

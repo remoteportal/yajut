@@ -193,6 +193,7 @@ KNOWN BUGS:
 #GITHUB: #TODO: create new repo called AlvinUtils and put these in there
 #import A
 #import Base
+#NOTE: ILLEGAL TO USE context instance in this file!!! only static class methods (why? instance is domain specific)
 #import Context
 #import O
 #import S
@@ -294,6 +295,9 @@ class UTBase extends Base		#@UTBase
 		@const "STATE_WAITING", 1
 		@const "STATE_RUNNING", 2
 		@const "STATE_DONE", 3
+		@const "STATE_LIST", [null, "WAITING", "RUNNING", "DONE"]
+
+		@const "stateFrag", (m = @mState) -> "#{@STATE_LIST[m]}(#{m})"
 
 		@const "WHY_ALL_TESTS_RUN", 1
 		@const "WHY_FAIL_FAST", 2
@@ -550,7 +554,7 @@ class Test extends UTBase		#@Test #@test
 			one: -> "Fail: #{@failTypes[@mFail]}(#{@mFail})#{if @msg then " #{@msg}" else ""}: #{@summary}"
 
 		@one = -> "##{@testIndex} #{_}"
-		@one2 = -> "Test: #{@one()}: cmd=#{@cmd} enabled=#{@bEnabled} mState=#{@mState} mStage=#{@mStage}#{if @opts.mutex then " mutex=#{@opts.mutex}" else ""} pf=#{@pass}/#{@failList.length}"
+		@one2 = -> "Test: #{@one()}: cmd=#{@cmd} enabled=#{@bEnabled} mState=#{@stateFrag()} mStage=#{@mStage}#{if @opts.mutex then " mutex=#{@opts.mutex}" else ""} pf=#{@pass}/#{@failList.length}"
 		@one3 = -> "#{@one2()} [#{@optsCSV}]"
 		testList.unshift this
 
@@ -925,11 +929,11 @@ b> #{V.vt b}
 		@log = ->
 #			console.log "trace.LT=#{trace.LT}"
 			if trace.LT
-				Util.logBase.apply this, ["#{@cname}/#{@tn}", arguments...]
+				Util.logBase.apply this, ["#{@cname}/#{@tn}", arguments...]				#PATTERN: CALL FORWARDING
 		@m = (s) =>
 			@markers += s
 			if trace.LT
-				console.log Context.textFormat.format "M #{s}", "blue,bold,uc"
+				console.log Context.textFormat.format "M #{s}", "blue,bold,uc"			#H: write content through logging system
 		MAKE = (mn, mFail) =>
 			do (mn, mFail, that=@) =>		#PATTERN #CURRYING
 #				console.log "mn=#{mn} mFail=#{mFail}"
@@ -953,14 +957,15 @@ b> #{V.vt b}
 			else
 				Util.logBase @one(), "FATAL_TRANSIENT: #{s}", o, opt
 				Util.exit "logError called with @mFailMode is @FM_RUNALL=false"
-	#	@logWarning	= (s, o, opt)		->	Util.logBase @one(), "WARNING: #{s}", o, opt
-	#	@logWarning	= (s, o, opt)		->	Util.logBase.apply this, [@one(), "WARNING2", arguments...]
-		@logWarning	= (s, o, opt)		->	Util.logBase.apply this, [@one(), "WARNING2", arguments...]
+		@logWarning	= (s, o, opt) ->
+			if trace.WARNINGS		#H: push lower?
+				Util.logBase.apply this, [@one(), "WARNING2", arguments...]			#PATTERN: CALL FORWARDING
 		@mStage = @STAGE_SETUP
-		@ok = (v) ->
+		@ok = (vOpt) ->			#CONVENTION
 	#		Context.drill this, grep:"env"
+			@log "OK", @env
 	#		@env.succ()		#TODO: get reference to @env and tear down resources
-			@resolve v
+			@resolve vOpt
 		@PASS = -> @bForcePass = true
 		@throw = (msg) -> throw Error msg
 
@@ -992,7 +997,7 @@ b> #{V.vt b}
 #		process.exit 1
 
 		@auditMark "" + @one2()
-		throw Error "state" unless @mState is @STATE_RUNNING
+		throw Error "done: who=#{who}: mState: expected=#{@stateFrag(@STATE_RUNNING)} got=#{@stateFrag()}" unless @mState is @STATE_RUNNING
 
 		@mState = @STATE_DONE
 		@msEnd = Date.now()
@@ -1173,7 +1178,7 @@ class AsyncTest extends Test				#@AsyncTest @async
 #				throw new Error "REALLY?  I really don't see how this could be triggered!!!"  it's not a promise... it's  TRY..CATCH... that's why!
 				return @after @FAIL_EXCEPTION, ex
 
-			@log "returned from asynch test! #{Context.kvt "rv", rv}"
+#			@log "returned from asynch test! #{Context.kvt "rv", rv}"
 			if @cmd.toLowerCase() is 'p'
 #				@log Context.kvt "#{@cmd}-test rv ******************************", rv
 				if V.type(rv) is "promise"		#TRY: IS.pr(rv)
@@ -1193,7 +1198,7 @@ class AsyncTest extends Test				#@AsyncTest @async
 			else
 				#RECENT #RECENT #RECENT #RECENT #RECENT #RECENT #RECENT #RECENT: #WTF: how come never hit this before?  Maybe because a-test doesn't call @reject or @env.catch, etc.!!!
 				if IS.pr rv
-					@log "got back promise.  Should use @p instead of @a maybe?"
+					@logWarning "tip: async test returned a promise; consider using @p instead of @a"
 					rv.then (v) =>
 						@log "@a returned promise. WHAT DO HERE? resolved value=", v
 					.catch (ex) =>
