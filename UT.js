@@ -1303,7 +1303,10 @@ AsyncTest = (function() {
           if (IS.pr(rv)) {
             this.logWarning("tip: async test returned a promise; consider using @p instead of @a");
             return rv.then((v) => {
-              return this.log("@a returned promise. WHAT DO HERE? resolved value=", v);
+              if (this.mState !== this.STATE_DONE) {
+                this.log(`[${this.STATE_LIST[this.mState]}] one3=${this.one3()}`);
+                return this.log(`[${this.STATE_LIST[this.mState]}] @a returned promise. WHAT DO HERE? resolved value=`, v);
+              }
             }).catch((ex) => {
               //						@logCatch "@a returned promise. WHAT DO HERE? rejected value=", ex
 
@@ -1775,7 +1778,7 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
 
   count(mState) {
     var count, j, len, test;
-    this.assert((0 <= mState && mState <= 2));
+    this.assert((this.STATE_WAITING <= mState && mState <= this.STATE_DONE));
     count = 0;
     for (j = 0, len = testList.length; j < len; j++) {
       test = testList[j];
@@ -2530,11 +2533,37 @@ UT_UT = class UT_UT extends UT { //@UT_UT		@unittest  @ut
         return doPass(2);
       });
     });
-    this.t("synchronous promise", {
-      expect: "UNEXPECTED_PROMISE",
-      mType: this.NEG
-    }, function() {
-      return Promise.resolve();
+    this.s("promises", function() {
+      this.t("synchronous", {
+        expect: "UNEXPECTED_PROMISE",
+        mType: this.NEG
+      }, function() {
+        return Promise.resolve();
+      });
+      return this.a("too late", async function(ut) {
+        //BEFORE-FIXED:
+        // _685  29:33 [UTRunnerFBNode] testDone: p/f=1/0 concurrent=0: #106 a UT_UT promises/too late: [UTRunner: tests=256 enabled=1 sync=0 async=1 waiting=0 bRunning=true running=0 mutexes=same (1)]
+        // _686  29:33 [UTRunnerFBNode] All closed.    All unit tests completed: [1 second] total=1: PASS=1 fail=0
+        // _687  29:33 [UT_UT/too late] one3=Test: #106 a UT_UT promises/too late: cmd=a enabled=true mState=DONE(3) mStage=1 mutex=same pf=1/0 []
+        // _688  29:33 [UT_UT/too late] @a returned promise. WHAT DO HERE? resolved value= NULL
+
+        //YES
+        //				@env = await @ce().run()
+        //				@env.succ()
+
+        //NO
+        //				@resolve()
+        //				Promise.resolve()
+
+        //NO
+        //				new Promise (resolve, reject) =>
+        //					@resolve()
+
+        //MRC
+        this.resolve();
+        await this.delay(100); //ABOVE => async function(ut) { ... }
+        return "peter"; // still returns promise because of implicit "async" above
+      });
     });
     return this.t("trace.T", function() {
       var keep;

@@ -1196,11 +1196,12 @@ class AsyncTest extends Test				#@AsyncTest @async
 #					@log "SHOULD HAVE BEEN PROMISE", rv
 					@after @FAIL_ERROR, "UT004 Promise expected but not returned from P-test"
 			else
-				#RECENT #RECENT #RECENT #RECENT #RECENT #RECENT #RECENT #RECENT: #WTF: how come never hit this before?  Maybe because a-test doesn't call @reject or @env.catch, etc.!!!
 				if IS.pr rv
 					@logWarning "tip: async test returned a promise; consider using @p instead of @a"
 					rv.then (v) =>
-						@log "@a returned promise. WHAT DO HERE? resolved value=", v
+						if @mState isnt @STATE_DONE
+							@log "[#{@STATE_LIST[@mState]}] one3=#{@one3()}"
+							@log "[#{@STATE_LIST[@mState]}] @a returned promise. WHAT DO HERE? resolved value=", v
 					.catch (ex) =>
 #						@logCatch "@a returned promise. WHAT DO HERE? rejected value=", ex
 
@@ -1567,7 +1568,7 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 
 
 	count: (mState) ->
-		@assert 0 <= mState <= 2
+		@assert @STATE_WAITING <= mState <= @STATE_DONE
 		count = 0
 		for test in testList
 #			@log "COUNT", test
@@ -2099,8 +2100,32 @@ class UT_UT extends UT		#@UT_UT		@unittest  @ut
 			doPass 1
 			.then =>
 				doPass 2
-		@t "synchronous promise", expect:"UNEXPECTED_PROMISE", mType:@NEG, ->
-			Promise.resolve()
+		@s "promises", ->
+			@t "synchronous", expect:"UNEXPECTED_PROMISE", mType:@NEG, ->
+				Promise.resolve()
+			@a "too late", (ut) ->
+#BEFORE-FIXED:
+# _685  29:33 [UTRunnerFBNode] testDone: p/f=1/0 concurrent=0: #106 a UT_UT promises/too late: [UTRunner: tests=256 enabled=1 sync=0 async=1 waiting=0 bRunning=true running=0 mutexes=same (1)]
+# _686  29:33 [UTRunnerFBNode] All closed.    All unit tests completed: [1 second] total=1: PASS=1 fail=0
+# _687  29:33 [UT_UT/too late] one3=Test: #106 a UT_UT promises/too late: cmd=a enabled=true mState=DONE(3) mStage=1 mutex=same pf=1/0 []
+# _688  29:33 [UT_UT/too late] @a returned promise. WHAT DO HERE? resolved value= NULL
+				
+				#YES
+#				@env = await @ce().run()
+#				@env.succ()
+
+				#NO
+#				@resolve()
+#				Promise.resolve()
+
+				#NO
+#				new Promise (resolve, reject) =>
+#					@resolve()
+
+				#MRC
+				@resolve()
+				await @delay 100			#ABOVE => async function(ut) { ... }
+				return "peter"				# still returns promise because of implicit "async" above
 		@t "trace.T", ->
 			keep = @runner.LT
 			@runner.LT = 55
