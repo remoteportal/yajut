@@ -874,16 +874,17 @@ b> #{V.vt b}
 			@log "a: #{a}"
 			@log "b: #{b}"
 
-			size_a = null
+			_a = await @file.fileSize a
+			if _a < 0
+				@log "a dne ***"
+				return @FAIL @FAIL_EQ, "eq \"doesn't exist\" vs. \"b\"", "a=#{a}"
 
-			@file.fileSize a
-			.then (size) =>
-				size_a = size
-				@file.fileSize b
-			.then (size_b) =>
-				@eq size_a, size_b
-#			.catch (ex) =>  try commenting-out
-#				@logCatch ex
+			_b = await @file.fileSize b
+			if _b < 0
+				@log "b dne"
+				return @FAIL @FAIL_EQ, "eq \"a\" vs. \"doesn't exist\"", "b=#{b}"
+
+			@eq _a, _b
 		@ex = (ex) ->
 			@logCatch ex
 			@reject ex
@@ -967,6 +968,7 @@ b> #{V.vt b}
 	#		@env.succ()		#TODO: get reference to @env and tear down resources
 			@resolve vOpt
 		@PASS = -> @bForcePass = true
+		@PASS_CNT = (n) -> @pass += n
 		@throw = (msg) -> throw Error msg
 
 
@@ -1078,7 +1080,7 @@ TypeError: One of the sources for assign has an enumerable key on the prototype 
 
 	validate: ->
 		if @opts
-#			@log "opts", @opts
+#			@log "opts", @opts			#RN #POP
 
 			if @opts.exceptionMessage and !@opts.expect?
 				@opts.expect = "EXCEPTION"
@@ -1172,7 +1174,7 @@ class AsyncTest extends Test				#@AsyncTest @async
 			try
 				rv = @fnTest @			# ASYNC
 			catch ex
-				console.log "catch: asynch test"
+#				console.log "catch: asynch test"
 				clearTimeout timer
 				#YES_CODE_PATH: I've seen this but sure why... you'd think that "catch" would be run instead
 #				throw new Error "REALLY?  I really don't see how this could be triggered!!!"  it's not a promise... it's  TRY..CATCH... that's why!
@@ -1181,7 +1183,7 @@ class AsyncTest extends Test				#@AsyncTest @async
 #			@log "returned from asynch test! #{Context.kvt "rv", rv}"
 			if @cmd.toLowerCase() is 'p'
 #				@log Context.kvt "#{@cmd}-test rv ******************************", rv
-				if V.type(rv) is "promise"		#TRY: IS.pr(rv)
+				if V.type(rv) is "promise"		#TRY: IS.pr(rv)		#URGENT
 #					@log "async test returned Promise"
 					rv.then (resolved) =>
 						clearTimeout timer
@@ -1209,15 +1211,9 @@ class AsyncTest extends Test				#@AsyncTest @async
 						clearTimeout timer
 						@after @FAIL_EXCEPTION, ex
 				else
-					@log "non-promise return value from @a.  rv=", rv
-					@log "type=#{typeof rv}"
-					@log "who=#{Context.IS.who rv}"
-#__12   [UTScreenUT/register] non-promise return value from @a.  rv=
-#__13  >   (Promise) -> Promise (4)
-#__14  >           ∟ _40: 0
-#__15  >           ∟ _55: NULL
-#__16  >           ∟ _65: 0
-#__17  >           ∟ _72: NULL
+					@log "AsyncTest.start: non-promise return value from @a.  rv=", rv
+					@log "AsyncTest.start: typeof(rv)=#{typeof rv}"
+					@log "AsyncTest.start: Context.IS.who=#{Context.IS.who rv}"
 					@logSilent "non-promise return value from @a.  rv=", rv
 		.then (resolved) =>
 			@logg trace.UT_RESOLVE_REJECT_VALUE, "RESOLVED:", resolved
@@ -1976,6 +1972,11 @@ class UT_UT extends UT		#@UT_UT		@unittest  @ut
 			.then (to) =>
 				@log "timed out", to
 				@resolve to
+		@s "eqfile_pr", ->
+			@p "same size", ->										@eqfile_pr @filepath("deanna.png"),		@filepath("same-size.png")
+			@p "different sizes", expect:"EQ", mType:@NEG, ->		@eqfile_pr @filepath("deanna.png"),		@filepath("ut.env")
+			@p "a dne", expect:"EQ", mType:@NEG, ->					@eqfile_pr @filepath("dne.png"), 		@filepath("ut.env")
+			@p "b dne", expect:"EQ", mType:@NEG, ->					@eqfile_pr @filepath("deanna.png"), 	@filepath("dne.env")
 		@s "equate", ->
 			@t "single parameter", {
 				expect: "EQ,EQ"
@@ -2039,8 +2040,8 @@ class UT_UT extends UT		#@UT_UT		@unittest  @ut
 #					O.LOG ut.opts
 					@eq ut.opts.timeout, 1000
 					ut.resolve()
-				@t "seek exception but don't get one", {bManual:true, expect:"EXCEPTION", mType:@NEG}, ->
-					@log "hello"
+#				@t "seek exception but don't get one", expect:"EXCEPTION",mType:@NEG, ->
+#					@log "hello"
 		@s "logging", ->
 			@t "log no arguments", ->
 				if trace.HUMAN

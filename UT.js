@@ -603,7 +603,7 @@ Test = class Test extends UTBase { //@Test #@test
   }
 
   after(mFail, ex_s_null) {
-    var EXPECT, PR, _, bFound, detail, expectMap, fail, i, j, k, kUC, l, len, n, ref, ref1, ref10, ref2, ref3, ref4, ref5, ref6, ref7, ref8, ref9, s;
+    var EXPECT, PR, _, bFound, detail, expectMap, fail, i, j, k, kUC, l, len, p, ref, ref1, ref10, ref2, ref3, ref4, ref5, ref6, ref7, ref8, ref9, s;
     //		@log "#".repeat 60
     //		@log "after: mFail=#{mFail}: #{@one2()}" #, ex_s_null
 
@@ -665,7 +665,7 @@ Test = class Test extends UTBase { //@Test #@test
       //			@log "scanning for #{@opts.exceptionMessage}"
       bFound = false;
       ref10 = this.failList;
-      for (i = n = ref10.length - 1; n >= 0; i = n += -1) {
+      for (i = p = ref10.length - 1; p >= 0; i = p += -1) {
         fail = ref10[i];
         //				@log "--> #{fail.one()}" #, fail
         if (fail.mFail === this.FAIL_EXCEPTION) {
@@ -690,7 +690,7 @@ Test = class Test extends UTBase { //@Test #@test
     //WORKAROUND: only have a single handler... only guaranteed to work with a single handler
     //ARCHITECTURE: or guarantee serial handler execution
     PR = new Promise((resolve, reject) => {
-      var THAT, a, afterHandler, mn, p, ref11, ref12, ref13, rv;
+      var THAT, a, afterHandler, mn, q, ref11, ref12, ref13, rv;
       afterHandler = (fail) => {
         if (!fail.bEnabled) {
           //					@log "onHandler: remove i=#{i}"
@@ -700,7 +700,7 @@ Test = class Test extends UTBase { //@Test #@test
       a = [];
       ref11 = this.failList;
       //		@log "look for onHandler"
-      for (i = p = ref11.length - 1; p >= 0; i = p += -1) {
+      for (i = q = ref11.length - 1; q >= 0; i = q += -1) {
         fail = ref11[i];
         //			@log "--> #{fail.one()}" #, fail
         if (_ = this.opts[mn = `on${this.failTypes[fail.mFail]}`]) {
@@ -740,10 +740,10 @@ Test = class Test extends UTBase { //@Test #@test
       }
     });
     return PR.then(() => {
-      var len1, len2, p, q, r, ref11, ref12, ref13, t;
+      var len1, len2, q, r, ref11, ref12, ref13, t, u;
       ref11 = this.failList;
       //			@log "handlers all done"
-      for (i = p = ref11.length - 1; p >= 0; i = p += -1) {
+      for (i = q = ref11.length - 1; q >= 0; i = q += -1) {
         fail = ref11[i];
         t = this.failTypes[fail.mFail];
         //			@log "--> #{fail.one()} ==> #{t}" #, fail
@@ -761,13 +761,13 @@ Test = class Test extends UTBase { //@Test #@test
         console.log('-'.repeat(75));
         ref12 = this.failList;
         // @FAIL @FAIL_TIMEOUT, "[[#{@path}]] TIMEOUT: ut.{resolve,reject} not called within #{ms}ms in asynch test"
-        for (i = q = 0, len1 = ref12.length; q < len1; i = ++q) {
+        for (i = r = 0, len1 = ref12.length; r < len1; i = ++r) {
           fail = ref12[i];
           console.log(`SHORT: #${i + 1}  ${fail.one()}`);
         }
         ref13 = this.failList;
-        for (r = 0, len2 = ref13.length; r < len2; r++) {
-          fail = ref13[r];
+        for (u = 0, len2 = ref13.length; u < len2; u++) {
+          fail = ref13[u];
           console.log("----------------------------------------------");
           console.log("LONG:");
           console.log(fail.full());
@@ -928,21 +928,23 @@ Test = class Test extends UTBase { //@Test #@test
         return true;
       }
     };
-    this.eqfile_pr = function(a, b) { //CONVENTION
-      var size_a;
+    this.eqfile_pr = async function(a, b) { //CONVENTION
+      var _a, _b;
       //EQ-FILE-CONTENTS: "file contents"	path eqfile_pr path
       this.log(`a: ${a}`);
       this.log(`b: ${b}`);
-      size_a = null;
-      return this.file.fileSize(a).then((size) => {
-        size_a = size;
-        return this.file.fileSize(b);
-      }).then((size_b) => {
-        return this.eq(size_a, size_b);
-      });
+      _a = (await this.file.fileSize(a));
+      if (_a < 0) {
+        this.log("a dne ***");
+        return this.FAIL(this.FAIL_EQ, "eq \"doesn't exist\" vs. \"b\"", `a=${a}`);
+      }
+      _b = (await this.file.fileSize(b));
+      if (_b < 0) {
+        this.log("b dne");
+        return this.FAIL(this.FAIL_EQ, "eq \"a\" vs. \"doesn't exist\"", `b=${b}`);
+      }
+      return this.eq(_a, _b);
     };
-    //			.catch (ex) =>  try commenting-out
-    //				@logCatch ex
     this.ex = function(ex) {
       this.logCatch(ex);
       return this.reject(ex);
@@ -1057,6 +1059,9 @@ Test = class Test extends UTBase { //@Test #@test
     this.PASS = function() {
       return this.bForcePass = true;
     };
+    this.PASS_CNT = function(n) {
+      return this.pass += n;
+    };
     this.throw = function(msg) {
       throw Error(msg);
     };
@@ -1167,7 +1172,7 @@ Test = class Test extends UTBase { //@Test #@test
   validate() {
     var cmd, cmds, j, k, len, ref, ref1;
     if (this.opts) {
-      //			@log "opts", @opts
+      //			@log "opts", @opts			#RN #POP
       if (this.opts.exceptionMessage && (this.opts.expect == null)) {
         this.opts.expect = "EXCEPTION";
       }
@@ -1274,7 +1279,7 @@ AsyncTest = (function() {
           rv = this.fnTest(this); // ASYNC
         } catch (error) {
           ex = error;
-          console.log("catch: asynch test");
+          //				console.log "catch: asynch test"
           clearTimeout(timer);
           //YES_CODE_PATH: I've seen this but sure why... you'd think that "catch" would be run instead
           //				throw new Error "REALLY?  I really don't see how this could be triggered!!!"  it's not a promise... it's  TRY..CATCH... that's why!
@@ -1283,7 +1288,7 @@ AsyncTest = (function() {
         //			@log "returned from asynch test! #{Context.kvt "rv", rv}"
         if (this.cmd.toLowerCase() === 'p') {
           //				@log Context.kvt "#{@cmd}-test rv ******************************", rv
-          if (V.type(rv) === "promise") { //TRY: IS.pr(rv)
+          if (V.type(rv) === "promise") { //TRY: IS.pr(rv)		#URGENT
             //					@log "async test returned Promise"
             return rv.then((resolved) => {
               clearTimeout(timer);
@@ -1315,15 +1320,9 @@ AsyncTest = (function() {
               return this.after(this.FAIL_EXCEPTION, ex);
             });
           } else {
-            this.log("non-promise return value from @a.  rv=", rv);
-            this.log(`type=${typeof rv}`);
-            this.log(`who=${Context.IS.who(rv)}`);
-            //__12   [UTScreenUT/register] non-promise return value from @a.  rv=
-            //__13  >   (Promise) -> Promise (4)
-            //__14  >           ∟ _40: 0
-            //__15  >           ∟ _55: NULL
-            //__16  >           ∟ _65: 0
-            //__17  >           ∟ _72: NULL
+            this.log("AsyncTest.start: non-promise return value from @a.  rv=", rv);
+            this.log(`AsyncTest.start: typeof(rv)=${typeof rv}`);
+            this.log(`AsyncTest.start: Context.IS.who=${Context.IS.who(rv)}`);
             return this.logSilent("non-promise return value from @a.  rv=", rv);
           }
         }
@@ -2012,7 +2011,7 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
   }
 
   testsEnable() {
-    var add, i, idx, j, l, len, len1, len2, len3, len4, len5, len6, n, p, q, r, ref, ref1, ref2, ref3, test, testIndex, u;
+    var add, i, idx, j, l, len, len1, len2, len3, len4, len5, len6, p, q, r, ref, ref1, ref2, ref3, test, testIndex, u, w;
     this.assert(this.selectList.length === 0);
     if (testList.length > 0) {
       add = (test) => {
@@ -2047,8 +2046,8 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
           }
         }
       } else if (this.OPTS.bSync) {
-        for (n = 0, len2 = testList.length; n < len2; n++) {
-          test = testList[n];
+        for (p = 0, len2 = testList.length; p < len2; p++) {
+          test = testList[p];
           if (/^[tT]$/.test(test.cmd)) {
             if (!test.opts.bManual) {
               add(test);
@@ -2057,8 +2056,8 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
         }
       } else if (this.OPTS.testsInclude) {
         ref = this.OPTS.testsInclude.split(',');
-        for (p = 0, len3 = ref.length; p < len3; p++) {
-          testIndex = ref[p];
+        for (q = 0, len3 = ref.length; q < len3; q++) {
+          testIndex = ref[q];
           this.selectList.unshift(testIndex * 1); //PATTERN
         }
       } else {
@@ -2081,8 +2080,8 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
       if (this.OPTS.testsIgnore) {
         ref1 = this.OPTS.testsIgnore.split(',');
         // 				doesn't matter if default all (no capital overrides), -a, include list, or override capitals, you can always ignore specific tests
-        for (q = 0, len4 = ref1.length; q < len4; q++) {
-          testIndex = ref1[q];
+        for (r = 0, len4 = ref1.length; r < len4; r++) {
+          testIndex = ref1[r];
           this.selectList = this.selectList.filter(function(i) {
             return i !== testIndex * 1;
           });
@@ -2101,14 +2100,14 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
         });
       }
       ref2 = this.selectList;
-      for (r = 0, len5 = ref2.length; r < len5; r++) {
-        i = ref2[r];
+      for (u = 0, len5 = ref2.length; u < len5; u++) {
+        i = ref2[u];
         testList[i - 1].enable();
       }
       if (0) {
         this.log("-----> VERIFY REVERSE ORDER:");
         ref3 = this.selectList;
-        for (idx = u = 0, len6 = ref3.length; u < len6; idx = ++u) {
+        for (idx = w = 0, len6 = ref3.length; w < len6; idx = ++w) {
           i = ref3[idx];
           this.log(`[${idx}] -----> ${i} -> ${testList[i - 1].one2()}`);
         }
@@ -2303,6 +2302,29 @@ UT_UT = class UT_UT extends UT { //@UT_UT		@unittest  @ut
         return this.resolve(to);
       });
     });
+    this.s("eqfile_pr", function() {
+      this.p("same size", function() {
+        return this.eqfile_pr(this.filepath("deanna.png"), this.filepath("same-size.png"));
+      });
+      this.p("different sizes", {
+        expect: "EQ",
+        mType: this.NEG
+      }, function() {
+        return this.eqfile_pr(this.filepath("deanna.png"), this.filepath("ut.env"));
+      });
+      this.p("a dne", {
+        expect: "EQ",
+        mType: this.NEG
+      }, function() {
+        return this.eqfile_pr(this.filepath("dne.png"), this.filepath("ut.env"));
+      });
+      return this.p("b dne", {
+        expect: "EQ",
+        mType: this.NEG
+      }, function() {
+        return this.eqfile_pr(this.filepath("deanna.png"), this.filepath("dne.env"));
+      });
+    });
     this.s("equate", function() {
       this.t("single parameter", {
         expect: "EQ,EQ",
@@ -2423,7 +2445,7 @@ UT_UT = class UT_UT extends UT { //@UT_UT		@unittest  @ut
         }, function() {
           return this.log("do not call resolve in order to force timeout");
         });
-        this.a("timeout", {
+        return this.a("timeout", {
           timeout: 1000
         }, function(ut) {
           //					@log "opts parameter"
@@ -2431,15 +2453,10 @@ UT_UT = class UT_UT extends UT { //@UT_UT		@unittest  @ut
           this.eq(ut.opts.timeout, 1000);
           return ut.resolve();
         });
-        return this.t("seek exception but don't get one", {
-          bManual: true,
-          expect: "EXCEPTION",
-          mType: this.NEG
-        }, function() {
-          return this.log("hello");
-        });
       });
     });
+    //				@t "seek exception but don't get one", expect:"EXCEPTION",mType:@NEG, ->
+    //					@log "hello"
     this.s("logging", function() {
       this.t("log no arguments", function() {
         if (trace.HUMAN) {
