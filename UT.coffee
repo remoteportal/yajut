@@ -1183,7 +1183,7 @@ class AsyncTest extends Test				#@AsyncTest @async
 #			@log "returned from asynch test! #{Context.kvt "rv", rv}"
 			if @cmd.toLowerCase() is 'p'
 #				@log Context.kvt "#{@cmd}-test rv ******************************", rv
-				if V.type(rv) is "promise"		#TRY: IS.pr(rv)		#URGENT
+				if IS.pr rv
 #					@log "async test returned Promise"
 					rv.then (resolved) =>
 						clearTimeout timer

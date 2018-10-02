@@ -1288,7 +1288,7 @@ AsyncTest = (function() {
         //			@log "returned from asynch test! #{Context.kvt "rv", rv}"
         if (this.cmd.toLowerCase() === 'p') {
           //				@log Context.kvt "#{@cmd}-test rv ******************************", rv
-          if (V.type(rv) === "promise") { //TRY: IS.pr(rv)		#URGENT
+          if (IS.pr(rv)) {
             //					@log "async test returned Promise"
             return rv.then((resolved) => {
               clearTimeout(timer);
