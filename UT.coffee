@@ -194,7 +194,7 @@ KNOWN BUGS:
 #import A
 #import Base
 #NOTE: ILLEGAL TO USE context instance in this file!!! only static class methods (why? instance is domain specific)
-#import Context
+#IMPORT Context
 #import O
 #import S
 #import trace
@@ -507,10 +507,10 @@ class Test extends UTBase		#@Test #@test
 				if k of validTagsMap
 					@tags[k] = true
 				else
-					console.log S.autoTable validTagsMap, headerMap:{key:"tag",value:"description"}
+					console.log SNEW.autoTable validTagsMap, headerMap:{key:"tag",value:"description"}
 					console.log()
 					console.log "UT009 Invalid test tag:"
-					console.log S.autoTable
+					console.log SNEW.autoTable
 						"file:": @cname
 						"path:": @hier
 						"tag:": k
@@ -1270,7 +1270,7 @@ class UTRunner extends UTBase		#@UTRunner @runner
 		@OPTS = @opts	#HACK
 		@OPTS.bOnline ?= true
 		@OPTS.timeout ?= 3000
-		O.propertiesCheck @OPTS, "bOnline,bSerial,decorate,mFailMode,perTestOpts,timeout,userDefined"
+		ONEW.propertiesCheck @OPTS, "bOnline,bSerial,decorate,mFailMode,perTestOpts,timeout,userDefined"
 
 #		console.log "UT.UTRunner.constructor: WORK_AROUND_UT_CLASS_NAME_OVERRIDE=#{@WORK_AROUND_UT_CLASS_NAME_OVERRIDE}"
 #		console.log "UT.UTRunner.constructor: constructor.name=#{@constructor.name}"
@@ -1406,7 +1406,7 @@ class UTRunner extends UTBase		#@UTRunner @runner
 
 		#GITHUB: remove all trace references?
 		maybeGrabTrace = (v) =>
-			if i < a.length and trace.RE.test a[i]
+			if i < a.length and trace.RECSV.test a[i]		#TEST
 				setTrace a[i++], v
 				true
 			else
@@ -1459,7 +1459,7 @@ class UTRunner extends UTBase		#@UTRunner @runner
 			console.log """
 node tests.js [options] test# ...
 
-OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
+OPTIONS:#{SNEW.autoTable(optionList, bHeader:false)}"""
 
 		CSV = "testIndex,cmd,path,optsCSV,tagsCSV"
 		NUMBER_CSL_RE = /^\d+(,\d+)*$/
@@ -1483,7 +1483,7 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 						@OPTS.mFailMode = optionalNumber 1
 					when "-g"
 						testPattern = a[i++]
-						er S.autoTable(testList, bHeader:true, grep:testPattern, includeCSV:CSV)
+						er SNEW.autoTable(testList, bHeader:true, grep:testPattern, includeCSV:CSV)
 					when "-eg"
 						CSV2Object "exitCSV"
 					when "-h"
@@ -1499,7 +1499,7 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 					when "-ky"
 						getKeys true
 					when "-l"
-						er S.autoTable(testList, bHeader:true, includeCSV:CSV)
+						er SNEW.autoTable(testList, bHeader:true, includeCSV:CSV)
 					when "-lg"			#MOVE: tests
 						@OPTS.logGrepPattern = a[i++]
 					when "-lh"			#MOVE: tests
