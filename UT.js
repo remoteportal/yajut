@@ -161,6 +161,7 @@ TODOs
 - on test failure, read each and every file in the test.directory and add to the log for post-mortem analysis
 - client/server with different trace colors
 - track which tests seem to fail occasionally ("which dones are transient failures"); track by name and desc (NOT number)
+- ut -sum			if error I don't think it tells you which test it died on
 
 ROUNDUP:
 - https://medium.com/welldone-software/an-overview-of-javascript-testing-in-2018-f68950900bc3
@@ -1762,7 +1763,7 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
             }
             break;
           default:
-            if (NUMBER_CSL_RE.test(word)) { //FUTURE: support ranges (e.g., 10-19)
+            if (NUMBER_CSL_RE.test(word)) {
               if (this.OPTS.testsInclude) {
                 this.OPTS.testsInclude = this.OPTS.testsInclude + "," + word;
               } else {
@@ -2072,7 +2073,7 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
       } else if (this.OPTS.keystrue) {
         for (j = 0, len = testList.length; j < len; j++) {
           test = testList[j];
-          if (O.INTERSECTION(test.keys, this.OPTS.keystrue)) { //FUTURE
+          if (O.INTERSECTION(test.keys, this.OPTS.keystrue)) {
             add(test);
           }
         }

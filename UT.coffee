@@ -174,6 +174,7 @@ TODOs
 - on test failure, read each and every file in the test.directory and add to the log for post-mortem analysis
 - client/server with different trace colors
 - track which tests seem to fail occasionally ("which dones are transient failures"); track by name and desc (NOT number)
+- ut -sum			if error I don't think it tells you which test it died on
 
 
 
@@ -1523,7 +1524,7 @@ OPTIONS:#{SNEW.autoTable(optionList, bHeader:false)}"""
 						unless maybeGrabTrace true
 							@OPTS.traceOverride = true
 					else
-						if NUMBER_CSL_RE.test word			#FUTURE: support ranges (e.g., 10-19)
+						if NUMBER_CSL_RE.test word			#TODO: support ranges (e.g., 10-19)
 							if @OPTS.testsInclude
 								@OPTS.testsInclude = @OPTS.testsInclude + "," + word
 							else
@@ -1786,7 +1787,7 @@ OPTIONS:#{SNEW.autoTable(optionList, bHeader:false)}"""
 						add test
 			else if @OPTS.keystrue
 				for test in testList
-					if O.INTERSECTION test.keys, @OPTS.keystrue		#FUTURE
+					if O.INTERSECTION test.keys, @OPTS.keystrue		#TODO
 						add test
 			else if @OPTS.bAsync
 				for test in testList
