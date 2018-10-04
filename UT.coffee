@@ -758,7 +758,7 @@ markers: got     : #{@markers}
 		@eq = (a, b, msg, o) ->
 			#EQ-NOT-STRICT: "as string equal"	(new String "6") eq 6
 #TODO: make helper function that does the actual heavy lifting and pass in the eq, Eq, EQ, EQO, eqfile, etc.
-#H: what if object passed in... use json?  #NEXT
+#H: what if object passed in... use json?
 #			@log "eq:BEG: a=#{a} b=#{b}"
 			if !(a?) and !(b?)
 				@log "both undefined: msg=#{msg}", o
@@ -1622,7 +1622,7 @@ OPTIONS:#{SNEW.autoTable(optionList, bHeader:false)}"""
 
 		if @pass or @failList.length
 	#		@log "======================================================"
-			@log "#{Base.openMsgGet()}  All unit tests completed: [#{@secsElapsed} #{S.PLURAL "second", @secsElapsed}] total=#{@pass+@failList.length}: #{unless @failList.length then "PASS" else "pass"}=#{@pass} #{if @failList.length then "FAIL" else "fail"}=#{@failList.length}"
+			@log "#{Base.openMsgGet()}  All unit tests completed: [#{@secsElapsed} #{SNEW.PLURAL "second", @secsElapsed}] total=#{@pass+@failList.length}: #{unless @failList.length then "PASS" else "pass"}=#{@pass} #{if @failList.length then "FAIL" else "fail"}=#{@failList.length}"
 
 			if Base.openCntGet()
 				@eventFire "left-open"
@@ -1843,7 +1843,7 @@ OPTIONS:#{SNEW.autoTable(optionList, bHeader:false)}"""
 			@syncCnt = testList.reduce(((acc, test) -> if test.bEnabled and test.bSync then acc+1 else acc), 0)
 			@asyncCnt = testList.reduce(((acc, test) -> if test.bEnabled and !test.bSync then acc+1 else acc), 0)
 
-			@log "#{@summary} Found #{testList.length} #{S.PLURAL "test", testList.length}#{if @enabledCnt < testList.length then " with #{@enabledCnt} enabled" else ""}"
+			@log "#{@summary} Found #{testList.length} #{SNEW.PLURAL "test", testList.length}#{if @enabledCnt < testList.length then " with #{@enabledCnt} enabled" else ""}"
 
 
 

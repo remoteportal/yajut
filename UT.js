@@ -1875,7 +1875,7 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
     this.secsElapsed = Math.ceil((Date.now() - this.msStart) / 1000);
     if (this.pass || this.failList.length) {
       //		@log "======================================================"
-      this.log(`${Base.openMsgGet()}  All unit tests completed: [${this.secsElapsed} ${S.PLURAL("second", this.secsElapsed)}] total=${this.pass + this.failList.length}: ${(!this.failList.length ? "PASS" : "pass")}=${this.pass} ${(this.failList.length ? "FAIL" : "fail")}=${this.failList.length}`);
+      this.log(`${Base.openMsgGet()}  All unit tests completed: [${this.secsElapsed} ${SNEW.PLURAL("second", this.secsElapsed)}] total=${this.pass + this.failList.length}: ${(!this.failList.length ? "PASS" : "pass")}=${this.pass} ${(this.failList.length ? "FAIL" : "fail")}=${this.failList.length}`);
       if (Base.openCntGet()) {
         this.eventFire("left-open");
       }
@@ -2174,7 +2174,7 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
           return acc;
         }
       }), 0);
-      return this.log(`${this.summary} Found ${testList.length} ${S.PLURAL("test", testList.length)}${(this.enabledCnt < testList.length ? ` with ${this.enabledCnt} enabled` : "")}`);
+      return this.log(`${this.summary} Found ${testList.length} ${SNEW.PLURAL("test", testList.length)}${(this.enabledCnt < testList.length ? ` with ${this.enabledCnt} enabled` : "")}`);
     }
   }
 
