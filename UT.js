@@ -2591,6 +2591,12 @@ UT_UT = class UT_UT extends UT { //@UT_UT		@unittest  @ut
         return doPass(2);
       });
     });
+    this.s("primatives", function() { // all the commands.. DEFINE TERMS!
+      return this.t("h - header", function() {
+        this.h("header 1");
+        return this.h("header 2");
+      });
+    });
     this.s("promises", function() {
       this.t("synchronous", {
         expect: "UNEXPECTED_PROMISE",

@@ -2102,6 +2102,10 @@ class UT_UT extends UT		#@UT_UT		@unittest  @ut
 			doPass 1
 			.then =>
 				doPass 2
+		@s "primatives", ->			# all the commands.. DEFINE TERMS!
+			@t "h - header", ->
+				@h "header 1"
+				@h "header 2"
 		@s "promises", ->
 			@t "synchronous", expect:"UNEXPECTED_PROMISE", mType:@NEG, ->
 				Promise.resolve()
