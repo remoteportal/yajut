@@ -1563,11 +1563,11 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
       },
       {
         o: "-tn",
-        d: "trace No: turn off all trace"
+        d: "Trace No: turn off all trace"
       },
       {
         o: "-ty",
-        d: "trace Yes: turn on all trace: naked or -ty lt,... for trace.LT (\"log tests\")" //DOMAIN-SPECIFIC #MOVE #H
+        d: "Trace Yes: turn on all trace: naked or -ty lt,... for trace.LT (\"log tests\")" //DOMAIN-SPECIFIC #MOVE #H
       }
     ];
     this.eventFire("CLI-optionList", optionList);
