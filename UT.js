@@ -1571,6 +1571,13 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
       }
     ];
     this.eventFire("CLI-optionList", optionList);
+    optionList.sort(function(a, b) {
+      if (a.o > b.o) {
+        return 1;
+      } else {
+        return -1;
+      }
+    });
     CSV2Object = (key) => {
       var _, j, k, keys, len, ref, results;
       //			console.log "CSV2Object: global.#{key}"
@@ -2039,7 +2046,7 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
     this.pass += test.pass;
     this.failList = [
       ...this.failList,
-      ...test.failList //PATTERN: array append
+      ...test.failList //PATTERN: #ARRAY: append   #CHALLENGE: this doesn't appear to actually do #INPLACE
     ];
     this.runningCnt--;
     this.logg(trace.UT, `testDone: p/f=${this.pass}/${this.failList.length} concurrent=${this.runningCnt}: ${test.one()}: [${this.one()}]`);

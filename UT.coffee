@@ -1380,7 +1380,7 @@ class UTRunner extends UTBase		#@UTRunner @runner
 		]
 
 		@eventFire "CLI-optionList", optionList
-		#TODO: sort
+		optionList.sort (a,b) -> if a.o > b.o then 1 else -1
 
 		CSV2Object = (key) =>
 #			console.log "CSV2Object: global.#{key}"
@@ -1754,7 +1754,9 @@ OPTIONS:#{SNEW.autoTable(optionList, bHeader:false)}"""
 
 	testDone: (test) ->
 		@pass += test.pass
-		@failList = [...@failList, ...test.failList]			#PATTERN: array append
+		
+		#TODO: a.push(...b)		#URGENT
+		@failList = [...@failList, ...test.failList]			#PATTERN: #ARRAY: append   #CHALLENGE: this doesn't appear to actually do #INPLACE
 		@runningCnt--
 
 		@logg trace.UT, "testDone: p/f=#{@pass}/#{@failList.length} concurrent=#{@runningCnt}: #{test.one()}: [#{@one()}]"
