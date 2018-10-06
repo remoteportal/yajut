@@ -319,7 +319,7 @@ MAKEa = (cmd) =>
 			fn = arguments[2]
 
 		unless typeof fn is "function"
-			Util.abort "MISSING fn"
+			abort "MISSING fn"
 
 #		if bRunning and t_depth is 1 => @logFatal "NESTED t: the parent of '#{tn}' is also a test; change to 's' (section)"
 #		@log "found async: #{tn} --> #{@__CLASS_NAME}"
@@ -347,7 +347,7 @@ MAKEt = (cmd) =>
 			fn = arguments[2]
 
 		unless typeof fn is "function"
-			Util.abort "MISSING fn"
+			abort "MISSING fn"
 
 		new SyncTest
 			cmd: cmd
@@ -372,7 +372,7 @@ MAKEs = (cmd) =>
 			fn = arguments[2]
 
 		unless typeof fn is "function"
-			Util.abort "MISSING fn"
+			abort "MISSING fn"
 
 		testStack.push tn
 
@@ -708,8 +708,6 @@ markers: got     : #{@markers}
 
 	decorate: ->
 		@assert @fn, "function body is required"
-
-		@abort = (msg) -> Util.abort msg
 		@assert = (b, msg) ->
 			_ = if msg then ": #{msg}" else ""
 
@@ -917,7 +915,7 @@ b> #{V.vt b}
 				log fail.full()
 				@exit @WHY_FAIL_FAST, summary
 				log @one()
-				Util.abort "FM_FAILFAST: #{_}"
+				abort "FM_FAILFAST: #{_}"
 
 			false
 		@fatal = (msg) ->
@@ -998,7 +996,7 @@ b> #{V.vt b}
 		syncTestsCount--
 #		@log "DONE DONE DONE DONE DONE: Test.done: #{@one2()}"
 		Base.auditEnsureClosed "Test.done"
-#		process.exit 1
+#		abort()
 
 		@auditMark "" + @one2()
 		throw Error "done: who=#{who}: mState: expected=#{@stateFrag(@STATE_RUNNING)} got=#{@stateFrag()}" unless @mState is @STATE_RUNNING
@@ -1014,7 +1012,7 @@ b> #{V.vt b}
 #		if Base.openCntGet()
 #			Base.logOpenMap()
 #			@stack()
-#			Util.abort "INTERMEDIATE RESOURCES LEFT OPEN!"
+#			abort "INTERMEDIATE RESOURCES LEFT OPEN!"
 
 		@eventFire "test-done"
 		@runner.testDone this
