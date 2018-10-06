@@ -960,8 +960,9 @@ b> #{V.vt b}
 				Util.logBase @one(), "FATAL_TRANSIENT: #{s}", o, opt
 				Util.exit "logError called with @mFailMode is @FM_RUNALL=false"
 		@logWarning	= (s, o, opt) ->
-			if trace.WARNINGS		#H: push lower?
-				Util.logBase.apply this, [@one(), "WARNING2", arguments...]			#PATTERN: CALL FORWARDING
+			if trace.WARNINGS		#H: push lower?     new parameter: bWarning:true  or mType:5
+				console.log "ut @logWarning #{s}"		#T
+				Util.logBase.apply this, [@one(), "WARNING3", arguments...]			#PATTERN: CALL FORWARDING
 		@mStage = @STAGE_SETUP
 		@ok = (vOpt) ->			#CONVENTION
 	#		Context.drill this, grep:"env"

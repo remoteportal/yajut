@@ -1082,10 +1082,12 @@ Test = class Test extends UTBase { //@Test #@test
       }
     };
     this.logWarning = function(s, o, opt) {
-      if (trace.WARNINGS) { //H: push lower?
+      if (trace.WARNINGS) { //H: push lower?     new parameter: bWarning:true  or mType:5
+        console.log(`ut @logWarning ${s //T
+}`);
         return Util.logBase.apply(this, [
           this.one(),
-          "WARNING2",
+          "WARNING3",
           ...arguments //PATTERN: CALL FORWARDING
         ]);
       }
