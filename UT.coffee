@@ -563,8 +563,9 @@ class Test extends UTBase		#@Test #@test
 
 #TODO: even sync tests should be run with timer because they could take too long!
 	after: (mFail, ex_s_null) ->
-#		@log "#".repeat 60
-#		@log "after: mFail=#{mFail}: #{@one2()}" #, ex_s_null
+#		@assert mFail?, "mFail"		wrong: mFail is undefined or null if success
+		@log "#".repeat 60
+		@log "after: #{@failTypes[mFail]}(#{mFail}): #{@one2()}" #, ex_s_null
 
 #H #DOMAIN: remove this from UT.coffee... onAfter()      	perhaps @env.onAfter()
 		if @env?.server?.deliverObj?.config?.deliverList?.length > 1
@@ -927,14 +928,14 @@ b> #{V.vt b}
 				console.log Context.textFormat.format msg, "blue,bold,uc"
 		#DUP: this is principal @log of unit tests
 		@log = ->
-#			console.log "trace.LT=#{trace.LT}"
-			if trace.LT
-				Util.logBase.apply this, ["#{@cname}/#{@tn}", arguments...]				#PATTERN: CALL FORWARDING
+#			console.log "trace.LT=#{trace.LT}"		#URGENT
+			if trace.LT or 1
+				Context.logBase.apply this, ["#{@cname}/#{@tn}", arguments...]				#PATTERN: CALL FORWARDING
 		@m = (s) =>
 			@markers += s
 			if trace.LT
 				console.log Context.textFormat.format "M #{s}", "blue,bold,uc"			#H: write content through logging system
-		MAKE = (mn, mFail) =>
+		MAKE_UT_LOG_FAIL = (mn, mFail) =>
 			do (mn, mFail, that=@) =>		#PATTERN #CURRYING
 #				console.log "mn=#{mn} mFail=#{mFail}"
 				that[mn] = (msg, o, opt) ->
@@ -947,20 +948,20 @@ b> #{V.vt b}
 						opt = o
 						msg = ""
 
-						@FAIL mFail, msg, "UT~MAKE", o, opt		#H:opt
-		MAKE "logCatch", @FAIL_EXCEPTION
-		MAKE "logError", @FAIL_ERROR
-		@logSilent	= (s, o, opt)		-> Util.logBase @one(), s, o, bVisible:false
-		@logTransient = (s, o, opt)		->
+						@FAIL mFail, msg, "UT~MAKE_UT_LOG_FAIL", o, opt		#H:opt #EXTRA_PARAM
+		MAKE_UT_LOG_FAIL "logCatch", @FAIL_EXCEPTION
+		MAKE_UT_LOG_FAIL "logError", @FAIL_ERROR
+		@logSilent	= (s, o, opt)		-> Context.logBase @one(), s, o, bVisible:false			#REVISIT
+		@logTransient = (s, o, opt)		->														#REVISIT
 			if @runner.OPTS.mFailMode is @FM_RUNALL
-				Util.logBase @one(), "TRANSIENT: #{s}", o, opt
+				Context.logBase @one(), "TRANSIENT: #{s}", o, opt
 			else
-				Util.logBase @one(), "FATAL_TRANSIENT: #{s}", o, opt
+				Context.logBase @one(), "FATAL_TRANSIENT: #{s}", o, opt
 				Util.exit "logError called with @mFailMode is @FM_RUNALL=false"
-		@logWarning	= (s, o, opt) ->
+		@logWarning	= (s, o, opt) ->															#REVISIT
 			if trace.WARNINGS		#H: push lower?     new parameter: bWarning:true  or mType:5
 				console.log "ut @logWarning #{s}"		#T
-				Util.logBase.apply this, [@one(), "WARNING3", arguments...]			#PATTERN: CALL FORWARDING
+				Context.logBase.apply this, [@one(), "WARNING3", arguments...]			#PATTERN: CALL FORWARDING
 		@mStage = @STAGE_SETUP
 		@ok = (vOpt) ->			#CONVENTION
 	#		Context.drill this, grep:"env"
@@ -1138,7 +1139,7 @@ class SyncTest extends Test		#@SyncTest @sync
 
 
 
-
+#URGENT: don't sort async tests ahead of sync... keep order in each file
 
 class AsyncTest extends Test				#@AsyncTest @async
 	@s_mutexMap = {}	#STATIC
@@ -1180,9 +1181,9 @@ class AsyncTest extends Test				#@AsyncTest @async
 #				throw new Error "REALLY?  I really don't see how this could be triggered!!!"  it's not a promise... it's  TRY..CATCH... that's why!
 				return @after @FAIL_EXCEPTION, ex
 
-#			@log "returned from asynch test! #{Context.kvt "rv", rv}"
+			@log "returned from asynch test! #{Context.kvt "rv", rv}"
 			if @cmd.toLowerCase() is 'p'
-#				@log Context.kvt "#{@cmd}-test rv ******************************", rv
+				@log Context.kvt "#{@cmd}-test rv ******************************", rv
 				if IS.pr rv
 #					@log "async test returned Promise"
 					rv.then (resolved) =>
@@ -1754,12 +1755,11 @@ OPTIONS:#{SNEW.autoTable(optionList, bHeader:false)}"""
 
 	testDone: (test) ->
 		@pass += test.pass
-		
-		#TODO: a.push(...b)		#URGENT
-		@failList = [...@failList, ...test.failList]			#PATTERN: #ARRAY: append   #CHALLENGE: this doesn't appear to actually do #INPLACE
+
+		@failList.push ...test.failList							#PATTERN #ARRAY #IN-PLACE #ARRAY-APPEND PREV:@failList = [...@failList, ...test.failList]
 		@runningCnt--
 
-		@logg trace.UT, "testDone: p/f=#{@pass}/#{@failList.length} concurrent=#{@runningCnt}: #{test.one()}: [#{@one()}]"
+		@logg trace.UT_SYS, "testDone: p/f=#{@pass}/#{@failList.length} concurrent=#{@runningCnt}: #{test.one()}: [#{@one()}]"
 
 		if test.failList.length and @OPTS.mFailMode is @FM_FAILTEST
 #			@stack _="mFailMode=@FM_FAILTEST: test failure without recovery: #{test.one2()}"
