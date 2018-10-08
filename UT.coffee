@@ -167,8 +167,8 @@ TODOs
 - pass metrics like # of database hits, etc.
 - test info siloed--none commingled trace and logging.  even though five concurrent tests running, all the trace is separate.  Even threads of particular test are siloed.
 - perhaps put the "assertion library" tightly in it's own silo'ed area?
-- @lt in different text color
-- @lt "I'm green", color:green
+- @ut in different text color
+- @ut "I'm green", color:green
 - test setup and teardown in different text color
 - ut -hi		implement a shell-type history... shows last 30 unique commands with a number... type number: 14<return>
 - on test failure, read each and every file in the test.directory and add to the log for post-mortem analysis
@@ -754,7 +754,7 @@ markers: got     : #{@markers}
 						resolve to
 					,
 						ms
-		@eq = (a, b, msg, o) ->
+		@eq = (a, b, msg, o) ->			#URGENT: combine these
 			#EQ-NOT-STRICT: "as string equal"	(new String "6") eq 6
 #TODO: make helper function that does the actual heavy lifting and pass in the eq, Eq, EQ, EQO, eqfile, etc.
 #H: what if object passed in... use json?
@@ -924,17 +924,17 @@ b> #{V.vt b}
 			@exit @WHY_FATAL, msg
 			Util.exit msg
 		@h = (msg) ->
-			if trace.LT
+			if trace.UT
 				console.log Context.textFormat.format msg, "blue,bold,uc"
-		#DUP: this is principal @log of unit tests
+		#DUP: this is principal @log of unit tests		#TODO: use Context.MAKE
 		@log = ->
-#			console.log "trace.LT=#{trace.LT}"		#URGENT
-			if trace.LT or 1
+#			console.log "trace.UT=#{trace.UT}"
+			if trace.UT_SYS
 				Context.logBase.apply this, ["#{@cname}/#{@tn}", arguments...]				#PATTERN: CALL FORWARDING
 		@m = (s) =>
 			@markers += s
-			if trace.LT
-				console.log Context.textFormat.format "M #{s}", "blue,bold,uc"			#H: write content through logging system
+			if trace.UT
+				console.log Context.textFormat.format "M #{s}", "blue,bold,uc"			#H: write content through logging system	#TODO: use offical logging system
 		MAKE_UT_LOG_FAIL = (mn, mFail) =>
 			do (mn, mFail, that=@) =>		#PATTERN #CURRYING
 #				console.log "mn=#{mn} mFail=#{mFail}"
@@ -974,7 +974,8 @@ b> #{V.vt b}
 
 
 
-#H: what is this?  write test for it
+
+		#H: what is this?  write test for it
 # I JUST DO NOT UNDERSTAND THIS!!!
 # in ServerStoreUT it moves alloc() to be reachable from unit test
 		if @common
@@ -1200,7 +1201,8 @@ class AsyncTest extends Test				#@AsyncTest @async
 					@after @FAIL_ERROR, "UT004 Promise expected but not returned from P-test"
 			else
 				if IS.pr rv
-					@logWarning "tip: async test returned a promise; consider using @p instead of @a"
+					if trace.TIP
+						@logWarning "tip: async test returned a promise; consider using @p instead of @a"
 					rv.then (v) =>
 						if @mState isnt @STATE_DONE
 							@log "[#{@STATE_LIST[@mState]}] one3=#{@one3()}"
@@ -1290,10 +1292,10 @@ class UTRunner extends UTBase		#@UTRunner @runner
 		Object.defineProperties @,
 			LT:
 				enumerable: true
-				get: -> trace.LT
+				get: -> trace.UT
 				set: (v) ->
 #					console.log "set T=#{v}"
-					trace.LT = v
+					trace.UT = v
 
 
 
@@ -1377,7 +1379,7 @@ class UTRunner extends UTBase		#@UTRunner @runner
 				d: "Trace No: turn off all trace"
 			,
 				o: "-ty"
-				d: "Trace Yes: turn on all trace: naked or -ty lt,... for trace.LT (\"log tests\")"  #DOMAIN-SPECIFIC #MOVE #H
+				d: "Trace Yes: turn on all trace: naked or -ty ut,... for trace.UT (\"log tests\")"  #DOMAIN-SPECIFIC #MOVE #H
 		]
 
 		@eventFire "CLI-optionList", optionList

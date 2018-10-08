@@ -154,8 +154,8 @@ TODOs
 - pass metrics like # of database hits, etc.
 - test info siloed--none commingled trace and logging.  even though five concurrent tests running, all the trace is separate.  Even threads of particular test are siloed.
 - perhaps put the "assertion library" tightly in it's own silo'ed area?
-- @lt in different text color
-- @lt "I'm green", color:green
+- @ut in different text color
+- @ut "I'm green", color:green
 - test setup and teardown in different text color
 - ut -hi		implement a shell-type history... shows last 30 unique commands with a number... type number: 14<return>
 - on test failure, read each and every file in the test.directory and add to the log for post-mortem analysis
@@ -882,7 +882,7 @@ Test = class Test extends UTBase { //@Test #@test
         }, ms);
       });
     };
-    this.eq = function(a, b, msg, o) {
+    this.eq = function(a, b, msg, o) { //URGENT: combine these
       var s;
       if (!(a != null) && !(b != null)) {
         this.log(`both undefined: msg=${msg}`, o);
@@ -1039,14 +1039,14 @@ Test = class Test extends UTBase { //@Test #@test
       return Util.exit(msg);
     };
     this.h = function(msg) {
-      if (trace.LT) {
+      if (trace.UT) {
         return console.log(Context.textFormat.format(msg, "blue,bold,uc"));
       }
     };
-    //DUP: this is principal @log of unit tests
+    //DUP: this is principal @log of unit tests		
     this.log = function() {
-      //			console.log "trace.LT=#{trace.LT}"		#URGENT
-      if (trace.LT || 1) {
+      //			console.log "trace.UT=#{trace.UT}"
+      if (trace.UT_SYS) {
         return Context.logBase.apply(this, [
           `${this.cname}/${this.tn}`,
           ...arguments //PATTERN: CALL FORWARDING
@@ -1055,8 +1055,8 @@ Test = class Test extends UTBase { //@Test #@test
     };
     this.m = (s) => {
       this.markers += s;
-      if (trace.LT) {
-        return console.log(Context.textFormat.format(`M ${s}`, "blue,bold,uc")); //H: write content through logging system
+      if (trace.UT) {
+        return console.log(Context.textFormat.format(`M ${s}`, "blue,bold,uc")); //H: write content through logging system	
       }
     };
     MAKE_UT_LOG_FAIL = (mn, mFail) => {
@@ -1360,7 +1360,9 @@ AsyncTest = (function() {
           }
         } else {
           if (IS.pr(rv)) {
-            this.logWarning("tip: async test returned a promise; consider using @p instead of @a");
+            if (trace.TIP) {
+              this.logWarning("tip: async test returned a promise; consider using @p instead of @a");
+            }
             return rv.then((v) => {
               if (this.mState !== this.STATE_DONE) {
                 this.log(`[${this.STATE_LIST[this.mState]}] one3=${this.one3()}`);
@@ -1467,11 +1469,11 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
       LT: {
         enumerable: true,
         get: function() {
-          return trace.LT;
+          return trace.UT;
         },
         set: function(v) {
           //					console.log "set T=#{v}"
-          return trace.LT = v;
+          return trace.UT = v;
         }
       }
     });
@@ -1579,7 +1581,7 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
       },
       {
         o: "-ty",
-        d: "Trace Yes: turn on all trace: naked or -ty lt,... for trace.LT (\"log tests\")" //DOMAIN-SPECIFIC #MOVE #H
+        d: "Trace Yes: turn on all trace: naked or -ty ut,... for trace.UT (\"log tests\")" //DOMAIN-SPECIFIC #MOVE #H
       }
     ];
     this.eventFire("CLI-optionList", optionList);
