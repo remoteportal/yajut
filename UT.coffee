@@ -71,6 +71,28 @@ P-tests:
 		Promise.resolve()
 		.then =>
 			@log "this chain does return promise"		BUT GENERATES  (UT004) in RN because RN promises are objects not typeof => Promise
+	PROBLEMS with @p TEST DISCUSSION:
+    	The problem is that TWO promises are resolved:
+    		A) the test itself
+    		B) @env.succ()
+		NOTE: the test may not appear to return a promise object, but because it has a promise chain, a promise object *is* returned (FFF2) and the value may be a real value or null
+		@p "scenario 1 BROKEN", ->
+			pr = @ce().run()
+			.then (po) =>
+				@env.succ "Kubusschnitt"			=> FFF6: ut ITSELF resolved promise: [[Kubusschnitt]]					**NO** await	t2) too late, ERROR
+				"hello"								=> FFF2: @p ut return value: promise, that is NOW resolved: [[hello]]					t1) timely
+		@p "scenario 2 BROKEN", ->
+			pr = @ce().run()
+			.then (po) =>
+				await @env.succ "Kubusschnitt"		=> FFF6: ut ITSELF resolved promise: [[Kubusschnitt]]					**YES** await	t1) timely
+				"hello"								=> FFF2: @p ut return value: promise, that is NOW resolved: [[hello]]					t2) too late, suite already moved on, causes Error: done: who=undefined: mState: expected=RUNNING(2) got=DONE(3)
+    	#TAKE-AWAY: I don't think @env.succ can be used with @p-tests?
+    		By design, @env.succ() fires promise that was created by @ce()
+		@p "scenario 3 CORRECT-FORM", ->
+			pr = @ce().run()
+			.then (po) =>
+				@env.d()		#WORKS: don't put await
+
 
 
 EVENTS: @events
@@ -770,7 +792,7 @@ markers: got     : #{@markers}
 			a = "" + a
 			b = "" + b
 
-#			console.log "------------"
+#			console.log "------------"			#DEBUGGING
 #			console.log "aaa> #{a}"
 #			console.log "bbb> #{b}"
 
@@ -1198,24 +1220,26 @@ class AsyncTest extends Test				#@AsyncTest @async
 				clearTimeout timer
 				#YES_CODE_PATH: I've seen this but sure why... you'd think that "catch" would be run instead
 #				throw new Error "REALLY?  I really don't see how this could be triggered!!!"  it's not a promise... it's  TRY..CATCH... that's why!
+				@log "FFF1"
 				return @after @FAIL_EXCEPTION, ex
 
-			@log "returned from asynch test! #{Context.kvt "rv", rv}"
+			@log "returned from asynch test! #{kvt "rv", rv}"
 			if @cmd.toLowerCase() is 'p'
-				@log Context.kvt "#{@cmd}-test rv ******************************", rv
+				@log kvt "#{@cmd}-test rv ******************************", rv
 				if IS.pr rv
 #					@log "async test returned Promise"
 					rv.then (resolved) =>
 						clearTimeout timer
-#						@log "@p test resolved &&&&&&&&&&&&"
+						@log "FFF2: @p ut return value: promise, that is NOW resolved: #{LL.PR_RESOLVED resolved}"
 						@after null, null
 					.catch (ex) =>
 						clearTimeout timer
-#						@log "@p test rejected &&&&&&&&&&&&"
+						@log "FFF3: @p ut return value: promise, that is NOW rejected: #{LL.PR_REJECTED ex}"
 						@after @FAIL_EXCEPTION, ex
 				else
 					clearTimeout timer
 #					@log "SHOULD HAVE BEEN PROMISE", rv
+					@log "FFF4"
 					@after @FAIL_ERROR, "UT004 Promise expected but not returned from P-test"
 			else
 				if IS.pr rv
@@ -1230,6 +1254,7 @@ class AsyncTest extends Test				#@AsyncTest @async
 
 						#TRY:
 						clearTimeout timer
+						@log "FFF5"
 						@after @FAIL_EXCEPTION, ex
 				else
 					@log "AsyncTest.start: non-promise return value from @a.  rv=", rv
@@ -1239,10 +1264,12 @@ class AsyncTest extends Test				#@AsyncTest @async
 		.then (resolved) =>
 			@logg trace.UT_RESOLVE_REJECT_VALUE, "RESOLVED:", resolved
 			clearTimeout timer
+			@log "FFF6: ut ITSELF resolved promise: #{LL.PR_RESOLVED resolved}"
 			@after null, null
 		.catch (ex) =>
 			@logg trace.UT_RESOLVE_REJECT_VALUE, "REJECTED:", ex
 			clearTimeout timer
+			@log "FFF7"
 			@after @FAIL_EXCEPTION, ex
 
 
@@ -1915,13 +1942,17 @@ OPTIONS:#{SNEW.autoTable(optionList, bHeader:false)}"""
 
 class UT_UT extends UT		#@UT_UT		@unittest  @ut
 	run: ->
-		@s "async return implicit Promise", ->
+		@s "@p - async return implicit Promise", ->
 			@p "resolved", ->
 				Promise.resolve "I am good"
 			@p "rejected", expect:"EXCEPTION", mType:@NEG, ->
 				Promise.reject "I am bad"
 			@p "non-promise", expect:"ERROR", mType:@NEG, ->		#TODO: this is not an ERROR, it's a UT unit test problem, no?
 				Math.pi
+			@p "role model of how to use @p and @ce together", desc:"see file header for full explanation", ->
+				pr = @ce().run()
+				.then (po) =>
+					@env.d()		#WORKS
 		@s "top", ->
 			@t "test1", ->
 			@t "test2", ->
