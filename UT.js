@@ -883,7 +883,7 @@ Test = class Test extends UTBase { //@Test #@test
       });
     };
     this.eq = function(a, b, msg, o) { //URGENT: combine these
-      var s;
+      var aa, c, i, j, len, s;
       if (!(a != null) && !(b != null)) {
         this.log(`both undefined: msg=${msg}`, o);
         this.logg(trace.UT_EQ, `eq pass: ${a} vs ${b}: both undefined [${msg}]`);
@@ -894,6 +894,25 @@ Test = class Test extends UTBase { //@Test #@test
       //				s = "@eq types violation"
       a = "" + a;
       b = "" + b;
+      //			console.log "------------"
+      //			console.log "aaa> #{a}"
+      //			console.log "bbb> #{b}"
+
+      // mask asterisks(*) in the LEFT string if they are present in the RIGHT string
+      aa = "";
+      for (i = j = 0, len = b.length; j < len; i = ++j) {
+        c = b[i];
+        //				@log c
+        if (c === '*') {
+          aa += '*';
+        } else {
+          //					console.log "MASK!"
+          aa += i < a.length ? a[i] : '';
+        }
+      }
+      a = aa;
+      //			console.log "aaa> #{a}"
+      //			console.log "bbb> #{b}"
       if (!V.EQ(a, b)) {
         s = "@eq values violation";
       }
