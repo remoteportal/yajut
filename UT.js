@@ -1156,12 +1156,13 @@ Test = class Test extends UTBase { //@Test #@test
     this.PASS = function() {
       return this.bForcePass = true;
     };
-    this.PASS_CNT = function(n) {
+    this.PASS_CNT = function(n = 1) {
       return this.pass += n;
     };
     this.throw = function(msg) {
-      throw Error(msg);
+      throw Error(msg); //USED?
     };
+    
     //H: what is this?  write test for it
     // I JUST DO NOT UNDERSTAND THIS!!!
     // in ServerStoreUT it moves alloc() to be reachable from unit test
@@ -1233,7 +1234,7 @@ Test = class Test extends UTBase { //@Test #@test
     var k, pn, pv, ref, ref1, ref2, ref3, ref4, v;
     this.opts = Object.assign({}, this.runner.OPTS, (ref = this.runner.OPTS) != null ? (ref1 = ref.perTestOpts) != null ? ref1[this.cname] : void 0 : void 0, this.opts);
     delete this.opts.perTestOpts; //H: this assumes PER TEST not PER FILE
-    this.logg(trace.UT_TEST_PRE_ONE_LINER, `================== ${this.one() // /#{testList.length} #{@cname} #{@cmd}:#{@tn}#{if trace.DETAIL then ": path=#{@path}" else ""}"
+    this.logg(trace.UT_TEST_PRE_ONE_LINER, `=^20 ${this.one() // /#{testList.length} #{@cname} #{@cmd}:#{@tn}#{if trace.DETAIL then ": path=#{@path}" else ""}"
 }`);
     this.msBeg = Date.now();
     this.mState = this.STATE_RUNNING;
@@ -1871,7 +1872,6 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
     //		if @OPTS.traceOverride?
     //			console.log "calling TRISTATE"
     //			trace.tristate @OPTS.traceOverride
-    //			trace.UT_TEST_PRE_ONE_LINER = true
     //		@log "CLI", @OPTS
 
     //		if @OPTS.mFailMode is @FM_FAILFAST			#POP

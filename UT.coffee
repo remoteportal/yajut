@@ -1010,8 +1010,8 @@ b> #{V.vt b}
 	#		@env.succ()		#TODO: get reference to @env and tear down resources
 			@resolve vOpt
 		@PASS = -> @bForcePass = true
-		@PASS_CNT = (n) -> @pass += n
-		@throw = (msg) -> throw Error msg
+		@PASS_CNT = (n=1) -> @pass += n
+		@throw = (msg) -> throw Error msg			#USED?
 
 
 
@@ -1092,7 +1092,7 @@ b> #{V.vt b}
 		delete @opts.perTestOpts		#H: this assumes PER TEST not PER FILE
 
 #TODO: remove extranous test name in front: 39:58 [AsyncTest] ================== #27 a FSUT /fileSize
-		@logg trace.UT_TEST_PRE_ONE_LINER, "================== #{@one()}"		# /#{testList.length} #{@cname} #{@cmd}:#{@tn}#{if trace.DETAIL then ": path=#{@path}" else ""}"
+		@logg trace.UT_TEST_PRE_ONE_LINER, "=^20 #{@one()}"		# /#{testList.length} #{@cname} #{@cmd}:#{@tn}#{if trace.DETAIL then ": path=#{@path}" else ""}"
 
 		@msBeg = Date.now()
 		@mState = @STATE_RUNNING
@@ -1596,7 +1596,6 @@ OPTIONS:#{SNEW.autoTable(optionList, bHeader:false)}"""
 #		if @OPTS.traceOverride?
 #			console.log "calling TRISTATE"
 #			trace.tristate @OPTS.traceOverride
-#			trace.UT_TEST_PRE_ONE_LINER = true
 #		@log "CLI", @OPTS
 
 #		if @OPTS.mFailMode is @FM_FAILFAST			#POP
