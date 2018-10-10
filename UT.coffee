@@ -131,6 +131,7 @@ UT006 opts must be object
 UT007 opts.tags must be CSV
 UT008 asynch opt not allowed with $
 UT009 Invalid test tag: $
+UT010 two children can't have exactly the same name: $			FUTURE
 
 
 GENERALIZE:
@@ -818,14 +819,14 @@ markers: got     : #{@markers}
 
 a> #{V.vt a}
 b> #{V.vt b}
-#{if msg then "MSG: #{msg}" else ""}
+#{AP.arb_d "MSG: ", msg}
 """
 				@FAIL @FAIL_EQ, "eq #{a} vs. #{b}", "#{s}\n#{S.COMPARE_REPORT a, b}", o
 				@logg trace.UT_EQ, "eq fail: #{a} vs #{b} [#{msg}]"
 				false
 			else
 				#TODO: helper function that ALWAYS logs silently even if trace is off
-				@logg trace.UT_EQ, "eq pass: #{a} vs #{b} [#{msg}]"		#TODO: move to other eq's
+				@logg trace.UT_EQ, "eq pass: #{a} vs #{b}#{AP.sqb msg}"		#TODO: move to other eq's
 				@logSilent "inside eq: PASS: #{msg}", o
 				@logSilent V.vt a
 				@logSilent V.vt b
@@ -848,7 +849,7 @@ b> #{V.vt b}
 
 a> #{V.vt a}
 b> #{V.vt b}
-#{if msg then "MSG: #{msg}" else ""}
+#{AP.arb_d "MSG: ", msg}
 """
 				@FAIL @FAIL_EQ, "eq #{a} vs. #{b}", "#{s}\n#{V.COMPARE_REPORT a, b}", o
 				false
@@ -875,7 +876,7 @@ b> #{V.vt b}
 
 a> #{V.vt a}
 b> #{V.vt b}
-#{if msg then "MSG: #{msg}" else ""}
+#{AP.arb_d "MSG: ", msg}
 """
 				@FAIL @FAIL_EQ, "eq #{a} vs. #{b}", "#{s}\n#{V.COMPARE_REPORT a, b}", o
 				false
@@ -898,7 +899,7 @@ b> #{V.vt b}
 
 a> #{V.vt a}
 b> #{V.vt b}
-#{if msg then "MSG: #{msg}" else ""}
+#{AP.arb_d "MSG: ", msg}
 """
 				@FAIL @FAIL_EQ, "eq #{a} vs. #{b}", "#{s}\n#{V.COMPARE_REPORT a, b}", o
 				false
