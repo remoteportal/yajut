@@ -939,8 +939,8 @@ Test = class Test extends UTBase { //@Test #@test
         }
         a = aa;
       }
-      console.log(`aaa> ${a}`);
-      console.log(`bbb> ${b}`);
+      //			console.log "aaa> #{a}"
+      //			console.log "bbb> #{b}"
       if (!V.EQ(a, b)) {
         s = "@eq values violation";
       }

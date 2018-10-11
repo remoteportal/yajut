@@ -810,8 +810,8 @@ markers: got     : #{@markers}
 						aa += if i < a.length then a[i] else ''
 				a = aa
 
-			console.log "aaa> #{a}"
-			console.log "bbb> #{b}"
+#			console.log "aaa> #{a}"
+#			console.log "bbb> #{b}"
 
 			unless V.EQ a, b
 				s = "@eq values violation"
