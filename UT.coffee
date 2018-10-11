@@ -797,19 +797,21 @@ markers: got     : #{@markers}
 #			console.log "aaa> #{a}"
 #			console.log "bbb> #{b}"
 
-			# mask asterisks(*) in the LEFT string if they are present in the RIGHT string
-			aa = ""
-			for c,i in b
-#				@log c
-				if c is '*'
-					aa += '*'
-#					console.log "MASK!"
-				else
-					aa += if i < a.length then a[i] else ''
-			a = aa
+			if b.includes '*'
+				# mask asterisks(*) in the LEFT string if they are present in the RIGHT string
+				#TODO #BUG: this truncates the 'a' string
+				aa = ""
+				for c,i in b
+	#				@log c
+					if c is '*'
+						aa += '*'
+	#					console.log "MASK!"
+					else
+						aa += if i < a.length then a[i] else ''
+				a = aa
 
-#			console.log "aaa> #{a}"
-#			console.log "bbb> #{b}"
+			console.log "aaa> #{a}"
+			console.log "bbb> #{b}"
 
 			unless V.EQ a, b
 				s = "@eq values violation"
