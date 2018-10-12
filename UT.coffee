@@ -108,8 +108,7 @@ test-start
     Eq			a, b, msg, o				value not type (EQ-MID-STRICT)				pass: (new String "6") Eq "6"
     EQ			a, b, msg, o				value and type (EQ-STRICT)					pass: (new String "6") EQ (new String "6")
     EQO			a, b, msg, o				same object (EQ-SAME)						pass: o EQO o
-    eqfile_pr	a, b, msg, o				file contents (EQ-FILE)						pass: read(file) compare read(file)
-#RENAME:eqfile_pr => eqfile
+    eqfile		a, b, msg, o				file contents (EQ-FILE)						pass: read(file) compare read(file)
 
 
 FEATURES:
@@ -575,10 +574,10 @@ class Test extends UTBase		#@Test #@test
 #				@log "******************************** stack.length=#{@stack?.length}"
 			full: -> Context.textFormat.red "#{@one()}\n\n#{@detail}\n#{@stack}"
 			heal: -> @bEnabled = false
-			one: -> "Fail: #{@failTypes[@mFail]}(#{@mFail})#{if @msg then " #{@msg}" else ""}: #{@summary}"
+			one: -> "Fail: #{@failTypes[@mFail]}(#{@mFail})#{AP.d @msg, @msg}: #{@summary}"
 
 		@one = -> "##{@testIndex} #{_}"
-		@one2 = -> "Test: #{@one()}: cmd=#{@cmd} enabled=#{@bEnabled} mState=#{@stateFrag()} mStage=#{@mStage}#{if @opts.mutex then " mutex=#{@opts.mutex}" else ""} pf=#{@pass}/#{@failList.length}"
+		@one2 = -> "Test: #{@one()}: cmd=#{@cmd} enabled=#{@bEnabled} mState=#{@stateFrag()} mStage=#{@mStage}#{AP.d @opts.mutex, "mutex=#{@opts.mutex}"} pf=#{@pass}/#{@failList.length}"
 		@one3 = -> "#{@one2()} [#{@optsCSV}]"
 		testList.unshift this
 
@@ -777,44 +776,64 @@ markers: got     : #{@markers}
 						resolve to
 					,
 						ms
-		@eq = (a, b, msg, o) ->			#URGENT: combine these
-			#EQ-NOT-STRICT: "as string equal"	(new String "6") eq 6
-#TODO: make helper function that does the actual heavy lifting and pass in the eq, Eq, EQ, EQO, eqfile, etc.
-#H: what if object passed in... use json?
-#			@log "eq:BEG: a=#{a} b=#{b}"
+		@eq  =	(a, b, msg, o) -> 	@eqINNER.apply @, ["eq",  ...Array.prototype.slice.call arguments]			#PATTERN #FORWARD #CURRYING
+		@Eq  =	(a, b, msg, o) -> 	@eqINNER.apply @, ["Eq",  ...Array.prototype.slice.call arguments]			#PATTERN #FORWARD #CURRYING
+		@EQ  =	(a, b, msg, o) -> 	@eqINNER.apply @, ["EQ",  ...Array.prototype.slice.call arguments]			#PATTERN #FORWARD #CURRYING
+		@EQO =	(a, b, msg, o) -> 	@eqINNER.apply @, ["EQO", ...Array.prototype.slice.call arguments]			#PATTERN #FORWARD #CURRYING
+		@eqINNER = (mn, a, b, msg, o) =>
+			#							PASS CRITERIA
+			# eq	#EQ-NOT-STRICT		"as string equal"		(new String "6") eq 6
+			# Eq	#EQ-MID-STRICT		"value not type"		(new String "6") Eq "6"						#H: same as eq?
+			# EQ	#EQ-STRICT			"value and type"		(new String "6") EQ (new String "6")
+			# EQO	#EQ-SAME			"same object"			obj == obj
+
+			@log "#{mn}: BEG: a=#{a} b=#{b}"
 			if !(a?) and !(b?)
-				@log "both undefined: msg=#{msg}", o
-				@logg trace.UT_EQ, "eq pass: #{a} vs #{b}: both undefined [#{msg}]"
+				@logg trace.UT_EQ, "#{mn} pass: #{a} vs #{b}: both undefined [#{msg}]", o
 				return true
-#			else unless V.type(a) is V.type(b)
-#				@log "bad types ((((((((((((((((((((((("
-#				s = "@eq types violation"
 
-			a = "" + a
-			b = "" + b
+			s = ""			# method passes if nothing appended
 
-#			console.log "------------"			#DEBUGGING
-#			console.log "aaa> #{a}"
-#			console.log "bbb> #{b}"
+			doValue = =>
+				a = "" + a
+				b = "" + b
 
-			if b.includes '*'
-				# mask asterisks(*) in the LEFT string if they are present in the RIGHT string
-				#TODO #BUG: this truncates the 'a' string
-				aa = ""
-				for c,i in b
-	#				@log c
-					if c is '*'
-						aa += '*'
-	#					console.log "MASK!"
+#				console.log "------------"			#DEBUGGING
+#				console.log "aaa> #{a}"
+#				console.log "bbb> #{b}"
+
+				if b.includes '*'
+# mask asterisks(*) in the LEFT string if they are present in the RIGHT string
+#TODO #BUG: truncates the 'a' string
+					aa = ""
+					for c,i in b
+	#					@log c
+						if c is '*'
+							aa += '*'
+	#						console.log "MASK!"
+						else
+							aa += if i < a.length then a[i] else ''
+					a = aa
+
+#					console.log "aaa> #{a}"
+#					console.log "bbb> #{b}"
+
+				unless V.EQ a, b
+					s = "#{mn} values violation"
+
+			switch mn
+				when "eq"
+					doValue()
+				when "Eq"
+					doValue()
+				when "EQ"
+					unless V.Type(a) is V.Type(b)
+						s = "types violation"
 					else
-						aa += if i < a.length then a[i] else ''
-				a = aa
-
-#			console.log "aaa> #{a}"
-#			console.log "bbb> #{b}"
-
-			unless V.EQ a, b
-				s = "@eq values violation"
+						doValue()
+				when "EQO"
+					unless a is b
+						s = "EQO not same object"
 
 			if s
 				s += """
@@ -823,97 +842,19 @@ a> #{V.vt a}
 b> #{V.vt b}
 #{AP.arb_d "MSG: ", msg}
 """
-				@FAIL @FAIL_EQ, "eq #{a} vs. #{b}", "#{s}\n#{S.COMPARE_REPORT a, b}", o
-				@logg trace.UT_EQ, "eq fail: #{a} vs #{b} [#{msg}]"
+				@FAIL @FAIL_EQ, "#{mn} #{a} vs. #{b}", "#{s}\n#{V.COMPARE_REPORT a, b}", o
+				@logg trace.UT_EQ, "#{mn} fail: #{a} vs #{b} [#{msg}]"
 				false
 			else
-				#TODO: helper function that ALWAYS logs silently even if trace is off
-				@logg trace.UT_EQ, "eq pass: #{a} vs #{b}#{AP.sqb msg}"		#TODO: move to other eq's
-				@logSilent "inside eq: PASS: #{msg}", o
+				@logg trace.UT_EQ, "#{mn} pass: #{a} vs #{b}#{AP.sqb msg}"
+				@logSilent "inside #{mn}: PASS: #{msg}", o
 				@logSilent V.vt a
 				@logSilent V.vt b
 				@pass++
-				@logSilent "eq: pass=#{@pass}"
+				@logSilent "#{mn}: pass=#{@pass}"
 				true
-		@Eq = (a, b, msg, o) ->
-			#EQ-MID-STRICT: "value not type"	(new String "6") Eq "6"
-#			@log "Eq:BEG: a=#{a} b=#{b}"
-			if !(a?) and !(b?)
-				@log "both undefined: msg=#{msg}", o
-			else unless V.type(a) is V.type(b)
-				@log "bad types ((((((((((((((((((((((("
-				s = "@eq types violation"
-			else unless V.EQ a, b
-				s = "@eq values violation"
-
-			if s
-				s += """
-
-a> #{V.vt a}
-b> #{V.vt b}
-#{AP.arb_d "MSG: ", msg}
-"""
-				@FAIL @FAIL_EQ, "eq #{a} vs. #{b}", "#{s}\n#{V.COMPARE_REPORT a, b}", o
-				false
-			else
-				@logSilent "inside eq: PASS: #{msg}", o
-				@logSilent V.vt a
-				@logSilent V.vt b
-				@pass++
-				@logSilent "eq: pass=#{@pass}"
-				true
-		@EQ = (a, b, msg, o) ->
-			#EQ-STRICT: "value and type"	(new String "6") EQ (new String "6")
-#			@log "Eq:BEG: a=#{a} b=#{b}"
-			if !(a?) and !(b?)
-				@log "both undefined: msg=#{msg}", o
-			else unless V.Type(a) is V.Type(b)
-				@log "bad types ((((((((((((((((((((((("
-				s = "@eq types violation"
-			else unless V.EQ a, b
-				s = "@eq values violation"
-
-			if s
-				s += """
-
-a> #{V.vt a}
-b> #{V.vt b}
-#{AP.arb_d "MSG: ", msg}
-"""
-				@FAIL @FAIL_EQ, "eq #{a} vs. #{b}", "#{s}\n#{V.COMPARE_REPORT a, b}", o
-				false
-			else
-				@logSilent "inside eq: PASS: #{msg}", o
-				@logSilent V.vt a
-				@logSilent V.vt b
-				@pass++
-				@logSilent "eq: pass=#{@pass}"
-				true
-		@EQO = (a, b, msg, o) ->
-			#EQ-SAME: "same object"	o EQO o
-			if !(a?) and !(b?)
-				@log "both undefined: msg=#{msg}", o
-			else unless a is b
-				s = "@eq values violation"
-
-			if s
-				s += """
-
-a> #{V.vt a}
-b> #{V.vt b}
-#{AP.arb_d "MSG: ", msg}
-"""
-				@FAIL @FAIL_EQ, "eq #{a} vs. #{b}", "#{s}\n#{V.COMPARE_REPORT a, b}", o
-				false
-			else
-				@logSilent "inside eq: PASS: #{msg}", o
-				@logSilent V.vt a
-				@logSilent V.vt b
-				@pass++
-				@logSilent "eq: pass=#{@pass}"
-				true
-		@eqfile_pr = (a, b) ->		#CONVENTION
-			#EQ-FILE-CONTENTS: "file contents"	path eqfile_pr path
+		@eqfile = (a, b) ->		#CONVENTION
+			#EQ-FILE-CONTENTS: "file contents"	path eqfile path
 			@log "a: #{a}"
 			@log "b: #{b}"
 
@@ -938,7 +879,7 @@ b> #{V.vt b}
 			fail = new @Fail mFail, summary, detail, v
 #			@log "TYPE: #{Context.TYPE v}"
 
-			_ = "FAIL: #{if summary then "#{summary}: " else ""}fail666=#{@failList.length}"
+			_ = "FAIL: #{IF summary, "#{summary}: "}fail666=#{@failList.length}"
 
 			if v
 #				Context.O.DUMP v
@@ -1094,7 +1035,7 @@ b> #{V.vt b}
 		delete @opts.perTestOpts		#H: this assumes PER TEST not PER FILE
 
 #TODO: remove extranous test name in front: 39:58 [AsyncTest] ================== #27 a FSUT /fileSize
-		@logg trace.UT_TEST_PRE_ONE_LINER, "=^20 #{@one()}"		# /#{testList.length} #{@cname} #{@cmd}:#{@tn}#{if trace.DETAIL then ": path=#{@path}" else ""}"
+		@logg trace.UT_TEST_PRE_ONE_LINER, "=^20 #{@one()}"		# /#{testList.length} #{@cname} #{@cmd}:#{@tn}#{AP.c_d trace.DETAIL, "path=#{@path}"}"
 
 		@msBeg = Date.now()
 		@mState = @STATE_RUNNING
@@ -1183,7 +1124,6 @@ class SyncTest extends Test		#@SyncTest @sync
 
 
 
-#URGENT: don't sort async tests ahead of sync... keep order in each file
 
 class AsyncTest extends Test				#@AsyncTest @async
 	@s_mutexMap = {}	#STATIC
@@ -1663,7 +1603,7 @@ OPTIONS:#{SNEW.autoTable(optionList, bHeader:false)}"""
 
 		#TODO: stop all running async tests if any still running
 
-		whyPhrase = "#{@WHY_LIST[@mWhy]}(#{@mWhy})#{if msg then " details=#{msg}" else ""}"
+		whyPhrase = "#{@WHY_LIST[@mWhy]}(#{@mWhy})#{AP.d msg, "details=#{msg}"}"
 #		@log "Runner.exit: #{whyPhrase}"
 #		@log @one()
 
@@ -1893,7 +1833,7 @@ OPTIONS:#{SNEW.autoTable(optionList, bHeader:false)}"""
 			@syncCnt = testList.reduce(((acc, test) -> if test.bEnabled and test.bSync then acc+1 else acc), 0)
 			@asyncCnt = testList.reduce(((acc, test) -> if test.bEnabled and !test.bSync then acc+1 else acc), 0)
 
-			@log "#{@summary} Found #{testList.length} #{SNEW.PLURAL "test", testList.length}#{if @enabledCnt < testList.length then " with #{@enabledCnt} enabled" else ""}"
+			@log "#{@summary} Found #{testList.length} #{SNEW.PLURAL "test", testList.length}#{AP.d @enabledCnt < testList.length, "with #{@enabledCnt} enabled"}"
 
 
 
@@ -1901,15 +1841,15 @@ OPTIONS:#{SNEW.autoTable(optionList, bHeader:false)}"""
 		testList.reverse()				#IMPORTANT: testList must be in reverse order so that we can splice way elements and not break our iterators
 
 		#TODO: read average test milliseconds from filesystem
-		_ = []
-		testList.forEach (test) =>
-			unless test.bSync
-				_.push test
-		testList.forEach (test) =>
-			if test.bSync
-				_.push test
-
-		testList = _
+#		_ = []
+#		testList.forEach (test) =>
+#			unless test.bSync
+#				_.push test
+#		testList.forEach (test) =>
+#			if test.bSync
+#				_.push test
+#
+#		testList = _
 
 		testIndex = 1
 		for test,i in testList
@@ -2027,11 +1967,11 @@ class UT_UT extends UT		#@UT_UT		@unittest  @ut
 			.then (to) =>
 				@log "timed out", to
 				@resolve to
-		@s "eqfile_pr", ->
-			@p "same size", ->										@eqfile_pr @filepath("deanna.png"),		@filepath("same-size.png")
-			@p "different sizes", expect:"EQ", mType:@NEG, ->		@eqfile_pr @filepath("deanna.png"),		@filepath("ut.env")
-			@p "a dne", expect:"EQ", mType:@NEG, ->					@eqfile_pr @filepath("dne.png"), 		@filepath("ut.env")
-			@p "b dne", expect:"EQ", mType:@NEG, ->					@eqfile_pr @filepath("deanna.png"), 	@filepath("dne.env")
+		@s "eqfile", ->
+			@p "same size", ->										@eqfile @filepath("deanna.png"),		@filepath("same-size.png")
+			@p "different sizes", expect:"EQ", mType:@NEG, ->		@eqfile @filepath("deanna.png"),		@filepath("ut.env")
+			@p "a dne", expect:"EQ", mType:@NEG, ->					@eqfile @filepath("dne.png"), 		@filepath("ut.env")
+			@p "b dne", expect:"EQ", mType:@NEG, ->					@eqfile @filepath("deanna.png"), 	@filepath("dne.env")
 		@s "equate", ->
 			@t "single parameter", {
 				expect: "EQ,EQ"
@@ -2042,11 +1982,11 @@ class UT_UT extends UT		#@UT_UT		@unittest  @ut
 				@eq 1,2
 				@eq "only passed one parameter"
 				@eq 1,2
-			@t "differing types (loose)", desc:"@eq is NOT strict, i.e., it checks VALUE only (string vs. integer is okay and passes", ->
+			@t "differing types (loose)", desc:"@eq is NOT strict, i.e., it checks VALUE only (string vs. integer is okay and passes)", ->
 				@eq "5", 5
-			@t "differing types (kinda POS)", desc:"@Eq is kinda strict, i.e., it checks VALUE only (string vs. string is okay and passes", ->
+			@t "differing types (kinda POS)", desc:"@Eq is kinda strict, i.e., it checks VALUE only (string vs. string is okay and passes)", ->
 				@Eq "peter", "peter"
-			@t "differing types (kinda NEG)", expect:"EQ", desc:"@Eq is kinda strict", mType:@NEG, ->
+			@t "differing types okay (kinda NEG 22222)", desc:"@Eq is kinda strict", ->		# :"EQ", mType:@NEG, ->
 				@Eq "5", 5
 			@t "differing types (strict POS)", {}, ->
 				@EQ new String("peter"), new String("peter")
@@ -2055,7 +1995,7 @@ class UT_UT extends UT		#@UT_UT		@unittest  @ut
 			@t "EQO", desc:"@EQO same object", ->
 				o = {a: "a"}
 				@EQO o, o, "same object"
-			@t "EQO neg", expect:"EQ", desc:"@EQO same object", mType:@NEG, ->
+			@t "EQO neg 33333", expect:"EQ", desc:"@EQO same object", mType:@NEG, ->
 				@EQO {a: "a"}, {a: "a"}, "different objects (with same object signatures)"
 		@s "exceptions", ->
 			@a "throw exception", expect:"EXCEPTION", mType:@NEG, ->

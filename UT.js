@@ -99,8 +99,7 @@ test-start
     Eq			a, b, msg, o				value not type (EQ-MID-STRICT)				pass: (new String "6") Eq "6"
     EQ			a, b, msg, o				value and type (EQ-STRICT)					pass: (new String "6") EQ (new String "6")
     EQO			a, b, msg, o				same object (EQ-SAME)						pass: o EQO o
-    eqfile_pr	a, b, msg, o				file contents (EQ-FILE)						pass: read(file) compare read(file)
-#RENAME:eqfile_pr => eqfile
+    eqfile		a, b, msg, o				file contents (EQ-FILE)						pass: read(file) compare read(file)
 
 FEATURES:
 - ability to add or remove flags run-over-run: +flag  /flag or something
@@ -664,7 +663,7 @@ Test = class Test extends UTBase { //@Test #@test
       }
 
       one() {
-        return `Fail: ${this.failTypes[this.mFail]}(${this.mFail})${(this.msg ? ` ${this.msg}` : "")}: ${this.summary}`;
+        return `Fail: ${this.failTypes[this.mFail]}(${this.mFail})${AP.d(this.msg, this.msg)}: ${this.summary}`;
       }
 
     };
@@ -672,7 +671,7 @@ Test = class Test extends UTBase { //@Test #@test
       return `#${this.testIndex} ${_}`;
     };
     this.one2 = function() {
-      return `Test: ${this.one()}: cmd=${this.cmd} enabled=${this.bEnabled} mState=${this.stateFrag()} mStage=${this.mStage}${(this.opts.mutex ? ` mutex=${this.opts.mutex}` : "")} pf=${this.pass}/${this.failList.length}`;
+      return `Test: ${this.one()}: cmd=${this.cmd} enabled=${this.bEnabled} mState=${this.stateFrag()} mStage=${this.mStage}${AP.d(this.opts.mutex, `mutex=${this.opts.mutex}`)} pf=${this.pass}/${this.failList.length}`;
     };
     this.one3 = function() {
       return `${this.one2()} [${this.optsCSV}]`;
@@ -909,125 +908,108 @@ Test = class Test extends UTBase { //@Test #@test
         }, ms);
       });
     };
-    this.eq = function(a, b, msg, o) { //URGENT: combine these
-      var aa, c, i, j, len, s;
-      if (!(a != null) && !(b != null)) {
-        this.log(`both undefined: msg=${msg}`, o);
-        this.logg(trace.UT_EQ, `eq pass: ${a} vs ${b}: both undefined [${msg}]`);
-        return true;
-      }
-      //			else unless V.type(a) is V.type(b)
-      //				@log "bad types ((((((((((((((((((((((("
-      //				s = "@eq types violation"
-      a = "" + a;
-      b = "" + b;
-      //			console.log "------------"			#DEBUGGING
-      //			console.log "aaa> #{a}"
-      //			console.log "bbb> #{b}"
-      if (b.includes('*')) {
-        // mask asterisks(*) in the LEFT string if they are present in the RIGHT string
-        aa = "";
-        for (i = j = 0, len = b.length; j < len; i = ++j) {
-          c = b[i];
-          //				@log c
-          if (c === '*') {
-            aa += '*';
-          } else {
-            //					console.log "MASK!"
-            aa += i < a.length ? a[i] : '';
-          }
-        }
-        a = aa;
-      }
-      //			console.log "aaa> #{a}"
-      //			console.log "bbb> #{b}"
-      if (!V.EQ(a, b)) {
-        s = "@eq values violation";
-      }
-      if (s) {
-        s += `\na> ${V.vt(a)}\nb> ${V.vt(b)}\n${AP.arb_d("MSG: ", msg)}`;
-        this.FAIL(this.FAIL_EQ, `eq ${a} vs. ${b}`, `${s}\n${S.COMPARE_REPORT(a, b)}`, o);
-        this.logg(trace.UT_EQ, `eq fail: ${a} vs ${b} [${msg}]`);
-        return false;
-      } else {
-        this.logg(trace.UT_EQ, `eq pass: ${a} vs ${b}${AP.sqb(msg)}`);
-        this.logSilent(`inside eq: PASS: ${msg}`, o);
-        this.logSilent(V.vt(a));
-        this.logSilent(V.vt(b));
-        this.pass++;
-        this.logSilent(`eq: pass=${this.pass}`);
-        return true;
-      }
+    this.eq = function(a, b, msg, o) {
+      return this.eqINNER.apply(this, [
+        "eq",
+        ...Array.prototype.slice.call(arguments) //PATTERN #FORWARD #CURRYING
+      ]);
     };
     this.Eq = function(a, b, msg, o) {
-      var s;
-      if (!(a != null) && !(b != null)) {
-        this.log(`both undefined: msg=${msg}`, o);
-      } else if (V.type(a) !== V.type(b)) {
-        this.log("bad types (((((((((((((((((((((((");
-        s = "@eq types violation";
-      } else if (!V.EQ(a, b)) {
-        s = "@eq values violation";
-      }
-      if (s) {
-        s += `\na> ${V.vt(a)}\nb> ${V.vt(b)}\n${AP.arb_d("MSG: ", msg)}`;
-        this.FAIL(this.FAIL_EQ, `eq ${a} vs. ${b}`, `${s}\n${V.COMPARE_REPORT(a, b)}`, o);
-        return false;
-      } else {
-        this.logSilent(`inside eq: PASS: ${msg}`, o);
-        this.logSilent(V.vt(a));
-        this.logSilent(V.vt(b));
-        this.pass++;
-        this.logSilent(`eq: pass=${this.pass}`);
-        return true;
-      }
+      return this.eqINNER.apply(this, [
+        "Eq",
+        ...Array.prototype.slice.call(arguments) //PATTERN #FORWARD #CURRYING
+      ]);
     };
     this.EQ = function(a, b, msg, o) {
-      var s;
-      if (!(a != null) && !(b != null)) {
-        this.log(`both undefined: msg=${msg}`, o);
-      } else if (V.Type(a) !== V.Type(b)) {
-        this.log("bad types (((((((((((((((((((((((");
-        s = "@eq types violation";
-      } else if (!V.EQ(a, b)) {
-        s = "@eq values violation";
-      }
-      if (s) {
-        s += `\na> ${V.vt(a)}\nb> ${V.vt(b)}\n${AP.arb_d("MSG: ", msg)}`;
-        this.FAIL(this.FAIL_EQ, `eq ${a} vs. ${b}`, `${s}\n${V.COMPARE_REPORT(a, b)}`, o);
-        return false;
-      } else {
-        this.logSilent(`inside eq: PASS: ${msg}`, o);
-        this.logSilent(V.vt(a));
-        this.logSilent(V.vt(b));
-        this.pass++;
-        this.logSilent(`eq: pass=${this.pass}`);
-        return true;
-      }
+      return this.eqINNER.apply(this, [
+        "EQ",
+        ...Array.prototype.slice.call(arguments) //PATTERN #FORWARD #CURRYING
+      ]);
     };
     this.EQO = function(a, b, msg, o) {
-      var s;
+      return this.eqINNER.apply(this, [
+        "EQO",
+        ...Array.prototype.slice.call(arguments) //PATTERN #FORWARD #CURRYING
+      ]);
+    };
+    this.eqINNER = (mn, a, b, msg, o) => {
+      var doValue, s;
+      //							PASS CRITERIA
+      // eq	#EQ-NOT-STRICT		"as string equal"		(new String "6") eq 6
+      // Eq	#EQ-MID-STRICT		"value not type"		(new String "6") Eq "6"						#H: same as eq?
+      // EQ	#EQ-STRICT			"value and type"		(new String "6") EQ (new String "6")
+      // EQO	#EQ-SAME			"same object"			obj == obj
+      this.log(`${mn}: BEG: a=${a} b=${b}`);
       if (!(a != null) && !(b != null)) {
-        this.log(`both undefined: msg=${msg}`, o);
-      } else if (a !== b) {
-        s = "@eq values violation";
+        this.logg(trace.UT_EQ, `${mn} pass: ${a} vs ${b}: both undefined [${msg}]`, o);
+        return true;
+      }
+      s = ""; // method passes if nothing appended
+      doValue = () => {
+        var aa, c, i, j, len;
+        a = "" + a;
+        b = "" + b;
+        //				console.log "------------"			#DEBUGGING
+        //				console.log "aaa> #{a}"
+        //				console.log "bbb> #{b}"
+        if (b.includes('*')) {
+          // mask asterisks(*) in the LEFT string if they are present in the RIGHT string
+          aa = "";
+          for (i = j = 0, len = b.length; j < len; i = ++j) {
+            c = b[i];
+            //					@log c
+            if (c === '*') {
+              aa += '*';
+            } else {
+              //						console.log "MASK!"
+              aa += i < a.length ? a[i] : '';
+            }
+          }
+          a = aa;
+        }
+        //					console.log "aaa> #{a}"
+        //					console.log "bbb> #{b}"
+        if (!V.EQ(a, b)) {
+          return s = `${mn} values violation`;
+        }
+      };
+      switch (mn) {
+        case "eq":
+          doValue();
+          break;
+        case "Eq":
+          doValue();
+          break;
+        case "EQ":
+          if (V.Type(a) !== V.Type(b)) {
+            s = "types violation";
+          } else {
+            doValue();
+          }
+          break;
+        case "EQO":
+          if (a !== b) {
+            s = "EQO not same object";
+          }
       }
       if (s) {
         s += `\na> ${V.vt(a)}\nb> ${V.vt(b)}\n${AP.arb_d("MSG: ", msg)}`;
-        this.FAIL(this.FAIL_EQ, `eq ${a} vs. ${b}`, `${s}\n${V.COMPARE_REPORT(a, b)}`, o);
+        this.FAIL(this.FAIL_EQ, `${mn} ${a} vs. ${b}`, `${s}\n${V.COMPARE_REPORT(a, b)}`, o);
+        this.logg(trace.UT_EQ, `${mn} fail: ${a} vs ${b} [${msg}]`);
         return false;
       } else {
-        this.logSilent(`inside eq: PASS: ${msg}`, o);
+        this.logg(trace.UT_EQ, `${mn} pass: ${a} vs ${b}${AP.sqb(msg)}`);
+        this.logSilent(`inside ${mn}: PASS: ${msg}`, o);
         this.logSilent(V.vt(a));
         this.logSilent(V.vt(b));
         this.pass++;
-        this.logSilent(`eq: pass=${this.pass}`);
+        this.logSilent(`${mn}: pass=${this.pass}`);
         return true;
       }
     };
-    this.eqfile_pr = async function(a, b) { //CONVENTION
+    this.eqfile = async function(a, b) { //CONVENTION
       var _a, _b;
-      //EQ-FILE-CONTENTS: "file contents"	path eqfile_pr path
+      //EQ-FILE-CONTENTS: "file contents"	path eqfile path
       this.log(`a: ${a}`);
       this.log(`b: ${b}`);
       _a = (await this.file.fileSize(a));
@@ -1054,7 +1036,7 @@ Test = class Test extends UTBase { //@Test #@test
       //			console.log "\n\n\nX X X X X X X X X"		#POP
       fail = new this.Fail(mFail, summary, detail, v);
       //			@log "TYPE: #{Context.TYPE v}"
-      _ = `FAIL: ${(summary ? `${summary}: ` : "")}fail666=${this.failList.length}`;
+      _ = `FAIL: ${IF(summary, `${summary}: `)}fail666=${this.failList.length}`;
       if (v) {
         //				Context.O.DUMP v
         if (typeof v === "object") {
@@ -1236,7 +1218,7 @@ Test = class Test extends UTBase { //@Test #@test
     var k, pn, pv, ref, ref1, ref2, ref3, ref4, v;
     this.opts = Object.assign({}, this.runner.OPTS, (ref = this.runner.OPTS) != null ? (ref1 = ref.perTestOpts) != null ? ref1[this.cname] : void 0 : void 0, this.opts);
     delete this.opts.perTestOpts; //H: this assumes PER TEST not PER FILE
-    this.logg(trace.UT_TEST_PRE_ONE_LINER, `=^20 ${this.one() // /#{testList.length} #{@cname} #{@cmd}:#{@tn}#{if trace.DETAIL then ": path=#{@path}" else ""}"
+    this.logg(trace.UT_TEST_PRE_ONE_LINER, `=^20 ${this.one() // /#{testList.length} #{@cname} #{@cmd}:#{@tn}#{AP.c_d trace.DETAIL, "path=#{@path}"}"
 }`);
     this.msBeg = Date.now();
     this.mState = this.STATE_RUNNING;
@@ -1339,8 +1321,6 @@ SyncTest = class SyncTest extends Test { //@SyncTest @sync
 
 AsyncTest = (function() {
   //END:SyncBase
-
-  //URGENT: don't sort async tests ahead of sync... keep order in each file
   class AsyncTest extends Test { //@AsyncTest @async
     static s_one() {
       return `${AsyncTest.s_mutexDump()} (${AsyncTest.s_mutexCnt()})`;
@@ -1943,7 +1923,7 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
     this.tassert(this.mWhy, "number");
     clearInterval(this.runnerThread);
     this.bRunning = false;
-    whyPhrase = `${this.WHY_LIST[this.mWhy]}(${this.mWhy})${(msg ? ` details=${msg}` : "")}`;
+    whyPhrase = `${this.WHY_LIST[this.mWhy]}(${this.mWhy})${AP.d(msg, `details=${msg}`)}`;
     //		@log "Runner.exit: #{whyPhrase}"
     //		@log @one()
     this.secsElapsed = Math.ceil((Date.now() - this.msStart) / 1000);
@@ -2245,25 +2225,23 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
           return acc;
         }
       }), 0);
-      return this.log(`${this.summary} Found ${testList.length} ${SNEW.PLURAL("test", testList.length)}${(this.enabledCnt < testList.length ? ` with ${this.enabledCnt} enabled` : "")}`);
+      return this.log(`${this.summary} Found ${testList.length} ${SNEW.PLURAL("test", testList.length)}${AP.d(this.enabledCnt < testList.length, `with ${this.enabledCnt} enabled`)}`);
     }
   }
 
   testsSort() {
-    var _, i, j, len, results, test, testIndex;
+    var i, j, len, results, test, testIndex;
     testList.reverse(); //IMPORTANT: testList must be in reverse order so that we can splice way elements and not break our iterators
-    _ = [];
-    testList.forEach((test) => {
-      if (!test.bSync) {
-        return _.push(test);
-      }
-    });
-    testList.forEach((test) => {
-      if (test.bSync) {
-        return _.push(test);
-      }
-    });
-    testList = _;
+    
+    //		_ = []
+    //		testList.forEach (test) =>
+    //			unless test.bSync
+    //				_.push test
+    //		testList.forEach (test) =>
+    //			if test.bSync
+    //				_.push test
+
+    //		testList = _
     testIndex = 1;
     results = [];
     for (i = j = 0, len = testList.length; j < len; i = ++j) {
@@ -2422,27 +2400,27 @@ UT_UT = class UT_UT extends UT { //@UT_UT		@unittest  @ut
         return this.resolve(to);
       });
     });
-    this.s("eqfile_pr", function() {
+    this.s("eqfile", function() {
       this.p("same size", function() {
-        return this.eqfile_pr(this.filepath("deanna.png"), this.filepath("same-size.png"));
+        return this.eqfile(this.filepath("deanna.png"), this.filepath("same-size.png"));
       });
       this.p("different sizes", {
         expect: "EQ",
         mType: this.NEG
       }, function() {
-        return this.eqfile_pr(this.filepath("deanna.png"), this.filepath("ut.env"));
+        return this.eqfile(this.filepath("deanna.png"), this.filepath("ut.env"));
       });
       this.p("a dne", {
         expect: "EQ",
         mType: this.NEG
       }, function() {
-        return this.eqfile_pr(this.filepath("dne.png"), this.filepath("ut.env"));
+        return this.eqfile(this.filepath("dne.png"), this.filepath("ut.env"));
       });
       return this.p("b dne", {
         expect: "EQ",
         mType: this.NEG
       }, function() {
-        return this.eqfile_pr(this.filepath("deanna.png"), this.filepath("dne.env"));
+        return this.eqfile(this.filepath("deanna.png"), this.filepath("dne.env"));
       });
     });
     this.s("equate", function() {
@@ -2457,20 +2435,18 @@ UT_UT = class UT_UT extends UT { //@UT_UT		@unittest  @ut
         return this.eq(1, 2);
       });
       this.t("differing types (loose)", {
-        desc: "@eq is NOT strict, i.e., it checks VALUE only (string vs. integer is okay and passes"
+        desc: "@eq is NOT strict, i.e., it checks VALUE only (string vs. integer is okay and passes)"
       }, function() {
         return this.eq("5", 5);
       });
       this.t("differing types (kinda POS)", {
-        desc: "@Eq is kinda strict, i.e., it checks VALUE only (string vs. string is okay and passes"
+        desc: "@Eq is kinda strict, i.e., it checks VALUE only (string vs. string is okay and passes)"
       }, function() {
         return this.Eq("peter", "peter");
       });
-      this.t("differing types (kinda NEG)", {
-        expect: "EQ",
-        desc: "@Eq is kinda strict",
-        mType: this.NEG
-      }, function() {
+      this.t("differing types okay (kinda NEG 22222)", {
+        desc: "@Eq is kinda strict"
+      }, function() { // :"EQ", mType:@NEG, ->
         return this.Eq("5", 5);
       });
       this.t("differing types (strict POS)", {}, function() {
@@ -2492,7 +2468,7 @@ UT_UT = class UT_UT extends UT { //@UT_UT		@unittest  @ut
         };
         return this.EQO(o, o, "same object");
       });
-      return this.t("EQO neg", {
+      return this.t("EQO neg 33333", {
         expect: "EQ",
         desc: "@EQO same object",
         mType: this.NEG
