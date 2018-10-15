@@ -1261,7 +1261,8 @@ class UTRunner extends UTBase		#@UTRunner @runner
 		@OPTS = @opts	#HACK
 		@OPTS.bOnline ?= true
 		@OPTS.timeout ?= 3000
-		ONEW.propertiesCheck @OPTS, "bOnline,bSerial,decorate,mFailMode,perTestOpts,timeout,userDefined"
+		ONEW.validate @opts,
+			onlyCSV: "bOnline,bSerial,decorate,mFailMode,perTestOpts,timeout,userDefined"
 
 #		console.log "UT.UTRunner.constructor: WORK_AROUND_UT_CLASS_NAME_OVERRIDE=#{@WORK_AROUND_UT_CLASS_NAME_OVERRIDE}"
 #		console.log "UT.UTRunner.constructor: constructor.name=#{@constructor.name}"

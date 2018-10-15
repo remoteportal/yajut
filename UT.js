@@ -1485,7 +1485,9 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
     if ((base1 = this.OPTS).timeout == null) {
       base1.timeout = 3000;
     }
-    ONEW.propertiesCheck(this.OPTS, "bOnline,bSerial,decorate,mFailMode,perTestOpts,timeout,userDefined");
+    ONEW.validate(this.opts, {
+      onlyCSV: "bOnline,bSerial,decorate,mFailMode,perTestOpts,timeout,userDefined"
+    });
     //		console.log "UT.UTRunner.constructor: WORK_AROUND_UT_CLASS_NAME_OVERRIDE=#{@WORK_AROUND_UT_CLASS_NAME_OVERRIDE}"
     //		console.log "UT.UTRunner.constructor: constructor.name=#{@constructor.name}"
     this.__CLASS_NAME = (ref = this.WORK_AROUND_UT_CLASS_NAME_OVERRIDE) != null ? ref : this.constructor.name;
