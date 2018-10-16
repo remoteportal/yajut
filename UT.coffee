@@ -818,7 +818,7 @@ markers: got     : #{@markers}
 #					console.log "aaa> #{a}"
 #					console.log "bbb> #{b}"
 
-				unless V.EQ a, b
+				unless VNEW.EQ a, b
 					s = "#{mn} values violation"
 
 			switch mn
@@ -944,11 +944,10 @@ b> #{V.vt b}
 				Util.exit "logError called with @mFailMode is @FM_RUNALL=false"
 		@logWarning	= (s, o, opt) ->															#REVISIT
 			if trace.WARNINGS		#H: push lower?     new parameter: bWarning:true  or mType:5
-				console.log "ut @logWarning #{s}"		#T
 				Context.logBase.apply this, [@one(), "WARNING3", arguments...]			#PATTERN: CALL FORWARDING
 		@mStage = @STAGE_SETUP
 		@ok = (vOpt) ->			#CONVENTION
-	#		Context.drill this, grep:"env"
+	#		drill this, grep:"env"
 			@log "OK", @env
 	#		@env.succ()		#TODO: get reference to @env and tear down resources
 			@resolve vOpt
@@ -2138,7 +2137,7 @@ class UT_UT extends UT		#@UT_UT		@unittest  @ut
 			@runner.LT = keep
 #		@t "clash with built-in", {mType:@NEG}, (ut) ->
 #			@log "clash"
-#			Context.drill this
+#			drill this
 #			@delay = 10			#TODO: do Proxy object and handle 'set' and check pn against all built-in pn's
 #END:UT_UT
 

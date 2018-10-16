@@ -969,7 +969,7 @@ Test = class Test extends UTBase { //@Test #@test
         }
         //					console.log "aaa> #{a}"
         //					console.log "bbb> #{b}"
-        if (!V.EQ(a, b)) {
+        if (!VNEW.EQ(a, b)) {
           return s = `${mn} values violation`;
         }
       };
@@ -1121,8 +1121,6 @@ Test = class Test extends UTBase { //@Test #@test
     };
     this.logWarning = function(s, o, opt) { //REVISIT
       if (trace.WARNINGS) { //H: push lower?     new parameter: bWarning:true  or mType:5
-        console.log(`ut @logWarning ${s //T
-}`);
         return Context.logBase.apply(this, [
           this.one(),
           "WARNING3",
@@ -1132,7 +1130,7 @@ Test = class Test extends UTBase { //@Test #@test
     };
     this.mStage = this.STAGE_SETUP;
     this.ok = function(vOpt) { //CONVENTION
-      //		Context.drill this, grep:"env"
+      //		drill this, grep:"env"
       this.log("OK", this.env);
       //		@env.succ()		
       return this.resolve(vOpt);
@@ -2703,7 +2701,7 @@ UT_UT = class UT_UT extends UT { //@UT_UT		@unittest  @ut
 
 //		@t "clash with built-in", {mType:@NEG}, (ut) ->
 //			@log "clash"
-//			Context.drill this
+//			drill this
 //			@delay = 10			
 //END:UT_UT
 module.exports = EXPORTED;
