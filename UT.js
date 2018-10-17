@@ -647,15 +647,18 @@ Test = class Test extends UTBase { //@Test #@test
       //					@stack = err.stack
       //				@log "stack", stack
       //				O.LOG @
-      //				@log "******************************** mFail=#{@mFail}"
-      //				@log "******************************** summary=#{@summary}"
-      //				@log "******************************** detail=#{@detail}"
-      //				@log "******************************** o=#{@o}"
-      //				@log "******************************** stack.length=#{@stack?.length}"
-      //					@log "111******************************** stack.length=#{@stack?.length}"
-      //					@log "222******************************** stack.length=#{@stack?.length}", @ex
+
+      //				@log "*^20 mFail=#{@mFail}"				#POP
+      //				@log "*^20 summary=#{@summary}"
+      //				@log "*^20 detail=#{@detail}"
+      //				@log "*^20 o=#{@o}"
+      //				@log "*^20 stack.length=#{@stack?.length}"
+
+      //			full: -> Context.textFormat.red "#{@one()}\n\n#{@detail}#{AP.d @stack, "\n#{@stack}"}"
+      //					@log "111*^20 stack.length=#{@stack?.length}"
+      //					@log "222*^20 stack.length=#{@stack?.length}", @ex
       full() {
-        return Context.textFormat.red(`${this.one()}\n\n${this.detail}\n${this.stack}`);
+        return `${this.one()}\n\n${this.detail}${AP.d(this.stack, `\n${this.stack}`)}`;
       }
 
       heal() {
@@ -848,8 +851,7 @@ Test = class Test extends UTBase { //@Test #@test
         for (u = 0, len2 = ref13.length; u < len2; u++) {
           fail = ref13[u];
           console.log("----------------------------------------------");
-          console.log("LONG:");
-          console.log(fail.full());
+          console.log(Context.textFormat.red(SNEW.prependPerLine("LONG: ", fail.full())));
         }
       } else if (!this.pass) {
         this.pass++;
@@ -903,7 +905,7 @@ Test = class Test extends UTBase { //@Test #@test
         return setTimeout(() => {
           to.msEnd = Date.now();
           to.msActual = to.msEnd - to.msBeg;
-          //						@logg trace.DELAY_END, "END: delay #{ms} ********************************", to
+          //						@logg trace.DELAY_END, "END: delay #{ms} *^20", to
           return resolve(to);
         }, ms);
       });
@@ -933,7 +935,7 @@ Test = class Test extends UTBase { //@Test #@test
       ]);
     };
     this.eqINNER = (mn, a, b, msg, o) => {
-      var doValue, s;
+      var doValue, report, s;
       //							PASS CRITERIA
       // eq	#EQ-NOT-STRICT		"as string equal"		(new String "6") eq 6
       // Eq	#EQ-MID-STRICT		"value not type"		(new String "6") Eq "6"						#H: same as eq?
@@ -993,8 +995,9 @@ Test = class Test extends UTBase { //@Test #@test
           }
       }
       if (s) {
-        s += `\na> ${V.vt(a)}\nb> ${V.vt(b)}\n${AP.arb_d("MSG: ", msg)}`;
-        this.FAIL(this.FAIL_EQ, `${mn} ${a} vs. ${b}`, `${s}\n${V.COMPARE_REPORT(a, b)}`, o);
+        s += `\na> ${V.vt(a)}\nb> ${V.vt(b)}`;
+        report = V.COMPARE_REPORT(a, b);
+        this.FAIL(this.FAIL_EQ, `${mn} ${a} vs. ${b}${AP.c_d(msg)}`, `${s}${AP.crlf_d(report)}`, o);
         this.logg(trace.UT_EQ, `${mn} fail: ${a} vs ${b} [${msg}]`);
         return false;
       } else {
@@ -1120,7 +1123,7 @@ Test = class Test extends UTBase { //@Test #@test
       }
     };
     this.logWarning = function(s, o, opt) { //REVISIT
-      if (trace.WARNINGS) { //H: push lower?     new parameter: bWarning:true  or mType:5
+      if (trace.WARNING) { //H: push lower?     new parameter: bWarning:true  or mType:5
         return Context.logBase.apply(this, [
           this.one(),
           "WARNING3",

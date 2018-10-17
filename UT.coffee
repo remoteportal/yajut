@@ -557,8 +557,8 @@ class Test extends UTBase		#@Test #@test
 					@ex = @o
 					@o = null
 					@stack = @ex
-#					@log "111******************************** stack.length=#{@stack?.length}"
-#					@log "222******************************** stack.length=#{@stack?.length}", @ex
+#					@log "111*^20 stack.length=#{@stack?.length}"
+#					@log "222*^20 stack.length=#{@stack?.length}", @ex
 				else
 	#				https://www.stacktracejs.com
 #					console.log "console.trace():"
@@ -567,12 +567,15 @@ class Test extends UTBase		#@Test #@test
 #					@stack = err.stack
 #				@log "stack", stack
 #				O.LOG @
-#				@log "******************************** mFail=#{@mFail}"
-#				@log "******************************** summary=#{@summary}"
-#				@log "******************************** detail=#{@detail}"
-#				@log "******************************** o=#{@o}"
-#				@log "******************************** stack.length=#{@stack?.length}"
-			full: -> Context.textFormat.red "#{@one()}\n\n#{@detail}\n#{@stack}"
+
+#				@log "*^20 mFail=#{@mFail}"				#POP
+#				@log "*^20 summary=#{@summary}"
+#				@log "*^20 detail=#{@detail}"
+#				@log "*^20 o=#{@o}"
+#				@log "*^20 stack.length=#{@stack?.length}"
+
+#			full: -> Context.textFormat.red "#{@one()}\n\n#{@detail}#{AP.d @stack, "\n#{@stack}"}"
+			full: -> "#{@one()}\n\n#{@detail}#{AP.d @stack, "\n#{@stack}"}"
 			heal: -> @bEnabled = false
 			one: -> "Fail: #{@failTypes[@mFail]}(#{@mFail})#{AP.d @msg, @msg}: #{@summary}"
 
@@ -718,8 +721,7 @@ markers: got     : #{@markers}
 
 				for fail in @failList
 					console.log "----------------------------------------------"
-					console.log "LONG:"
-					console.log fail.full()
+					console.log Context.textFormat.red SNEW.prependPerLine "LONG: ", fail.full()
 			else unless @pass
 				@pass++
 
@@ -772,7 +774,7 @@ markers: got     : #{@markers}
 				setTimeout =>
 						to.msEnd = Date.now()
 						to.msActual = to.msEnd - to.msBeg
-#						@logg trace.DELAY_END, "END: delay #{ms} ********************************", to
+#						@logg trace.DELAY_END, "END: delay #{ms} *^20", to
 						resolve to
 					,
 						ms
@@ -840,9 +842,9 @@ markers: got     : #{@markers}
 
 a> #{V.vt a}
 b> #{V.vt b}
-#{AP.arb_d "MSG: ", msg}
 """
-				@FAIL @FAIL_EQ, "#{mn} #{a} vs. #{b}", "#{s}\n#{V.COMPARE_REPORT a, b}", o
+				report = V.COMPARE_REPORT a, b
+				@FAIL @FAIL_EQ, "#{mn} #{a} vs. #{b}#{AP.c_d msg}", "#{s}#{AP.crlf_d report}", o	#HERE
 				@logg trace.UT_EQ, "#{mn} fail: #{a} vs #{b} [#{msg}]"
 				false
 			else
@@ -943,7 +945,7 @@ b> #{V.vt b}
 				Context.logBase @one(), "FATAL_TRANSIENT: #{s}", o, opt
 				Util.exit "logError called with @mFailMode is @FM_RUNALL=false"
 		@logWarning	= (s, o, opt) ->															#REVISIT
-			if trace.WARNINGS		#H: push lower?     new parameter: bWarning:true  or mType:5
+			if trace.WARNING		#H: push lower?     new parameter: bWarning:true  or mType:5
 				Context.logBase.apply this, [@one(), "WARNING3", arguments...]			#PATTERN: CALL FORWARDING
 		@mStage = @STAGE_SETUP
 		@ok = (vOpt) ->			#CONVENTION
