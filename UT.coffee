@@ -1306,6 +1306,9 @@ class UTRunner extends UTBase		#@UTRunner @runner
 				o: "-c ServerStoreUT"
 				d: "run all tests of a specified class (FUTURE)"
 			,
+				o: "-dup"
+				d: "display duplicate test names"				
+			,
 				o: "-eg key1,key2,..."
 				d: "exit grep"
 			,
@@ -1468,11 +1471,24 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 						@OPTS.testsAll = true
 					when "-async"
 						@OPTS.bAsync = true
+					when "-dup"
+						# ONEW.DUMP testList
+						dupMap = {}
+						for test in testList
+							unless dupMap[test.tn]
+								dupMap[test.tn] = []
+							dupMap[test.tn].push
+								cn: test.cn
+								path: test.path
+						for tn,a of dupMap
+							if a.length > 1
+								@box tn
+								er S.autoTable a, bHeader:true, includeCSV:CSV
 					when "-f"
 						@OPTS.mFailMode = optionalNumber 1
 					when "-g"
 						testPattern = a[i++]
-						er S.autoTable(testList, bHeader:true, grep:testPattern, includeCSV:CSV)
+						er S.autoTable testList, bHeader:true, grep:testPattern, includeCSV:CSV
 					when "-eg"
 						CSV2Object "exitCSV"
 					when "-h"
@@ -1488,7 +1504,7 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 					when "-ky"
 						getKeys true
 					when "-l"
-						er S.autoTable(testList, bHeader:true, includeCSV:CSV)
+						er S.autoTable testList, bHeader:true, includeCSV:CSV
 					when "-lg"			#MOVE: tests
 						@OPTS.logGrepPattern = a[i++]
 					when "-lh"			#MOVE: tests

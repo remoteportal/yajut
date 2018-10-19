@@ -1508,7 +1508,7 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
   }
 
   CLI(a) {
-    var CLIParser, CSV, CSV2Object, NUMBER_CSL_RE, bActed, er, getKeys, i, j, len, log_help, maybeGrabTrace, optionList, optionalNumber, parser, setTrace, sum, test, testPattern, traceList, word;
+    var CLIParser, CSV, CSV2Object, NUMBER_CSL_RE, bActed, dupMap, er, getKeys, i, j, l, len, len1, log_help, maybeGrabTrace, optionList, optionalNumber, parser, setTrace, sum, test, testPattern, tn, traceList, word;
     optionList = [
       {
         //EASY 
@@ -1529,6 +1529,10 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
       {
         o: "-c ServerStoreUT",
         d: "run all tests of a specified class (FUTURE)"
+      },
+      {
+        o: "-dup",
+        d: "display duplicate test names"
       },
       {
         o: "-eg key1,key2,...",
@@ -1741,6 +1745,30 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
           case "-async":
             this.OPTS.bAsync = true;
             break;
+          case "-dup":
+            // ONEW.DUMP testList
+            dupMap = {};
+            for (j = 0, len = testList.length; j < len; j++) {
+              test = testList[j];
+              if (!dupMap[test.tn]) {
+                dupMap[test.tn] = [];
+              }
+              dupMap[test.tn].push({
+                cn: test.cn,
+                path: test.path
+              });
+            }
+            for (tn in dupMap) {
+              a = dupMap[tn];
+              if (a.length > 1) {
+                this.box(tn);
+                er(S.autoTable(a, {
+                  bHeader: true,
+                  includeCSV: CSV
+                }));
+              }
+            }
+            break;
           case "-f":
             this.OPTS.mFailMode = optionalNumber(1);
             break;
@@ -1854,8 +1882,8 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
     //		if @OPTS.mFailMode is @FM_FAILFAST			#POP
     //			trace.tristate true
     if (this.OPTS.bSerial != null) {
-      for (j = 0, len = testList.length; j < len; j++) {
-        test = testList[j];
+      for (l = 0, len1 = testList.length; l < len1; l++) {
+        test = testList[l];
         if (!test.opts) {
           console.log("xxxxx");
           O.LOG(test);
