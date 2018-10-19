@@ -214,12 +214,9 @@ KNOWN BUGS:
 
 
 #GITHUB: #TODO: create new repo called AlvinUtils and put these in there
-#import A
-#import Base
 #NOTE: ILLEGAL TO USE context instance in this file!!! only static class methods (why? instance is domain specific)
-#IMPORT Context
+#IMPORT2 Context
 #import O
-#import trace
 #import Util
 #import V
 
@@ -529,10 +526,10 @@ class Test extends UTBase		#@Test #@test
 				if k of validTagsMap
 					@tags[k] = true
 				else
-					console.log SNEW.autoTable validTagsMap, headerMap:{key:"tag",value:"description"}
+					console.log S.autoTable validTagsMap, headerMap:{key:"tag",value:"description"}
 					console.log()
 					console.log "UT009 Invalid test tag:"
-					console.log SNEW.autoTable
+					console.log S.autoTable
 						"file:": @cname
 						"path:": @hier
 						"tag:": k
@@ -720,7 +717,7 @@ markers: got     : #{@markers}
 
 				for fail in @failList
 					console.log "----------------------------------------------"
-					console.log Context.textFormat.red SNEW.prependPerLine "LONG: ", fail.full()
+					console.log Context.textFormat.red S.prependPerLine "LONG: ", fail.full()
 			else unless @pass
 				@pass++
 
@@ -907,7 +904,7 @@ b> #{V.vt b}
 		@fatal = (msg) ->
 			console.error "fatal: #{msg}"
 			@exit @WHY_FATAL, msg
-			Util.exit msg
+			abort msg
 		@h = (msg) ->
 			if trace.UT
 				console.log Context.textFormat.format msg, "blue,bold,uc"
@@ -942,7 +939,7 @@ b> #{V.vt b}
 				Context.logBase @one(), "TRANSIENT: #{s}", o, opt
 			else
 				Context.logBase @one(), "FATAL_TRANSIENT: #{s}", o, opt
-				Util.exit "logError called with @mFailMode is @FM_RUNALL=false"
+				abort "logError called with @mFailMode is @FM_RUNALL=false"
 		@logWarning	= (s, o, opt) ->															#REVISIT
 			if trace.WARNING		#H: push lower?     new parameter: bWarning:true  or mType:5
 				Context.logBase.apply this, [@one(), "WARNING3", arguments...]			#PATTERN: CALL FORWARDING
@@ -1451,7 +1448,7 @@ class UTRunner extends UTBase		#@UTRunner @runner
 			console.log """
 node tests.js [options] test# ...
 
-OPTIONS:#{SNEW.autoTable(optionList, bHeader:false)}"""
+OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 
 		CSV = "testIndex,cmd,path,optsCSV,tagsCSV"
 		NUMBER_CSL_RE = /^\d+(,\d+)*$/
@@ -1475,7 +1472,7 @@ OPTIONS:#{SNEW.autoTable(optionList, bHeader:false)}"""
 						@OPTS.mFailMode = optionalNumber 1
 					when "-g"
 						testPattern = a[i++]
-						er SNEW.autoTable(testList, bHeader:true, grep:testPattern, includeCSV:CSV)
+						er S.autoTable(testList, bHeader:true, grep:testPattern, includeCSV:CSV)
 					when "-eg"
 						CSV2Object "exitCSV"
 					when "-h"
@@ -1491,7 +1488,7 @@ OPTIONS:#{SNEW.autoTable(optionList, bHeader:false)}"""
 					when "-ky"
 						getKeys true
 					when "-l"
-						er SNEW.autoTable(testList, bHeader:true, includeCSV:CSV)
+						er S.autoTable(testList, bHeader:true, includeCSV:CSV)
 					when "-lg"			#MOVE: tests
 						@OPTS.logGrepPattern = a[i++]
 					when "-lh"			#MOVE: tests
@@ -1612,7 +1609,7 @@ OPTIONS:#{SNEW.autoTable(optionList, bHeader:false)}"""
 
 		if @pass or @failList.length
 	#		@log "======================================================"
-			@log "#{Base.openMsgGet()}  All unit tests completed: [#{@secsElapsed} #{SNEW.PLURAL "second", @secsElapsed}] total=#{@pass+@failList.length}: #{unless @failList.length then "PASS" else "pass"}=#{@pass} #{if @failList.length then "FAIL" else "fail"}=#{@failList.length}"
+			@log "#{Base.openMsgGet()}  All unit tests completed: [#{@secsElapsed} #{S.PLURAL "second", @secsElapsed}] total=#{@pass+@failList.length}: #{unless @failList.length then "PASS" else "pass"}=#{@pass} #{if @failList.length then "FAIL" else "fail"}=#{@failList.length}"
 
 			if Base.openCntGet()
 				@eventFire "left-open"
@@ -1834,7 +1831,7 @@ OPTIONS:#{SNEW.autoTable(optionList, bHeader:false)}"""
 			@syncCnt = testList.reduce(((acc, test) -> if test.bEnabled and test.bSync then acc+1 else acc), 0)
 			@asyncCnt = testList.reduce(((acc, test) -> if test.bEnabled and !test.bSync then acc+1 else acc), 0)
 
-			@log "#{@summary} Found #{testList.length} #{SNEW.PLURAL "test", testList.length}#{AP.d @enabledCnt < testList.length, "with #{@enabledCnt} enabled"}"
+			@log "#{@summary} Found #{testList.length} #{S.PLURAL "test", testList.length}#{AP.d @enabledCnt < testList.length, "with #{@enabledCnt} enabled"}"
 
 
 
