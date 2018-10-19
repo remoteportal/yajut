@@ -219,7 +219,6 @@ KNOWN BUGS:
 #NOTE: ILLEGAL TO USE context instance in this file!!! only static class methods (why? instance is domain specific)
 #IMPORT Context
 #import O
-#import S
 #import trace
 #import Util
 #import V
