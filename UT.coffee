@@ -597,7 +597,7 @@ class Test extends UTBase		#@Test #@test
 			#TODO: call @FAIL
 
 #		@log "failList.length=#{@failList.length}"
-		if mFail in [@FAIL_ERROR, @FAIL_EXCEPTION, @FAIL_TIMEOUT, @FAIL_UNEXPECTED_PROMISE]		#MANAGE #ADD-HERE #OTF
+		if mFail in [@FAIL_ERROR, @FAIL_EXCEPTION, @FAIL_TIMEOUT, @FAIL_UNEXPECTED_PROMISE]		#MANAGE #ADD #OTF
 #			@log "on-the-fly append mFail to failList"
 			@FAIL mFail, null, null, ex_s_null
 #		@log "DUMP IT ALL", @failList
@@ -840,7 +840,7 @@ a> #{V.vt a}
 b> #{V.vt b}
 """
 				report = V.COMPARE_REPORT a, b
-				@FAIL @FAIL_EQ, "#{mn} #{a} vs. #{b}#{AP.c_d msg}", "#{s}#{AP.crlf_d report}", o	#HERE
+				@FAIL @FAIL_EQ, "#{mn} #{a} vs. #{b}#{AP.c_d msg}", "#{s}#{AP.crlf_d report}", o
 				@logg trace.UT_EQ, "#{mn} fail: #{a} vs #{b} [#{msg}]"
 				false
 			else
@@ -1188,9 +1188,9 @@ class AsyncTest extends Test				#@AsyncTest @async
 					rv.then (v) =>
 						if @mState isnt @STATE_DONE
 							@log "[#{@STATE_LIST[@mState]}] one3=#{@one3()}"
-							@log "[#{@STATE_LIST[@mState]}] @a returned promise. WHAT DO HERE? resolved value=", v
+							@log "[#{@STATE_LIST[@mState]}] @a returned promise. WHAT DO? resolved value=", v
 					.catch (ex) =>
-#						@logCatch "@a returned promise. WHAT DO HERE? rejected value=", ex
+#						@logCatch "@a returned promise. WHAT DO? rejected value=", ex
 
 						#TRY:
 						clearTimeout timer
@@ -2122,7 +2122,7 @@ class UT_UT extends UT		#@UT_UT		@unittest  @ut
 # _685  29:33 [UTRunnerFBNode] testDone: p/f=1/0 concurrent=0: #106 a UT_UT promises/too late: [UTRunner: tests=256 enabled=1 sync=0 async=1 waiting=0 bRunning=true running=0 mutexes=same (1)]
 # _686  29:33 [UTRunnerFBNode] All closed.    All unit tests completed: [1 second] total=1: PASS=1 fail=0
 # _687  29:33 [UT_UT/too late] one3=Test: #106 a UT_UT promises/too late: cmd=a enabled=true mState=DONE(3) mStage=1 mutex=same pf=1/0 []
-# _688  29:33 [UT_UT/too late] @a returned promise. WHAT DO HERE? resolved value= NULL
+# _688  29:33 [UT_UT/too late] @a returned promise. WHAT DO? resolved value= NULL
 				
 				#YES
 #				@env = await @ce().run()

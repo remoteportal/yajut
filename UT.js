@@ -690,7 +690,7 @@ Test = class Test extends UTBase { //@Test #@test
     }
     
     //		@log "failList.length=#{@failList.length}"
-    if (mFail === this.FAIL_ERROR || mFail === this.FAIL_EXCEPTION || mFail === this.FAIL_TIMEOUT || mFail === this.FAIL_UNEXPECTED_PROMISE) { //MANAGE #ADD-HERE #OTF
+    if (mFail === this.FAIL_ERROR || mFail === this.FAIL_EXCEPTION || mFail === this.FAIL_TIMEOUT || mFail === this.FAIL_UNEXPECTED_PROMISE) { //MANAGE #ADD #OTF
       //			@log "on-the-fly append mFail to failList"
       this.FAIL(mFail, null, null, ex_s_null);
     }
@@ -1389,10 +1389,10 @@ AsyncTest = (function() {
             return rv.then((v) => {
               if (this.mState !== this.STATE_DONE) {
                 this.log(`[${this.STATE_LIST[this.mState]}] one3=${this.one3()}`);
-                return this.log(`[${this.STATE_LIST[this.mState]}] @a returned promise. WHAT DO HERE? resolved value=`, v);
+                return this.log(`[${this.STATE_LIST[this.mState]}] @a returned promise. WHAT DO? resolved value=`, v);
               }
             }).catch((ex) => {
-              //						@logCatch "@a returned promise. WHAT DO HERE? rejected value=", ex
+              //						@logCatch "@a returned promise. WHAT DO? rejected value=", ex
 
               //TRY:
               clearTimeout(timer);
@@ -2687,7 +2687,7 @@ UT_UT = class UT_UT extends UT { //@UT_UT		@unittest  @ut
         // _685  29:33 [UTRunnerFBNode] testDone: p/f=1/0 concurrent=0: #106 a UT_UT promises/too late: [UTRunner: tests=256 enabled=1 sync=0 async=1 waiting=0 bRunning=true running=0 mutexes=same (1)]
         // _686  29:33 [UTRunnerFBNode] All closed.    All unit tests completed: [1 second] total=1: PASS=1 fail=0
         // _687  29:33 [UT_UT/too late] one3=Test: #106 a UT_UT promises/too late: cmd=a enabled=true mState=DONE(3) mStage=1 mutex=same pf=1/0 []
-        // _688  29:33 [UT_UT/too late] @a returned promise. WHAT DO HERE? resolved value= NULL
+        // _688  29:33 [UT_UT/too late] @a returned promise. WHAT DO? resolved value= NULL
 
         //YES
         //				@env = await @ce().run()
