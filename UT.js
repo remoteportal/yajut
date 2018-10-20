@@ -33,6 +33,9 @@ yajut -s conffile			save current code-specified configuration into confifile for
 
 EXTENDS: Base
 
+Server: [S]
+Client: [ ]
+
 TERMINOLOGY: #CHALLENGE
     command			-lcmd		"called inside test": @eq (string equality), @log (log), @m (milestone)
     primative		-lprim		"structure of tests": @s (section), @t (sync test), @a (asynchronous test), @p (promise-returning test)
