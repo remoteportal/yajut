@@ -35,10 +35,10 @@ EXTENDS: Base
 
 
 Server: [S]
-Client: [ ]
+Client: [C]
 
 
-TERMINOLOGY: #CHALLENGE
+TERMINOLOGY: #H
     command			-lcmd		"called inside test": @eq (string equality), @log (log), @m (milestone)
     primative		-lprim		"structure of tests": @s (section), @t (sync test), @a (asynchronous test), @p (promise-returning test)
 
@@ -142,11 +142,10 @@ GENERALIZE:
 
 
 TODOs
-- "COMMMAND" or "PRIMATIVE"... standardize!
 - log EVERY run to new timestamp directory with tests ran in the directory name... store ALL data
 	- two files: currently enabled trace and ALL TRACE
 	- auto-zip at end
-	- directory: 2018-05-01 6m tot=89 P_88 F_1 3-TestClient,DeathStar TR=UT_TEST_POST_ONE_LINER,ID_TRANSLATE.zip
+	- directory: 2018-05-01 6m tot=89 P_88 F_1 3-ModuleName,DeathStar TR=UT_TEST_POST_ONE_LINER,ID_TRANSLATE.zip
 		traceSelected.txt
 		traceAll.txt
 		src/...
@@ -574,13 +573,13 @@ class Test extends UTBase		#@Test #@test
 #				@log "*^20 o=#{@o}"
 #				@log "*^20 stack.length=#{@stack?.length}"
 
-#			full: -> Context.textFormat.red "#{@one()}\n\n#{@detail}#{AP.d @stack, "\n#{@stack}"}"
-			full: -> "#{@one()}\n\n#{@detail}#{AP.d @stack, "\n#{@stack}"}"
+#			full: -> Context.textFormat.red "#{@one()}\n\n#{@detail}#{SP.d @stack, "\n#{@stack}"}"
+			full: -> "#{@one()}\n\n#{@detail}#{SP.d @stack, "\n#{@stack}"}"
 			heal: -> @bEnabled = false
-			one: -> "Fail: #{@failTypes[@mFail]}(#{@mFail})#{AP.d @msg, @msg}: #{@summary}"
+			one: -> "Fail: #{@failTypes[@mFail]}(#{@mFail})#{SP.d @msg, @msg}: #{@summary}"
 
 		@one = -> "##{@testIndex} #{_}"
-		@one2 = -> "Test: #{@one()}: cmd=#{@cmd} enabled=#{@bEnabled} mState=#{@stateFrag()} mStage=#{@mStage}#{AP.d @opts.mutex, "mutex=#{@opts.mutex}"} pf=#{@pass}/#{@failList.length}"
+		@one2 = -> "Test: #{@one()}: cmd=#{@cmd} enabled=#{@bEnabled} mState=#{@stateFrag()} mStage=#{@mStage}#{SP.d @opts.mutex, "mutex=#{@opts.mutex}"} pf=#{@pass}/#{@failList.length}"
 		@one3 = -> "#{@one2()} [#{@optsCSV}]"
 		testList.unshift this
 
@@ -778,10 +777,10 @@ markers: got     : #{@markers}
 						resolve to
 					,
 						ms
-		@eq  =	(a, b, msg, o) -> 	@eqINNER.apply @, ["eq",  ...Array.prototype.slice.call arguments]			#PATTERN #FORWARD #CURRYING
-		@Eq  =	(a, b, msg, o) -> 	@eqINNER.apply @, ["Eq",  ...Array.prototype.slice.call arguments]			#PATTERN #FORWARD #CURRYING
-		@EQ  =	(a, b, msg, o) -> 	@eqINNER.apply @, ["EQ",  ...Array.prototype.slice.call arguments]			#PATTERN #FORWARD #CURRYING
-		@EQO =	(a, b, msg, o) -> 	@eqINNER.apply @, ["EQO", ...Array.prototype.slice.call arguments]			#PATTERN #FORWARD #CURRYING
+		@eq  =	(a, b, msg, o) -> 	@eqINNER.apply @, ["eq",  arguments...]			#PATTERN #FORWARD #CURRYING
+		@Eq  =	(a, b, msg, o) -> 	@eqINNER.apply @, ["Eq",  arguments...]			#PATTERN #FORWARD #CURRYING
+		@EQ  =	(a, b, msg, o) -> 	@eqINNER.apply @, ["EQ",  arguments...]			#PATTERN #FORWARD #CURRYING
+		@EQO =	(a, b, msg, o) -> 	@eqINNER.apply @, ["EQO", arguments...]			#PATTERN #FORWARD #CURRYING
 		@eqINNER = (mn, a, b, msg, o) =>
 			#							PASS CRITERIA
 			# eq	#EQ-NOT-STRICT		"as string equal"		(new String "6") eq 6
@@ -848,7 +847,7 @@ b> #{V.vt b}
 				@logg trace.UT_EQ, "#{mn} fail: #{a} vs #{b} [#{msg}]"
 				false
 			else
-				@logg trace.UT_EQ, "#{mn} pass: #{a} vs #{b}#{AP.sqb msg}"
+				@logg trace.UT_EQ, "#{mn} pass: #{a} vs #{b}#{SP.sq msg}"
 				@logSilent "inside #{mn}: PASS: #{msg}", o
 				@logSilent V.vt a
 				@logSilent V.vt b
@@ -1065,7 +1064,7 @@ TypeError: One of the sources for assign has an enumerable key on the prototype 
 		@runner.exit.apply @runner, arguments				#PATTERN: PROXY propagate arguments	#TODO: add this UT to Proof.coffee
 
 
-	validate: ->
+	optsValidate: ->
 		if @opts
 #			@log "opts", @opts			#RN #POP
 
@@ -1422,7 +1421,7 @@ class UTRunner extends UTBase		#@UTRunner @runner
 			for k in ta
 				k = k.toUpperCase()
 				log "TRACE: #{k} => #{v}"
-				unless trace[k]?
+				if trace[k]? and k not in ["pop"]		#HACK	#TC
 					er "trace.#{k} doesn't exist"
 				trace[k] = v
 			trace
@@ -1621,7 +1620,7 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 
 		#TODO: stop all running async tests if any still running
 
-		whyPhrase = "#{@WHY_LIST[@mWhy]}(#{@mWhy})#{AP.d msg, "details=#{msg}"}"
+		whyPhrase = "#{@WHY_LIST[@mWhy]}(#{@mWhy})#{SP.d msg, "details=#{msg}"}"
 #		@log "Runner.exit: #{whyPhrase}"
 #		@log @one()
 
@@ -1851,7 +1850,7 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 			@syncCnt = testList.reduce(((acc, test) -> if test.bEnabled and test.bSync then acc+1 else acc), 0)
 			@asyncCnt = testList.reduce(((acc, test) -> if test.bEnabled and !test.bSync then acc+1 else acc), 0)
 
-			@log "#{@summary} Found #{testList.length} #{S.PLURAL "test", testList.length}#{AP.d @enabledCnt < testList.length, "with #{@enabledCnt} enabled"}"
+			@log "#{@summary} Found #{testList.length} #{S.PLURAL "test", testList.length}#{SP.d @enabledCnt < testList.length, "with #{@enabledCnt} enabled"}"
 
 
 
@@ -1891,7 +1890,7 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 
 	testsValidate: ->
 		for test in testList
-			test.validate()
+			test.optsValidate()
 
 		@summary = "[NEG=#{@mTypeCtrList[0]} PROOF=#{@mTypeCtrList[1]}]"
 #END:UTRunner
