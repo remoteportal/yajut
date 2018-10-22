@@ -452,13 +452,13 @@ EXPORTED = class UT extends UTBase			#@UT
 	#COMMAND: asynchronous test
 	_P: (a, b, c) ->
 	_p: (a, b, c) ->
-#if rn
-	P: (a, b, c) -> throw Error "UT005 P-tests aren't supported by ReactNative"
-	p: (a, b, c) -> throw Error "UT005 P-tests aren't supported by ReactNative"
-#else
+# if rn
+#	P: (a, b, c) -> throw Error "UT005 P-tests aren't supported by ReactNative"
+#	p: (a, b, c) -> throw Error "UT005 P-tests aren't supported by ReactNative"
+# else
 	P: (a, b, c) -> MAKEa('P').bind(this) a, b, c
 	p: (a, b, c) -> MAKEa('p').bind(this) a, b, c
-#endif
+# endif
 
 	#COMMAND: section / to build a hierarchy of tests
 	_S: (a, b, c) ->

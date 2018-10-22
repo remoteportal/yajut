@@ -489,8 +489,10 @@ EXPORTED = UT = class UT extends UTBase { //@UT
 
   _p(a, b, c) {}
 
-  //if rn
-  //else
+  // if rn
+  //	P: (a, b, c) -> throw Error "UT005 P-tests aren't supported by ReactNative"
+  //	p: (a, b, c) -> throw Error "UT005 P-tests aren't supported by ReactNative"
+  // else
   P(a, b, c) {
     return MAKEa('P').bind(this)(a, b, c);
   }
@@ -499,7 +501,7 @@ EXPORTED = UT = class UT extends UTBase { //@UT
     return MAKEa('p').bind(this)(a, b, c);
   }
 
-  //endif
+  // endif
 
   //COMMAND: section / to build a hierarchy of tests
   _S(a, b, c) {}
