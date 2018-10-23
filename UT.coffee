@@ -1391,7 +1391,7 @@ class UTRunner extends UTBase		#@UTRunner @runner
 					global[key] = @OPTS[key] = _ = {}
 					for k in keys.split ','
 						_[k.toUpperCase()] = true
-						console.log "CSV2Object: global[#{key}][#{k.toUpperCase()}] = true"
+						console.log "CSV2Object: global[#{key}][#{k.toUpperCase()}] = true"		#C
 #					@lg "CSV2Object @OPTS[#{key}]=", _
 				else
 					er "UT: #{a[i-2]}: argument isn't in correct comma-separated format: #{keys}"
@@ -1635,8 +1635,8 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 		@secsElapsed = Math.ceil((Date.now() - @msStart) / 1000)
 
 		if @pass or @failList.length
-	#		@lg "======================================================"
-			@lg "#{Base.openMsgGet()}  All unit tests completed: [#{@secsElapsed} #{S.PLURAL "second", @secsElapsed}] total=#{@pass+@failList.length}: #{unless @failList.length then "PASS" else "pass"}=#{@pass} #{if @failList.length then "FAIL" else "fail"}=#{@failList.length}"
+	#		console.log "======================================================"
+			console.log "#{Base.openMsgGet()}  All unit tests completed: [#{@secsElapsed} #{S.PLURAL "second", @secsElapsed}] total=#{@pass+@failList.length}: #{unless @failList.length then "PASS" else "pass"}=#{@pass} #{if @failList.length then "FAIL" else "fail"}=#{@failList.length}"
 
 			if Base.openCntGet()
 				@eventFire "left-open"

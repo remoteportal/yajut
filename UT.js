@@ -1652,7 +1652,9 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
           for (j = 0, len = ref.length; j < len; j++) {
             k = ref[j];
             _[k.toUpperCase()] = true;
-            results.push(console.log(`CSV2Object: global[${key}][${k.toUpperCase()}] = true`));
+            results.push(console.log(`CSV2Object: global[${key}][${k.toUpperCase()
+          //C
+}] = true`));
           }
           return results; //R
         } else {
@@ -1968,8 +1970,8 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
     //		@lg @one()
     this.secsElapsed = Math.ceil((Date.now() - this.msStart) / 1000);
     if (this.pass || this.failList.length) {
-      //		@lg "======================================================"
-      this.lg(`${Base.openMsgGet()}  All unit tests completed: [${this.secsElapsed} ${S.PLURAL("second", this.secsElapsed)}] total=${this.pass + this.failList.length}: ${(!this.failList.length ? "PASS" : "pass")}=${this.pass} ${(this.failList.length ? "FAIL" : "fail")}=${this.failList.length}`);
+      //		console.log "======================================================"
+      console.log(`${Base.openMsgGet()}  All unit tests completed: [${this.secsElapsed} ${S.PLURAL("second", this.secsElapsed)}] total=${this.pass + this.failList.length}: ${(!this.failList.length ? "PASS" : "pass")}=${this.pass} ${(this.failList.length ? "FAIL" : "fail")}=${this.failList.length}`);
       if (Base.openCntGet()) {
         this.eventFire("left-open");
       }
