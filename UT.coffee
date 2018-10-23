@@ -1558,7 +1558,7 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 #		@log "CLI", @OPTS
 
 #		if @OPTS.mFailMode is @FM_FAILFAST			#POP
-#			trace.tristate true
+#			trace.tristate t r u e
 
 		if @OPTS.bSerial?
 			for test in testList

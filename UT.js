@@ -1886,7 +1886,7 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
     //		@log "CLI", @OPTS
 
     //		if @OPTS.mFailMode is @FM_FAILFAST			#POP
-    //			trace.tristate true
+    //			trace.tristate t r u e
     if (this.OPTS.bSerial != null) {
       for (l = 0, len1 = testList.length; l < len1; l++) {
         test = testList[l];
