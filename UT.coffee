@@ -271,7 +271,7 @@ target = (cmdUNUSED_TODO) ->
 
 
 
-#PATTERN: target isn't actually proxy target
+#PATTERN: target isn't actually proxy target (ONLY WORKS FOR SINGLETONS!!!)
 handler =	# "traps"
 	get: (target, pn) ->
 #		log "read from bag: #{pn} => #{bag[pn]}"
@@ -328,6 +328,8 @@ class UTBase extends Base		#@UTBase
 		@const "WHY_CLI", 5
 		@const "WHY_NO_TESTS_FOUND", 6
 		@const "WHY_LIST", [null, "ALL_TESTS_RUN", "FAIL_FAST", "FATAL", "TOLD_TO_STOP", "CLI", "WHY_NO_TESTS_FOUND"]
+		
+		ONEW.MAKE_LG @, "UTSYS", trace, "UT_RUNNER", => @__CLASS_NAME2 ? @__CLASS_NAME
 
 
 
@@ -342,10 +344,10 @@ MAKEa = (cmd) =>
 		unless typeof fn is "function"
 			abort "MISSING fn"
 
-#		if bRunning and t_depth is 1 => @logFatal "NESTED t: the parent of '#{tn}' is also a test; change to 's' (section)"
-#		@log "found async: #{tn} --> #{@__CLASS_NAME}"
-#		@log "CLASS=#{@__CLASS_NAME}  TN=#{tn} ===> PATH=#{path}"
-#		@log "#{@__CLASS_NAME}#{path}/#{tn}"
+#		if bRunning and t_depth is 1 => @lgFatal "NESTED t: the parent of '#{tn}' is also a test; change to 's' (section)"
+#		@lg "found async: #{tn} --> #{@__CLASS_NAME}"
+#		@lg "CLASS=#{@__CLASS_NAME}  TN=#{tn} ===> PATH=#{path}"
+#		@lg "#{@__CLASS_NAME}#{path}/#{tn}"
 
 		new AsyncTest
 			cmd: cmd
@@ -486,7 +488,7 @@ class Test extends UTBase		#@Test #@test
 	constructor: (optsOrig, optsMore) ->
 		super()
 
-#		@log "Test constructor: optsOrig", optsOrig
+#		@lg "Test constructor: optsOrig", optsOrig
 
 		for k,v of optsOrig
 			@[k] = v
@@ -548,7 +550,7 @@ class Test extends UTBase		#@Test #@test
 			constructor: (@mFail, @summary, @detail, @o) ->
 				super()
 				failList_CLOSURE.unshift @
-#				@log "fail constructor: mFail=#{@mFail} #{@summary} nowLen=#{failList_CLOSURE.length} ###################################################", @o
+#				@lg "fail constructor: mFail=#{@mFail} #{@summary} nowLen=#{failList_CLOSURE.length} ###################################################", @o
 				@bEnabled = true
 #				console.log "RRRR=#{V.Type @o}"
 				if V.Type(@o) is "Error"
@@ -556,22 +558,22 @@ class Test extends UTBase		#@Test #@test
 					@ex = @o
 					@o = null
 					@stack = @ex
-#					@log "111*^20 stack.length=#{@stack?.length}"
-#					@log "222*^20 stack.length=#{@stack?.length}", @ex
+#					@lg "111*^20 stack.length=#{@stack?.length}"
+#					@lg "222*^20 stack.length=#{@stack?.length}", @ex
 				else
 	#				https://www.stacktracejs.com
 #					console.log "console.trace():"
 #					console.trace()
 #					err = new Error @msg
 #					@stack = err.stack
-#				@log "stack", stack
+#				@lg "stack", stack
 #				O.LOG @
 
-#				@log "*^20 mFail=#{@mFail}"				#POP
-#				@log "*^20 summary=#{@summary}"
-#				@log "*^20 detail=#{@detail}"
-#				@log "*^20 o=#{@o}"
-#				@log "*^20 stack.length=#{@stack?.length}"
+#				@lg "*^20 mFail=#{@mFail}"				#POP
+#				@lg "*^20 summary=#{@summary}"
+#				@lg "*^20 detail=#{@detail}"
+#				@lg "*^20 o=#{@o}"
+#				@lg "*^20 stack.length=#{@stack?.length}"
 
 #			full: -> Context.textFormat.red "#{@one()}\n\n#{@detail}#{SP.d @stack, "\n#{@stack}"}"
 			full: -> "#{@one()}\n\n#{@detail}#{SP.d @stack, "\n#{@stack}"}"
@@ -588,8 +590,8 @@ class Test extends UTBase		#@Test #@test
 #TODO: even sync tests should be run with timer because they could take too long!
 	after: (mFail, ex_s_null) ->
 #		@assert mFail?, "mFail"		wrong: mFail is undefined or null if success
-		@log "#".repeat 60
-		@log "after: #{@failTypes[mFail]}(#{mFail}): #{@one2()}" #, ex_s_null
+		@lg "#".repeat 60
+		@lg "after: #{@failTypes[mFail]}(#{mFail}): #{@one2()}" #, ex_s_null
 
 #H #DOMAIN: remove this from UT.coffee... onAfter()      	perhaps @env.onAfter()
 		if @env?.server?.deliverObj?.config?.deliverList?.length > 1
@@ -599,11 +601,11 @@ class Test extends UTBase		#@Test #@test
 			console.log "AFTER: " + @env.server.deliverObj.oneQ()
 			#TODO: call @FAIL
 
-#		@log "failList.length=#{@failList.length}"
+#		@lg "failList.length=#{@failList.length}"
 		if mFail in [@FAIL_ERROR, @FAIL_EXCEPTION, @FAIL_TIMEOUT, @FAIL_UNEXPECTED_PROMISE]		#MANAGE #ADD #OTF
-#			@log "on-the-fly append mFail to failList"
+#			@lg "on-the-fly append mFail to failList"
 			@FAIL mFail, null, null, ex_s_null
-#		@log "DUMP IT ALL", @failList
+#		@lg "DUMP IT ALL", @failList
 
 		if @opts.markers?
 			if @opts.markers isnt @markers
@@ -621,39 +623,39 @@ markers: got     : #{@markers}
 			for k in @opts.expect.split ','
 				kUC = k.toUpperCase()
 				if _=@["FAIL_#{kUC}"]
-#					@log "after: expectMap[#{kUC}]=#{_}"
+#					@lg "after: expectMap[#{kUC}]=#{_}"
 					expectMap[kUC] = _
 				else
 					throw Error "Invalid expect type: '#{k}'"
 
-#		@log "failList.length=#{@failList.length}"
+#		@lg "failList.length=#{@failList.length}"
 		for EXPECT of expectMap
-			@log "EXPECT=#{EXPECT}"
+			@lg "EXPECT=#{EXPECT}"
 			bFound = false
 			for fail,i in @failList by -1
-				@log "--> #{fail.one()}   (compare #{@failTypes[fail.mFail].toUpperCase()} vs #{EXPECT})" #, fail
+				@lg "--> #{fail.one()}   (compare #{@failTypes[fail.mFail].toUpperCase()} vs #{EXPECT})" #, fail
 				if @failTypes[fail.mFail].toUpperCase() is EXPECT
-					@log "  EXPECT found... so don't call @FAIL"
+					@lg "  EXPECT found... so don't call @FAIL"
 					bFound = true
 			unless bFound
-				@log "+ add"
+				@lg "+ add"
 				@FAIL @FAIL_UNFAIL, "Expected #{EXPECT} but didn't find one", null, null
 
 		if @opts.exceptionMessage?
-#			@log "scanning for #{@opts.exceptionMessage}"
+#			@lg "scanning for #{@opts.exceptionMessage}"
 			bFound = false
 			for fail,i in @failList by -1
-#				@log "--> #{fail.one()}" #, fail
+#				@lg "--> #{fail.one()}" #, fail
 				if fail.mFail is @FAIL_EXCEPTION
-#					@log "found exception"
+#					@lg "found exception"
 					if fail.ex.message is _=@opts.exceptionMessage
 						bFound = true
-#						@log "remove because exceptionMessage match"
+#						@lg "remove because exceptionMessage match"
 						@failList.splice i, 1
 			unless bFound
-#				@log "exceptionMessage not found"
+#				@lg "exceptionMessage not found"
 				detail = '^' + V.COMPARE_REPORT ex_s_null.message, _, preamble:"ex.message\n\n@opts.exceptionMessage"
-#				@log "+ add"
+#				@lg "+ add"
 				@FAIL @FAIL_ERROR, "exceptionMessage mismatch", detail, null
 
 #H #UNSTABLE: if TWO promises, depending on the order in which they resolve... the splice may be incorrect order and will be indeterminate (WRONG) deletion
@@ -662,31 +664,31 @@ markers: got     : #{@markers}
 		PR = new Promise (resolve, reject) =>
 			afterHandler = (fail) =>
 				unless fail.bEnabled
-#					@log "onHandler: remove i=#{i}"
+#					@lg "onHandler: remove i=#{i}"
 					@failList.splice i, 1
 
 			a = []
-	#		@log "look for onHandler"
+	#		@lg "look for onHandler"
 			for fail,i in @failList by -1
-	#			@log "--> #{fail.one()}" #, fail
+	#			@lg "--> #{fail.one()}" #, fail
 				if _=@opts[mn="on#{@failTypes[fail.mFail]}"]
 					@fail = fail
 					THAT = Object.assign {}, @, @runner.OPTS, @runner.OPTS?.perTestOpts?[@cname], @opts, {fail:fail}		# works but it's a different object
 					rv = _.bind(@) @
 
 					if V.type(rv) is "promise"
-#						@log "handler returned Promise. Pushing..."
+#						@lg "handler returned Promise. Pushing..."
 						a.push new Promise (resolve2, reject2) =>
 							rv.then (resolved) =>
-#								@log "FOUND RESOLVED PROMISE"
+#								@lg "FOUND RESOLVED PROMISE"
 								afterHandler fail
 								resolve2 resolved
 							.catch (ex) =>
-#								@log "FOUND REJECTED PROMISE", ex
+#								@lg "FOUND REJECTED PROMISE", ex
 								afterHandler fail
 								reject2 ex
 					else
-#						@log "didn't return a promise"
+#						@lg "didn't return a promise"
 						afterHandler fail
 			if a.length > 0
 				Promise.all a
@@ -698,12 +700,12 @@ markers: got     : #{@markers}
 			else
 				resolve()
 		PR.then =>
-#			@log "handlers all done"
+#			@lg "handlers all done"
 			for fail,i in @failList by -1
 				t = @failTypes[fail.mFail]
-	#			@log "--> #{fail.one()} ==> #{t}" #, fail
+	#			@lg "--> #{fail.one()} ==> #{t}" #, fail
 				if expectMap[t.toUpperCase()]
-	#				@log "EXPECT2: remove: i=#{i}"
+	#				@lg "EXPECT2: remove: i=#{i}"
 					@failList.splice i, 1
 
 			if @bForcePass
@@ -788,7 +790,7 @@ markers: got     : #{@markers}
 			# EQ	#EQ-STRICT			"value and type"		(new String "6") EQ (new String "6")
 			# EQO	#EQ-SAME			"same object"			obj == obj
 
-			@log "#{mn}: BEG: a=#{a} b=#{b}"
+			@lg "#{mn}: BEG: a=#{a} b=#{b}"
 			if !(a?) and !(b?)
 				@logg trace.UT_EQ, "#{mn} pass: #{a} vs #{b}: both undefined [#{msg}]", o
 				return true
@@ -808,7 +810,7 @@ markers: got     : #{@markers}
 #TODO #BUG: truncates the 'a' string
 					aa = ""
 					for c,i in b
-	#					@log c
+	#					@lg c
 						if c is '*'
 							aa += '*'
 	#						console.log "MASK!"
@@ -856,17 +858,17 @@ b> #{V.vt b}
 				true
 		@eqfile = (a, b) ->		#CONVENTION
 			#EQ-FILE-CONTENTS: "file contents"	path eqfile path
-			@log "a: #{a}"
-			@log "b: #{b}"
+			@lg "a: #{a}"
+			@lg "b: #{b}"
 
 			_a = await @file.fileSize a
 			if _a < 0
-				@log "a dne ***"
+				@lg "a dne ***"
 				return @FAIL @FAIL_EQ, "eq \"doesn't exist\" vs. \"b\"", "a=#{a}"
 
 			_b = await @file.fileSize b
 			if _b < 0
-				@log "b dne"
+				@lg "b dne"
 				return @FAIL @FAIL_EQ, "eq \"a\" vs. \"doesn't exist\"", "b=#{b}"
 
 			@eq _a, _b
@@ -878,7 +880,7 @@ b> #{V.vt b}
 #			console.log "\n\n\nX X X X X X X X X"		#POP
 
 			fail = new @Fail mFail, summary, detail, v
-#			@log "TYPE: #{Context.TYPE v}"
+#			@lg "TYPE: #{Context.TYPE v}"
 
 			_ = "FAIL: #{IF summary, "#{summary}: "}fail666=#{@failList.length}"
 
@@ -886,16 +888,16 @@ b> #{V.vt b}
 #				Context.O.DUMP v
 				if typeof v is "object"
 #					console.log "a"
-					@log _, v
+					@lg _, v
 				else
 					if IS.ml v
-						@log _
+						@lg _
 						console.log "multi-line dump:"
 						console.log v
 					else
-						@log "#{_}: #{v}"
+						@lg "#{_}: #{v}"
 			else
-				@log _
+				@lg _
 
 			if @runner.OPTS.mFailMode is @FM_FAILFAST
 				log fail.full()
@@ -912,10 +914,10 @@ b> #{V.vt b}
 			if trace.UT
 				console.log Context.textFormat.format msg, "blue,bold,uc"
 		#DUP: this is principal @log of unit tests		#TODO: use Context.MAKE
-		@log = ->
-#			console.log "trace.UT=#{trace.UT}"
-			if trace.UT_SYS
-				Context.logBase.apply this, ["#{@cname}/#{@tn}", arguments...]				#PATTERN: CALL FORWARDING
+		@log = -> #HERE
+#			console.log "trace.UT=#{trace.UT} trace.UT_SYS=#{trace.UT_SYS}"
+			if trace.UT
+				Context.logBase.apply this, ["#{@cname}/#{@tn}", arguments...]				#PATTERN: CALL #FORWARD
 		@m = (s) =>
 			@markers += s
 			if trace.UT
@@ -949,7 +951,7 @@ b> #{V.vt b}
 		@mStage = @STAGE_SETUP
 		@ok = (vOpt) ->			#CONVENTION
 	#		drill this, grep:"env"
-			@log "OK", @env
+			@lg "OK", @env
 	#		@env.succ()		#TODO: get reference to @env and tear down resources
 			@resolve vOpt
 		@PASS = -> @bForcePass = true
@@ -963,7 +965,7 @@ b> #{V.vt b}
 # I JUST DO NOT UNDERSTAND THIS!!!
 # in ServerStoreUT it moves alloc() to be reachable from unit test
 		if @common
-#			@log "common: #{JSON.stringify @common}"
+#			@lg "common: #{JSON.stringify @common}"
 			for mn in @common
 #				log "found common routine: #{mn}"
 				if @[mn]
@@ -980,7 +982,7 @@ b> #{V.vt b}
 
 	done: (who) ->
 		syncTestsCount--
-#		@log "DONE DONE DONE DONE DONE: Test.done: #{@one2()}"
+#		@lg "DONE DONE DONE DONE DONE: Test.done: #{@one2()}"
 		Base.auditEnsureClosed "Test.done"
 #		abort()
 
@@ -992,7 +994,7 @@ b> #{V.vt b}
 		@msDur = @msEnd - @msBeg
 
 #		@logg trace.UT_DUR, "dur=#{@msDur}: #{@path}"
-#		@log "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ post: who=#{who} ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+#		@lg "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ post: who=#{who} ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 
 #TODO: need mode to run in series rather than parallel
 #		if Base.openCntGet()
@@ -1009,7 +1011,7 @@ b> #{V.vt b}
 		@bEnabled = true
 		@mStage = @STAGE_SETUP
 		@mState = @STATE_WAITING
-#		@log "enable: #{@one2()}"
+#		@lg "enable: #{@one2()}"
 
 
 
@@ -1066,7 +1068,7 @@ TypeError: One of the sources for assign has an enumerable key on the prototype 
 
 	optsValidate: ->
 		if @opts
-#			@log "opts", @opts			#RN #POP
+#			@lg "opts", @opts			#RN #POP
 
 			if @opts.exceptionMessage and !@opts.expect?
 				@opts.expect = "EXCEPTION"
@@ -1082,7 +1084,7 @@ TypeError: One of the sources for assign has an enumerable key on the prototype 
 				@logFatal "[[#{@path}]] UT008 asynch opt not allowed with '#{@cmd}' cmd", @opts
 
 			if @opts.mType?
-#				@log "opts.mType=#{@opts.mType}"
+#				@lg "opts.mType=#{@opts.mType}"
 				if 0 <= @opts.mType <= 1
 					@runner.mTypeCtrList[@opts.mType]++
 				else
@@ -1108,14 +1110,14 @@ class SyncTest extends Test		#@SyncTest @sync
 		try
 			rv = @fnTest @			# SYNC
 		catch ex
-			@log "sync had exception"
+			@lg "sync had exception"
 			return @after @FAIL_EXCEPTION, ex
 
-#		@log "********************* #{typeof rv}"
-#		@log "********************* #{IS.pr rv}"
-#		@log "********************* #{IS.who rv}"
+#		@lg "********************* #{typeof rv}"
+#		@lg "********************* #{IS.pr rv}"
+#		@lg "********************* #{IS.who rv}"
 #		@drill rv
-#		@log "lloogg", rv
+#		@lg "lloogg", rv
 		if IS.pr rv
 			@after @FAIL_UNEXPECTED_PROMISE, rv
 		else
@@ -1150,7 +1152,7 @@ class AsyncTest extends Test				#@AsyncTest @async
 
 		new Promise (@resolve, @reject) =>
 			ms = if @opts.hang then 2147483647 else @opts.timeout
-#			@log "setting timer: #{ms}ms"
+#			@lg "setting timer: #{ms}ms"
 			timer = setTimeout =>
 					@after @FAIL_TIMEOUT, ms			# promise is never consummated and that's okay
 				,
@@ -1163,26 +1165,26 @@ class AsyncTest extends Test				#@AsyncTest @async
 				clearTimeout timer
 				#YES_CODE_PATH: I've seen this but sure why... you'd think that "catch" would be run instead
 #				throw new Error "REALLY?  I really don't see how this could be triggered!!!"  it's not a promise... it's  TRY..CATCH... that's why!
-				@log "FFF1"
+				@lg "FFF1"
 				return @after @FAIL_EXCEPTION, ex
 
-			@log "returned from asynch test! #{kvt "rv", rv}"
+			@lg "returned from asynch test! #{kvt "rv", rv}"
 			if @cmd.toLowerCase() is 'p'
-				@log kvt "#{@cmd}-test rv ******************************", rv
+				@lg kvt "#{@cmd}-test rv ******************************", rv
 				if IS.pr rv
-#					@log "async test returned Promise"
+#					@lg "async test returned Promise"
 					rv.then (resolved) =>
 						clearTimeout timer
-						@log "FFF2: @p ut return value: promise, that is NOW resolved: #{LL.PR_RESOLVED resolved}"
+						@lg "FFF2: @p ut return value: promise, that is NOW resolved: #{LL.PR_RESOLVED resolved}"
 						@after null, null
 					.catch (ex) =>
 						clearTimeout timer
-						@log "FFF3: @p ut return value: promise, that is NOW rejected: #{LL.PR_REJECTED ex}"
+						@lg "FFF3: @p ut return value: promise, that is NOW rejected: #{LL.PR_REJECTED ex}"
 						@after @FAIL_EXCEPTION, ex
 				else
 					clearTimeout timer
-#					@log "SHOULD HAVE BEEN PROMISE", rv
-					@log "FFF4"
+#					@lg "SHOULD HAVE BEEN PROMISE", rv
+					@lg "FFF4"
 					@after @FAIL_ERROR, "UT004 Promise expected but not returned from P-test"
 			else
 				if IS.pr rv
@@ -1190,29 +1192,29 @@ class AsyncTest extends Test				#@AsyncTest @async
 						@logWarning "tip: async test returned a promise; consider using @p instead of @a"
 					rv.then (v) =>
 						if @mState isnt @STATE_DONE
-							@log "[#{@STATE_LIST[@mState]}] one3=#{@one3()}"
-							@log "[#{@STATE_LIST[@mState]}] @a returned promise. WHAT DO? resolved value=", v
+							@lg "[#{@STATE_LIST[@mState]}] one3=#{@one3()}"
+							@lg "[#{@STATE_LIST[@mState]}] @a returned promise. WHAT DO? resolved value=", v
 					.catch (ex) =>
 #						@logCatch "@a returned promise. WHAT DO? rejected value=", ex
 
 						#TRY:
 						clearTimeout timer
-						@log "FFF5"
+						@lg "FFF5"
 						@after @FAIL_EXCEPTION, ex
 				else
-					@log "AsyncTest.start: non-promise return value from @a.  rv=", rv
-					@log "AsyncTest.start: typeof(rv)=#{typeof rv}"
-					@log "AsyncTest.start: Context.IS.who=#{Context.IS.who rv}"
+					@lg "AsyncTest.start: non-promise return value from @a.  rv=", rv
+					@lg "AsyncTest.start: typeof(rv)=#{typeof rv}"
+					@lg "AsyncTest.start: Context.IS.who=#{Context.IS.who rv}"
 					@logSilent "non-promise return value from @a.  rv=", rv
 		.then (resolved) =>
-			@logg trace.UT_RESOLVE_REJECT_VALUE, "RESOLVED:", resolved
+			@logg trace.UT_RESOLVE_REJECT_VALUE, "RESOLVED:", resolved		#NEEDS-LOVE
 			clearTimeout timer
-			@log "FFF6: ut ITSELF resolved promise: #{LL.PR_RESOLVED resolved}"
+			@lg "FFF6: ut ITSELF resolved promise: #{LL.PR_RESOLVED resolved}"
 			@after null, null
 		.catch (ex) =>
 			@logg trace.UT_RESOLVE_REJECT_VALUE, "REJECTED:", ex
 			clearTimeout timer
-			@log "FFF7"
+			@lg "FFF7"
 			@after @FAIL_EXCEPTION, ex
 
 
@@ -1224,13 +1226,13 @@ class AsyncTest extends Test				#@AsyncTest @async
 #		else if @runner.OPTS.bSerial
 #			# force serial
 #			_ = O.EMPTY_OWN(AsyncTest.s_mutexMap)
-##			@log "force serial: #{_}"
+##			@lg "force serial: #{_}"
 #			_
 		else if @opts.mutex
-#			@log "isAsyncRunnable: mutex check", AsyncTest.s_mutexMap
+#			@lg "isAsyncRunnable: mutex check", AsyncTest.s_mutexMap
 			! AsyncTest.s_mutexMap[@opts.mutex]
 		else
-#			@log "isAsyncRunnable: true (no mutex)"
+#			@lg "isAsyncRunnable: true (no mutex)"
 			true
 
 
@@ -1315,6 +1317,9 @@ class UTRunner extends UTBase		#@UTRunner @runner
 				o: "-eg key1,key2,..."
 				d: "exit grep"
 			,
+				o: "-ex"
+				d: "cli EXamples"
+			,
 				o: "-f FM#"
 #				d: "mFailMode: 0=run all, 1=fail at test (after possible healing), 2=fail fast (before healing)"
 				d: "mFailMode: 0=run all, 1=fail after test, 2=fail fast"
@@ -1382,12 +1387,12 @@ class UTRunner extends UTBase		#@UTRunner @runner
 
 			if i < a.length
 				if /^[\$\.0-9a-zA-Z_]+(,[\$\.0-9a-zA-Z_]+)*$/.test (keys = a[i++])			#TODO: pass in RE as argument	#TODO: allow ANY characters
-#					@log "keys=#{keys}"
+#					@lg "keys=#{keys}"
 					global[key] = @OPTS[key] = _ = {}
 					for k in keys.split ','
 						_[k.toUpperCase()] = true
 						console.log "CSV2Object: global[#{key}][#{k.toUpperCase()}] = true"
-#					@log "CSV2Object @OPTS[#{key}]=", _
+#					@lg "CSV2Object @OPTS[#{key}]=", _
 				else
 					er "UT: #{a[i-2]}: argument isn't in correct comma-separated format: #{keys}"
 			else
@@ -1421,9 +1426,12 @@ class UTRunner extends UTBase		#@UTRunner @runner
 			for k in ta
 				k = k.toUpperCase()
 				log "TRACE: #{k} => #{v}"
-				if trace[k]? and k not in ["pop"]		#HACK	#TC
-					er "trace.#{k} doesn't exist"
+#				if trace[k]? and k not in ["pop"]		#HACK	#TC		#NON-SENSICAL: this isn't making sence 2018-10-23 so comment out... myabe I'm drunk
+#					er "URGENT: trace.#{k} doesn't exist"
 				trace[k] = v
+#			console.log "UT: trace.one: #{trace.one()}"
+#			ONEW.DUMP trace
+#			drill trace
 			trace
 
 		traceList = (pattern) =>
@@ -1545,7 +1553,7 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 		sum++	if @OPTS.testsAll
 		sum++	if @OPTS.bAsync
 		sum++	if @OPTS.bSync
-#		@log "sum=#{sum}"
+#		@lg "sum=#{sum}"
 		if sum > 1
 			er "Can't specify #, -a, -async, -sync at the same time"
 
@@ -1555,7 +1563,7 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 #		if @OPTS.traceOverride?
 #			console.log "calling TRISTATE"
 #			trace.tristate @OPTS.traceOverride
-#		@log "CLI", @OPTS
+#		@lg "CLI", @OPTS
 
 #		if @OPTS.mFailMode is @FM_FAILFAST			#POP
 #			trace.tristate t r u e
@@ -1574,9 +1582,9 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 		@assert @STATE_WAITING <= mState <= @STATE_DONE
 		count = 0
 		for test in testList
-#			@log "COUNT", test
+#			@lg "COUNT", test
 			count++ if test.mState is mState
-#		@log "count[#{mState}] => #{count}"
+#		@lg "count[#{mState}] => #{count}"
 		count
 
 
@@ -1621,14 +1629,14 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 		#TODO: stop all running async tests if any still running
 
 		whyPhrase = "#{@WHY_LIST[@mWhy]}(#{@mWhy})#{SP.d msg, "details=#{msg}"}"
-#		@log "Runner.exit: #{whyPhrase}"
-#		@log @one()
+#		@lg "Runner.exit: #{whyPhrase}"
+#		@lg @one()
 
 		@secsElapsed = Math.ceil((Date.now() - @msStart) / 1000)
 
 		if @pass or @failList.length
-	#		@log "======================================================"
-			@log "#{Base.openMsgGet()}  All unit tests completed: [#{@secsElapsed} #{S.PLURAL "second", @secsElapsed}] total=#{@pass+@failList.length}: #{unless @failList.length then "PASS" else "pass"}=#{@pass} #{if @failList.length then "FAIL" else "fail"}=#{@failList.length}"
+	#		@lg "======================================================"
+			@lg "#{Base.openMsgGet()}  All unit tests completed: [#{@secsElapsed} #{S.PLURAL "second", @secsElapsed}] total=#{@pass+@failList.length}: #{unless @failList.length then "PASS" else "pass"}=#{@pass} #{if @failList.length then "FAIL" else "fail"}=#{@failList.length}"
 
 			if Base.openCntGet()
 				@eventFire "left-open"
@@ -1642,12 +1650,12 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 			whyPhrase: whyPhrase 
 			whyMsg: msg
 
-#		@log "report.summary", @summary
+#		@lg "report.summary", @summary
 
 		@eventFire "runner-done", {mWhy:@mWhy, msg:msg}
 
 		if @failList.length
-#			@log "calling reject"
+#			@lg "calling reject"
 			@reject this
 		else
 			if trace.TRACE_DURATION_REPORT and testList.length
@@ -1667,7 +1675,7 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 						#TODO: use string table thing
 						log "> #{test.msDur}: #{test.tn}     #{test.path}"
 
-#			@log "Runner calling final resolve"
+#			@lg "Runner calling final resolve"
 			@resolve this
 
 
@@ -1684,7 +1692,7 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 
 #DEFAULT #OVERRIDE
 	onEvent: (eventName, primative, test, opts) ->
-#		@log "Runner: onEvent: #{eventName}"
+#		@lg "Runner: onEvent: #{eventName}"
 	onEventCLIOptionList: ->
 	onEventCLIFlag: ->
 	onEventLeftOpen: ->
@@ -1725,7 +1733,7 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 
 					#HACK: utilize this timer to keep node running until all tests have completed
 					@runnerThread = setInterval =>
-#						@log "RUNNING: #{@bRunning}"
+#						@lg "RUNNING: #{@bRunning}"
 
 						if @bRunning
 							@startAnotherMaybe()
@@ -1742,19 +1750,19 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 		if @selectList.length is 0 and @runningCnt is 0
 			@exit @WHY_ALL_TESTS_RUN
 		else
-#			@log "startAnotherMaybe: syncTestsCount=#{syncTestsCount}"
+#			@lg "startAnotherMaybe: syncTestsCount=#{syncTestsCount}"
 			for testIndex,i in @selectList by -1
 				if syncTestsCount is 0
 					test = testList[testIndex-1]
 
 					@eq test.mState, @STATE_WAITING, "test isn't in waiting state"
 
-					if test.isAsyncRunnable()		# @log "can't run '#{test.one()}' because mutex '#{test.opts.mutex}' already running"
+					if test.isAsyncRunnable()		# @lg "can't run '#{test.one()}' because mutex '#{test.opts.mutex}' already running"
 						@selectList.splice i, 1
 						@testStart test
 					else if test.bSync
 						@selectList.splice i, 1
-#						@log "STARTING NEXT TEST"
+#						@lg "STARTING NEXT TEST"
 						@testStart test
 
 
@@ -1783,9 +1791,9 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 			add = (test) => @selectList.unshift test.testIndex
 
 #			testList.forEach (test) =>
-#				@log ">" + test.one3()
+#				@lg ">" + test.one3()
 #				if test.opts.bManual
-#					@log "MANUAL"
+#					@lg "MANUAL"
 
 # 			-a always overrides capitals (if any happen to be set)
 			if @OPTS.testsAll
@@ -1813,7 +1821,7 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 # 				override capitals
 				testList.forEach (test) =>
 					if /^[A-Z]/.test test.cmd
-#						@log "found ut override: #{test.tn}"
+#						@lg "found ut override: #{test.tn}"
 						add test
 
 			if @selectList.length is 0
@@ -1832,9 +1840,9 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 #					if O.INTERSECTION test.keys, @OPTS.keysfalse
 #						bTODO="remove from @selectList"
 
-#			@log "bOnline", @OPTS.bOnline
+#			@lg "bOnline", @OPTS.bOnline
 			unless @OPTS.bOnline
-				@log "OFFLINE"
+				@lg "OFFLINE"
 				@selectList = @selectList.filter (i) =>
 					! ( testList[i-1].tags.internet )
 
@@ -1842,15 +1850,15 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 				testList[i-1].enable()
 
 			if 0
-				@log "-----> VERIFY REVERSE ORDER:"
+				@lg "-----> VERIFY REVERSE ORDER:"
 				for i,idx in @selectList
-					@log "[#{idx}] -----> #{i} -> #{testList[i-1].one2()}"
+					@lg "[#{idx}] -----> #{i} -> #{testList[i-1].one2()}"
 
 			@enabledCnt = testList.reduce(((acc, test) -> if test.bEnabled then acc+1 else acc), 0)
 			@syncCnt = testList.reduce(((acc, test) -> if test.bEnabled and test.bSync then acc+1 else acc), 0)
 			@asyncCnt = testList.reduce(((acc, test) -> if test.bEnabled and !test.bSync then acc+1 else acc), 0)
 
-			@log "#{@summary} Found #{testList.length} #{S.PLURAL "test", testList.length}#{SP.d @enabledCnt < testList.length, "with #{@enabledCnt} enabled"}"
+			@lg "#{@summary} Found #{testList.length} #{S.PLURAL "test", testList.length}#{SP.d @enabledCnt < testList.length, "with #{@enabledCnt} enabled"}"
 
 
 
@@ -1876,14 +1884,14 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 			test.mStage = @STAGE_SETUP
 			test.mState = @DISABLED
 			test.testMutex ?= ''
-#			@log "[#{i}] pre: #{test.one()}"
+#			@lg "[#{i}] pre: #{test.one()}"
 
 
 
 
 	testStart: (test) ->
 		@runningCnt++
-#		@log "&&&&& testStart: concurrent now=#{@runningCnt}: #{test.one()}"
+#		@lg "&&&&& testStart: concurrent now=#{@runningCnt}: #{test.one()}"
 		test.start()
 
 

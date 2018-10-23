@@ -317,7 +317,7 @@ target = function(cmdUNUSED_TODO) {
   }
 };
 
-//PATTERN: target isn't actually proxy target
+//PATTERN: target isn't actually proxy target (ONLY WORKS FOR SINGLETONS!!!)
 handler = { // "traps"
   get: function(target, pn) {
     //		log "read from bag: #{pn} => #{bag[pn]}"
@@ -372,6 +372,10 @@ UTBase = class UTBase extends Base { //@UTBase
     this.const("WHY_CLI", 5);
     this.const("WHY_NO_TESTS_FOUND", 6);
     this.const("WHY_LIST", [null, "ALL_TESTS_RUN", "FAIL_FAST", "FATAL", "TOLD_TO_STOP", "CLI", "WHY_NO_TESTS_FOUND"]);
+    ONEW.MAKE_LG(this, "UTSYS", trace, "UT_RUNNER", () => {
+      var ref;
+      return (ref = this.__CLASS_NAME2) != null ? ref : this.__CLASS_NAME;
+    });
   }
 
 };
@@ -386,10 +390,10 @@ MAKEa = (cmd) => {
     if (typeof fn !== "function") {
       abort("MISSING fn");
     }
-    //		if bRunning and t_depth is 1 => @logFatal "NESTED t: the parent of '#{tn}' is also a test; change to 's' (section)"
-    //		@log "found async: #{tn} --> #{@__CLASS_NAME}"
-    //		@log "CLASS=#{@__CLASS_NAME}  TN=#{tn} ===> PATH=#{path}"
-    //		@log "#{@__CLASS_NAME}#{path}/#{tn}"
+    //		if bRunning and t_depth is 1 => @lgFatal "NESTED t: the parent of '#{tn}' is also a test; change to 's' (section)"
+    //		@lg "found async: #{tn} --> #{@__CLASS_NAME}"
+    //		@lg "CLASS=#{@__CLASS_NAME}  TN=#{tn} ===> PATH=#{path}"
+    //		@lg "#{@__CLASS_NAME}#{path}/#{tn}"
     return new AsyncTest({
       cmd: cmd,
       cname: this.__CLASS_NAME,
@@ -548,7 +552,7 @@ Test = class Test extends UTBase { //@Test #@test
   constructor(optsOrig, optsMore) {
     var _, failList_CLOSURE, j, k, len, ref, ref1, ref2, ref3, v, validOptsMap, validTagsMap;
     super();
-//		@log "Test constructor: optsOrig", optsOrig
+//		@lg "Test constructor: optsOrig", optsOrig
     for (k in optsOrig) {
       v = optsOrig[k];
       this[k] = v;
@@ -625,7 +629,7 @@ Test = class Test extends UTBase { //@Test #@test
         this.detail = detail1;
         this.o = o1;
         failList_CLOSURE.unshift(this);
-        //				@log "fail constructor: mFail=#{@mFail} #{@summary} nowLen=#{failList_CLOSURE.length} ###################################################", @o
+        //				@lg "fail constructor: mFail=#{@mFail} #{@summary} nowLen=#{failList_CLOSURE.length} ###################################################", @o
         this.bEnabled = true;
         //				console.log "RRRR=#{V.Type @o}"
         if (V.Type(this.o) === "Error") {
@@ -643,18 +647,18 @@ Test = class Test extends UTBase { //@Test #@test
       //					console.trace()
       //					err = new Error @msg
       //					@stack = err.stack
-      //				@log "stack", stack
+      //				@lg "stack", stack
       //				O.LOG @
 
-      //				@log "*^20 mFail=#{@mFail}"				#POP
-      //				@log "*^20 summary=#{@summary}"
-      //				@log "*^20 detail=#{@detail}"
-      //				@log "*^20 o=#{@o}"
-      //				@log "*^20 stack.length=#{@stack?.length}"
+      //				@lg "*^20 mFail=#{@mFail}"				#POP
+      //				@lg "*^20 summary=#{@summary}"
+      //				@lg "*^20 detail=#{@detail}"
+      //				@lg "*^20 o=#{@o}"
+      //				@lg "*^20 stack.length=#{@stack?.length}"
 
       //			full: -> Context.textFormat.red "#{@one()}\n\n#{@detail}#{SP.d @stack, "\n#{@stack}"}"
-      //					@log "111*^20 stack.length=#{@stack?.length}"
-      //					@log "222*^20 stack.length=#{@stack?.length}", @ex
+      //					@lg "111*^20 stack.length=#{@stack?.length}"
+      //					@lg "222*^20 stack.length=#{@stack?.length}", @ex
       full() {
         return `${this.one()}\n\n${this.detail}${SP.d(this.stack, `\n${this.stack}`)}`;
       }
@@ -683,8 +687,8 @@ Test = class Test extends UTBase { //@Test #@test
   after(mFail, ex_s_null) {
     var EXPECT, PR, _, bFound, detail, expectMap, fail, i, j, k, kUC, l, len, p, ref, ref1, ref10, ref2, ref3, ref4, ref5, ref6, ref7, ref8, ref9, s;
     //		@assert mFail?, "mFail"		wrong: mFail is undefined or null if success
-    this.log("#".repeat(60));
-    this.log(`after: ${this.failTypes[mFail]}(${mFail}): ${this.one2() //, ex_s_null
+    this.lg("#".repeat(60));
+    this.lg(`after: ${this.failTypes[mFail]}(${mFail}): ${this.one2() //, ex_s_null
 }`);
     
     //H #DOMAIN: remove this from UT.coffee... onAfter()      	perhaps @env.onAfter()
@@ -695,12 +699,12 @@ Test = class Test extends UTBase { //@Test #@test
       console.log("AFTER: " + this.env.server.deliverObj.oneQ());
     }
     
-    //		@log "failList.length=#{@failList.length}"
+    //		@lg "failList.length=#{@failList.length}"
     if (mFail === this.FAIL_ERROR || mFail === this.FAIL_EXCEPTION || mFail === this.FAIL_TIMEOUT || mFail === this.FAIL_UNEXPECTED_PROMISE) { //MANAGE #ADD #OTF
-      //			@log "on-the-fly append mFail to failList"
+      //			@lg "on-the-fly append mFail to failList"
       this.FAIL(mFail, null, null, ex_s_null);
     }
-    //		@log "DUMP IT ALL", @failList
+    //		@lg "DUMP IT ALL", @failList
     if (this.opts.markers != null) {
       if (this.opts.markers !== this.markers) {
         s = `\n-----------------------\nmarkers: expected: ${this.opts.markers}\nmarkers: got     : ${this.markers}\n-----------------------`;
@@ -714,55 +718,55 @@ Test = class Test extends UTBase { //@Test #@test
         k = ref8[j];
         kUC = k.toUpperCase();
         if (_ = this[`FAIL_${kUC}`]) {
-          //					@log "after: expectMap[#{kUC}]=#{_}"
+          //					@lg "after: expectMap[#{kUC}]=#{_}"
           expectMap[kUC] = _;
         } else {
           throw Error(`Invalid expect type: '${k}'`);
         }
       }
     }
-//		@log "failList.length=#{@failList.length}"
+//		@lg "failList.length=#{@failList.length}"
     for (EXPECT in expectMap) {
-      this.log(`EXPECT=${EXPECT}`);
+      this.lg(`EXPECT=${EXPECT}`);
       bFound = false;
       ref9 = this.failList;
       for (i = l = ref9.length - 1; l >= 0; i = l += -1) {
         fail = ref9[i];
-        this.log(`--> ${fail.one()}   (compare ${this.failTypes[fail.mFail].toUpperCase()} vs ${EXPECT
+        this.lg(`--> ${fail.one()}   (compare ${this.failTypes[fail.mFail].toUpperCase()} vs ${EXPECT
         //, fail
 })`);
         if (this.failTypes[fail.mFail].toUpperCase() === EXPECT) {
-          this.log("  EXPECT found... so don't call @FAIL");
+          this.lg("  EXPECT found... so don't call @FAIL");
           bFound = true;
         }
       }
       if (!bFound) {
-        this.log("+ add");
+        this.lg("+ add");
         this.FAIL(this.FAIL_UNFAIL, `Expected ${EXPECT} but didn't find one`, null, null);
       }
     }
     if (this.opts.exceptionMessage != null) {
-      //			@log "scanning for #{@opts.exceptionMessage}"
+      //			@lg "scanning for #{@opts.exceptionMessage}"
       bFound = false;
       ref10 = this.failList;
       for (i = p = ref10.length - 1; p >= 0; i = p += -1) {
         fail = ref10[i];
-        //				@log "--> #{fail.one()}" #, fail
+        //				@lg "--> #{fail.one()}" #, fail
         if (fail.mFail === this.FAIL_EXCEPTION) {
-          //					@log "found exception"
+          //					@lg "found exception"
           if (fail.ex.message === (_ = this.opts.exceptionMessage)) {
             bFound = true;
-            //						@log "remove because exceptionMessage match"
+            //						@lg "remove because exceptionMessage match"
             this.failList.splice(i, 1);
           }
         }
       }
       if (!bFound) {
-        //				@log "exceptionMessage not found"
+        //				@lg "exceptionMessage not found"
         detail = '^' + V.COMPARE_REPORT(ex_s_null.message, _, {
           preamble: "ex.message\n\n@opts.exceptionMessage"
         });
-        //				@log "+ add"
+        //				@lg "+ add"
         this.FAIL(this.FAIL_ERROR, "exceptionMessage mismatch", detail, null);
       }
     }
@@ -773,16 +777,16 @@ Test = class Test extends UTBase { //@Test #@test
       var THAT, a, afterHandler, mn, q, ref11, ref12, ref13, rv;
       afterHandler = (fail) => {
         if (!fail.bEnabled) {
-          //					@log "onHandler: remove i=#{i}"
+          //					@lg "onHandler: remove i=#{i}"
           return this.failList.splice(i, 1);
         }
       };
       a = [];
       ref11 = this.failList;
-      //		@log "look for onHandler"
+      //		@lg "look for onHandler"
       for (i = q = ref11.length - 1; q >= 0; i = q += -1) {
         fail = ref11[i];
-        //			@log "--> #{fail.one()}" #, fail
+        //			@lg "--> #{fail.one()}" #, fail
         if (_ = this.opts[mn = `on${this.failTypes[fail.mFail]}`]) {
           this.fail = fail;
           THAT = Object.assign({}, this, this.runner.OPTS, (ref12 = this.runner.OPTS) != null ? (ref13 = ref12.perTestOpts) != null ? ref13[this.cname] : void 0 : void 0, this.opts, {
@@ -790,20 +794,20 @@ Test = class Test extends UTBase { //@Test #@test
           });
           rv = _.bind(this)(this);
           if (V.type(rv) === "promise") {
-            //						@log "handler returned Promise. Pushing..."
+            //						@lg "handler returned Promise. Pushing..."
             a.push(new Promise((resolve2, reject2) => {
               return rv.then((resolved) => {
-                //								@log "FOUND RESOLVED PROMISE"
+                //								@lg "FOUND RESOLVED PROMISE"
                 afterHandler(fail);
                 return resolve2(resolved);
               }).catch((ex) => {
-                //								@log "FOUND REJECTED PROMISE", ex
+                //								@lg "FOUND REJECTED PROMISE", ex
                 afterHandler(fail);
                 return reject2(ex);
               });
             }));
           } else {
-            //						@log "didn't return a promise"
+            //						@lg "didn't return a promise"
             afterHandler(fail);
           }
         }
@@ -822,13 +826,13 @@ Test = class Test extends UTBase { //@Test #@test
     return PR.then(() => {
       var len1, len2, q, r, ref11, ref12, ref13, t, u;
       ref11 = this.failList;
-      //			@log "handlers all done"
+      //			@lg "handlers all done"
       for (i = q = ref11.length - 1; q >= 0; i = q += -1) {
         fail = ref11[i];
         t = this.failTypes[fail.mFail];
-        //			@log "--> #{fail.one()} ==> #{t}" #, fail
+        //			@lg "--> #{fail.one()} ==> #{t}" #, fail
         if (expectMap[t.toUpperCase()]) {
-          //				@log "EXPECT2: remove: i=#{i}"
+          //				@lg "EXPECT2: remove: i=#{i}"
           this.failList.splice(i, 1);
         }
       }
@@ -939,7 +943,7 @@ Test = class Test extends UTBase { //@Test #@test
       // Eq	#EQ-MID-STRICT		"value not type"		(new String "6") Eq "6"						#H: same as eq?
       // EQ	#EQ-STRICT			"value and type"		(new String "6") EQ (new String "6")
       // EQO	#EQ-SAME			"same object"			obj == obj
-      this.log(`${mn}: BEG: a=${a} b=${b}`);
+      this.lg(`${mn}: BEG: a=${a} b=${b}`);
       if (!(a != null) && !(b != null)) {
         this.logg(trace.UT_EQ, `${mn} pass: ${a} vs ${b}: both undefined [${msg}]`, o);
         return true;
@@ -957,7 +961,7 @@ Test = class Test extends UTBase { //@Test #@test
           aa = "";
           for (i = j = 0, len = b.length; j < len; i = ++j) {
             c = b[i];
-            //					@log c
+            //					@lg c
             if (c === '*') {
               aa += '*';
             } else {
@@ -1011,16 +1015,16 @@ Test = class Test extends UTBase { //@Test #@test
     this.eqfile = async function(a, b) { //CONVENTION
       var _a, _b;
       //EQ-FILE-CONTENTS: "file contents"	path eqfile path
-      this.log(`a: ${a}`);
-      this.log(`b: ${b}`);
+      this.lg(`a: ${a}`);
+      this.lg(`b: ${b}`);
       _a = (await this.file.fileSize(a));
       if (_a < 0) {
-        this.log("a dne ***");
+        this.lg("a dne ***");
         return this.FAIL(this.FAIL_EQ, "eq \"doesn't exist\" vs. \"b\"", `a=${a}`);
       }
       _b = (await this.file.fileSize(b));
       if (_b < 0) {
-        this.log("b dne");
+        this.lg("b dne");
         return this.FAIL(this.FAIL_EQ, "eq \"a\" vs. \"doesn't exist\"", `b=${b}`);
       }
       return this.eq(_a, _b);
@@ -1036,24 +1040,24 @@ Test = class Test extends UTBase { //@Test #@test
       }
       //			console.log "\n\n\nX X X X X X X X X"		#POP
       fail = new this.Fail(mFail, summary, detail, v);
-      //			@log "TYPE: #{Context.TYPE v}"
+      //			@lg "TYPE: #{Context.TYPE v}"
       _ = `FAIL: ${IF(summary, `${summary}: `)}fail666=${this.failList.length}`;
       if (v) {
         //				Context.O.DUMP v
         if (typeof v === "object") {
           //					console.log "a"
-          this.log(_, v);
+          this.lg(_, v);
         } else {
           if (IS.ml(v)) {
-            this.log(_);
+            this.lg(_);
             console.log("multi-line dump:");
             console.log(v);
           } else {
-            this.log(`${_}: ${v}`);
+            this.lg(`${_}: ${v}`);
           }
         }
       } else {
-        this.log(_);
+        this.lg(_);
       }
       if (this.runner.OPTS.mFailMode === this.FM_FAILFAST) {
         log(fail.full());
@@ -1075,11 +1079,12 @@ Test = class Test extends UTBase { //@Test #@test
     };
     //DUP: this is principal @log of unit tests		
     this.log = function() {
-      //			console.log "trace.UT=#{trace.UT}"
-      if (trace.UT_SYS) {
+      
+      //			console.log "trace.UT=#{trace.UT} trace.UT_SYS=#{trace.UT_SYS}"
+      if (trace.UT) {
         return Context.logBase.apply(this, [
           `${this.cname}/${this.tn}`,
-          ...arguments //PATTERN: CALL FORWARDING
+          ...arguments //PATTERN: CALL #FORWARD
         ]);
       }
     };
@@ -1132,7 +1137,7 @@ Test = class Test extends UTBase { //@Test #@test
     this.mStage = this.STAGE_SETUP;
     this.ok = function(vOpt) { //CONVENTION
       //		drill this, grep:"env"
-      this.log("OK", this.env);
+      this.lg("OK", this.env);
       //		@env.succ()		
       return this.resolve(vOpt);
     };
@@ -1151,7 +1156,7 @@ Test = class Test extends UTBase { //@Test #@test
     // in ServerStoreUT it moves alloc() to be reachable from unit test
     if (this.common) {
       ref = this.common;
-      //			@log "common: #{JSON.stringify @common}"
+      //			@lg "common: #{JSON.stringify @common}"
       for (j = 0, len = ref.length; j < len; j++) {
         mn = ref[j];
         //				log "found common routine: #{mn}"
@@ -1169,7 +1174,7 @@ Test = class Test extends UTBase { //@Test #@test
   // ################### end of decorate ###################
   done(who) {
     syncTestsCount--;
-    //		@log "DONE DONE DONE DONE DONE: Test.done: #{@one2()}"
+    //		@lg "DONE DONE DONE DONE DONE: Test.done: #{@one2()}"
     Base.auditEnsureClosed("Test.done");
     //		abort()
     this.auditMark("" + this.one2());
@@ -1180,7 +1185,7 @@ Test = class Test extends UTBase { //@Test #@test
     this.msEnd = Date.now();
     this.msDur = this.msEnd - this.msBeg;
     //		@logg trace.UT_DUR, "dur=#{@msDur}: #{@path}"
-    //		@log "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ post: who=#{who} ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+    //		@lg "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ post: who=#{who} ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 
     //		if Base.openCntGet()
     //			Base.logOpenMap()
@@ -1196,7 +1201,7 @@ Test = class Test extends UTBase { //@Test #@test
     return this.mState = this.STATE_WAITING;
   }
 
-  //		@log "enable: #{@one2()}"
+  //		@lg "enable: #{@one2()}"
 
   //  	delegate to runner
   eventFire(eventName, msg) {
@@ -1253,7 +1258,7 @@ Test = class Test extends UTBase { //@Test #@test
   optsValidate() {
     var cmd, cmds, j, k, len, ref, ref1;
     if (this.opts) {
-      //			@log "opts", @opts			#RN #POP
+      //			@lg "opts", @opts			#RN #POP
       if (this.opts.exceptionMessage && (this.opts.expect == null)) {
         this.opts.expect = "EXCEPTION";
       }
@@ -1271,7 +1276,7 @@ Test = class Test extends UTBase { //@Test #@test
         this.logFatal(`[[${this.path}]] UT008 asynch opt not allowed with '${this.cmd}' cmd`, this.opts);
       }
       if (this.opts.mType != null) {
-        //				@log "opts.mType=#{@opts.mType}"
+        //				@lg "opts.mType=#{@opts.mType}"
         if ((0 <= (ref1 = this.opts.mType) && ref1 <= 1)) {
           return this.runner.mTypeCtrList[this.opts.mType]++;
         } else {
@@ -1301,14 +1306,14 @@ SyncTest = class SyncTest extends Test { //@SyncTest @sync
       rv = this.fnTest(this); // SYNC
     } catch (error) {
       ex = error;
-      this.log("sync had exception");
+      this.lg("sync had exception");
       return this.after(this.FAIL_EXCEPTION, ex);
     }
-    //		@log "********************* #{typeof rv}"
-    //		@log "********************* #{IS.pr rv}"
-    //		@log "********************* #{IS.who rv}"
+    //		@lg "********************* #{typeof rv}"
+    //		@lg "********************* #{IS.pr rv}"
+    //		@lg "********************* #{IS.who rv}"
     //		@drill rv
-    //		@log "lloogg", rv
+    //		@lg "lloogg", rv
     if (IS.pr(rv)) {
       return this.after(this.FAIL_UNEXPECTED_PROMISE, rv);
     } else {
@@ -1352,7 +1357,7 @@ AsyncTest = (function() {
         this.resolve = resolve1;
         this.reject = reject1;
         ms = this.opts.hang ? 2147483647 : this.opts.timeout;
-        //			@log "setting timer: #{ms}ms"
+        //			@lg "setting timer: #{ms}ms"
         timer = setTimeout(() => {
           return this.after(this.FAIL_TIMEOUT, ms); // promise is never consummated and that's okay
         }, ms);
@@ -1364,27 +1369,27 @@ AsyncTest = (function() {
           clearTimeout(timer);
           //YES_CODE_PATH: I've seen this but sure why... you'd think that "catch" would be run instead
           //				throw new Error "REALLY?  I really don't see how this could be triggered!!!"  it's not a promise... it's  TRY..CATCH... that's why!
-          this.log("FFF1");
+          this.lg("FFF1");
           return this.after(this.FAIL_EXCEPTION, ex);
         }
-        this.log(`returned from asynch test! ${kvt("rv", rv)}`);
+        this.lg(`returned from asynch test! ${kvt("rv", rv)}`);
         if (this.cmd.toLowerCase() === 'p') {
-          this.log(kvt(`${this.cmd}-test rv ******************************`, rv));
+          this.lg(kvt(`${this.cmd}-test rv ******************************`, rv));
           if (IS.pr(rv)) {
-            //					@log "async test returned Promise"
+            //					@lg "async test returned Promise"
             return rv.then((resolved) => {
               clearTimeout(timer);
-              this.log(`FFF2: @p ut return value: promise, that is NOW resolved: ${LL.PR_RESOLVED(resolved)}`);
+              this.lg(`FFF2: @p ut return value: promise, that is NOW resolved: ${LL.PR_RESOLVED(resolved)}`);
               return this.after(null, null);
             }).catch((ex) => {
               clearTimeout(timer);
-              this.log(`FFF3: @p ut return value: promise, that is NOW rejected: ${LL.PR_REJECTED(ex)}`);
+              this.lg(`FFF3: @p ut return value: promise, that is NOW rejected: ${LL.PR_REJECTED(ex)}`);
               return this.after(this.FAIL_EXCEPTION, ex);
             });
           } else {
             clearTimeout(timer);
-            //					@log "SHOULD HAVE BEEN PROMISE", rv
-            this.log("FFF4");
+            //					@lg "SHOULD HAVE BEEN PROMISE", rv
+            this.lg("FFF4");
             return this.after(this.FAIL_ERROR, "UT004 Promise expected but not returned from P-test");
           }
         } else {
@@ -1394,33 +1399,33 @@ AsyncTest = (function() {
             }
             return rv.then((v) => {
               if (this.mState !== this.STATE_DONE) {
-                this.log(`[${this.STATE_LIST[this.mState]}] one3=${this.one3()}`);
-                return this.log(`[${this.STATE_LIST[this.mState]}] @a returned promise. WHAT DO? resolved value=`, v);
+                this.lg(`[${this.STATE_LIST[this.mState]}] one3=${this.one3()}`);
+                return this.lg(`[${this.STATE_LIST[this.mState]}] @a returned promise. WHAT DO? resolved value=`, v);
               }
             }).catch((ex) => {
               //						@logCatch "@a returned promise. WHAT DO? rejected value=", ex
 
               //TRY:
               clearTimeout(timer);
-              this.log("FFF5");
+              this.lg("FFF5");
               return this.after(this.FAIL_EXCEPTION, ex);
             });
           } else {
-            this.log("AsyncTest.start: non-promise return value from @a.  rv=", rv);
-            this.log(`AsyncTest.start: typeof(rv)=${typeof rv}`);
-            this.log(`AsyncTest.start: Context.IS.who=${Context.IS.who(rv)}`);
+            this.lg("AsyncTest.start: non-promise return value from @a.  rv=", rv);
+            this.lg(`AsyncTest.start: typeof(rv)=${typeof rv}`);
+            this.lg(`AsyncTest.start: Context.IS.who=${Context.IS.who(rv)}`);
             return this.logSilent("non-promise return value from @a.  rv=", rv);
           }
         }
       }).then((resolved) => {
-        this.logg(trace.UT_RESOLVE_REJECT_VALUE, "RESOLVED:", resolved);
+        this.logg(trace.UT_RESOLVE_REJECT_VALUE, "RESOLVED:", resolved); //NEEDS-LOVE
         clearTimeout(timer);
-        this.log(`FFF6: ut ITSELF resolved promise: ${LL.PR_RESOLVED(resolved)}`);
+        this.lg(`FFF6: ut ITSELF resolved promise: ${LL.PR_RESOLVED(resolved)}`);
         return this.after(null, null);
       }).catch((ex) => {
         this.logg(trace.UT_RESOLVE_REJECT_VALUE, "REJECTED:", ex);
         clearTimeout(timer);
-        this.log("FFF7");
+        this.lg("FFF7");
         return this.after(this.FAIL_EXCEPTION, ex);
       });
     }
@@ -1432,12 +1437,12 @@ AsyncTest = (function() {
       //		else if @runner.OPTS.bSerial
       //			# force serial
       //			_ = O.EMPTY_OWN(AsyncTest.s_mutexMap)
-      //#			@log "force serial: #{_}"
+      //#			@lg "force serial: #{_}"
       //			_
       } else if (this.opts.mutex) {
         return !AsyncTest.s_mutexMap[this.opts.mutex];
       } else {
-        //			@log "isAsyncRunnable: true (no mutex)"
+        //			@lg "isAsyncRunnable: true (no mutex)"
         return true;
       }
     }
@@ -1545,6 +1550,10 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
         d: "exit grep"
       },
       {
+        o: "-ex",
+        d: "cli EXamples"
+      },
+      {
         o: "-f FM#",
         //				d: "mFailMode: 0=run all, 1=fail at test (after possible healing), 2=fail fast (before healing)"
         d: "mFailMode: 0=run all, 1=fail after test, 2=fail fast"
@@ -1636,7 +1645,7 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
       if (i < a.length) {
         if (/^[\$\.0-9a-zA-Z_]+(,[\$\.0-9a-zA-Z_]+)*$/.test((keys = a[i++]))) {
           
-          //					@log "keys=#{keys}"
+          //					@lg "keys=#{keys}"
           global[key] = this.OPTS[key] = _ = {};
           ref = keys.split(',');
           results = [];
@@ -1647,7 +1656,7 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
           }
           return results; //R
         } else {
-          //					@log "CSV2Object @OPTS[#{key}]=", _
+          //					@lg "CSV2Object @OPTS[#{key}]=", _
           return er(`UT: ${a[i - 2]}: argument isn't in correct comma-separated format: ${keys}`);
         }
       } else {
@@ -1686,11 +1695,13 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
         k = ta[j];
         k = k.toUpperCase();
         log(`TRACE: ${k} => ${v}`);
-        if ((trace[k] != null) && (k !== "pop")) { //HACK	#TC
-          er(`trace.${k} doesn't exist`);
-        }
+        //				if trace[k]? and k not in ["pop"]		#HACK	#TC		#NON-SENSICAL: this isn't making sence 2018-10-23 so comment out... myabe I'm drunk
+        //					er "URGENT: trace.#{k} doesn't exist"
         trace[k] = v;
       }
+      //			console.log "UT: trace.one: #{trace.one()}"
+      //			ONEW.DUMP trace
+      //			drill trace
       return trace;
     };
     traceList = (pattern) => {
@@ -1873,7 +1884,7 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
     if (this.OPTS.bSync) {
       sum++;
     }
-    //		@log "sum=#{sum}"
+    //		@lg "sum=#{sum}"
     if (sum > 1) {
       er("Can't specify #, -a, -async, -sync at the same time");
     }
@@ -1883,7 +1894,7 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
     //		if @OPTS.traceOverride?
     //			console.log "calling TRISTATE"
     //			trace.tristate @OPTS.traceOverride
-    //		@log "CLI", @OPTS
+    //		@lg "CLI", @OPTS
 
     //		if @OPTS.mFailMode is @FM_FAILFAST			#POP
     //			trace.tristate t r u e
@@ -1906,11 +1917,11 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
     for (j = 0, len = testList.length; j < len; j++) {
       test = testList[j];
       if (test.mState === mState) {
-        //			@log "COUNT", test
+        //			@lg "COUNT", test
         count++;
       }
     }
-    //		@log "count[#{mState}] => #{count}"
+    //		@lg "count[#{mState}] => #{count}"
     return count;
   }
 
@@ -1953,12 +1964,12 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
     clearInterval(this.runnerThread);
     this.bRunning = false;
     whyPhrase = `${this.WHY_LIST[this.mWhy]}(${this.mWhy})${SP.d(msg, `details=${msg}`)}`;
-    //		@log "Runner.exit: #{whyPhrase}"
-    //		@log @one()
+    //		@lg "Runner.exit: #{whyPhrase}"
+    //		@lg @one()
     this.secsElapsed = Math.ceil((Date.now() - this.msStart) / 1000);
     if (this.pass || this.failList.length) {
-      //		@log "======================================================"
-      this.log(`${Base.openMsgGet()}  All unit tests completed: [${this.secsElapsed} ${S.PLURAL("second", this.secsElapsed)}] total=${this.pass + this.failList.length}: ${(!this.failList.length ? "PASS" : "pass")}=${this.pass} ${(this.failList.length ? "FAIL" : "fail")}=${this.failList.length}`);
+      //		@lg "======================================================"
+      this.lg(`${Base.openMsgGet()}  All unit tests completed: [${this.secsElapsed} ${S.PLURAL("second", this.secsElapsed)}] total=${this.pass + this.failList.length}: ${(!this.failList.length ? "PASS" : "pass")}=${this.pass} ${(this.failList.length ? "FAIL" : "fail")}=${this.failList.length}`);
       if (Base.openCntGet()) {
         this.eventFire("left-open");
       }
@@ -1972,13 +1983,13 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
       whyPhrase: whyPhrase,
       whyMsg: msg
     };
-    //		@log "report.summary", @summary
+    //		@lg "report.summary", @summary
     this.eventFire("runner-done", {
       mWhy: this.mWhy,
       msg: msg
     });
     if (this.failList.length) {
-      //			@log "calling reject"
+      //			@lg "calling reject"
       return this.reject(this);
     } else {
       if (trace.TRACE_DURATION_REPORT && testList.length) {
@@ -2001,7 +2012,7 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
           }
         }
       }
-      //			@log "Runner calling final resolve"
+      //			@lg "Runner calling final resolve"
       return this.resolve(this);
     }
   }
@@ -2025,7 +2036,7 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
   //DEFAULT #OVERRIDE
   onEvent(eventName, primative, test, opts) {}
 
-  //		@log "Runner: onEvent: #{eventName}"
+  //		@lg "Runner: onEvent: #{eventName}"
   onEventCLIOptionList() {}
 
   onEventCLIFlag() {}
@@ -2072,7 +2083,7 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
 
           //HACK: utilize this timer to keep node running until all tests have completed
           return this.runnerThread = setInterval(() => {
-            //						@log "RUNNING: #{@bRunning}"
+            //						@lg "RUNNING: #{@bRunning}"
             if (this.bRunning) {
               return this.startAnotherMaybe();
             }
@@ -2091,19 +2102,19 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
       return this.exit(this.WHY_ALL_TESTS_RUN);
     } else {
       ref = this.selectList;
-      //			@log "startAnotherMaybe: syncTestsCount=#{syncTestsCount}"
+      //			@lg "startAnotherMaybe: syncTestsCount=#{syncTestsCount}"
       results = [];
       for (i = j = ref.length - 1; j >= 0; i = j += -1) {
         testIndex = ref[i];
         if (syncTestsCount === 0) {
           test = testList[testIndex - 1];
           this.eq(test.mState, this.STATE_WAITING, "test isn't in waiting state");
-          if (test.isAsyncRunnable()) { // @log "can't run '#{test.one()}' because mutex '#{test.opts.mutex}' already running"
+          if (test.isAsyncRunnable()) { // @lg "can't run '#{test.one()}' because mutex '#{test.opts.mutex}' already running"
             this.selectList.splice(i, 1);
             results.push(this.testStart(test));
           } else if (test.bSync) {
             this.selectList.splice(i, 1);
-            //						@log "STARTING NEXT TEST"
+            //						@lg "STARTING NEXT TEST"
             results.push(this.testStart(test));
           } else {
             results.push(void 0);
@@ -2139,9 +2150,9 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
         return this.selectList.unshift(test.testIndex);
       };
       //			testList.forEach (test) =>
-      //				@log ">" + test.one3()
+      //				@lg ">" + test.one3()
       //				if test.opts.bManual
-      //					@log "MANUAL"
+      //					@lg "MANUAL"
 
       // 			-a always overrides capitals (if any happen to be set)
       if (this.OPTS.testsAll) {
@@ -2185,7 +2196,7 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
         // 				override capitals
         testList.forEach((test) => {
           if (/^[A-Z]/.test(test.cmd)) {
-            //						@log "found ut override: #{test.tn}"
+            //						@lg "found ut override: #{test.tn}"
             return add(test);
           }
         });
@@ -2213,9 +2224,9 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
       //					if O.INTERSECTION test.keys, @OPTS.keysfalse
       //						bTODO="remove from @selectList"
 
-      //			@log "bOnline", @OPTS.bOnline
+      //			@lg "bOnline", @OPTS.bOnline
       if (!this.OPTS.bOnline) {
-        this.log("OFFLINE");
+        this.lg("OFFLINE");
         this.selectList = this.selectList.filter((i) => {
           return !testList[i - 1].tags.internet;
         });
@@ -2226,11 +2237,11 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
         testList[i - 1].enable();
       }
       if (0) {
-        this.log("-----> VERIFY REVERSE ORDER:");
+        this.lg("-----> VERIFY REVERSE ORDER:");
         ref3 = this.selectList;
         for (idx = w = 0, len6 = ref3.length; w < len6; idx = ++w) {
           i = ref3[idx];
-          this.log(`[${idx}] -----> ${i} -> ${testList[i - 1].one2()}`);
+          this.lg(`[${idx}] -----> ${i} -> ${testList[i - 1].one2()}`);
         }
       }
       this.enabledCnt = testList.reduce((function(acc, test) {
@@ -2254,7 +2265,7 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
           return acc;
         }
       }), 0);
-      return this.log(`${this.summary} Found ${testList.length} ${S.PLURAL("test", testList.length)}${SP.d(this.enabledCnt < testList.length, `with ${this.enabledCnt} enabled`)}`);
+      return this.lg(`${this.summary} Found ${testList.length} ${S.PLURAL("test", testList.length)}${SP.d(this.enabledCnt < testList.length, `with ${this.enabledCnt} enabled`)}`);
     }
   }
 
@@ -2285,10 +2296,10 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
     return results; //R
   }
 
-  //			@log "[#{i}] pre: #{test.one()}"
+  //			@lg "[#{i}] pre: #{test.one()}"
   testStart(test) {
     this.runningCnt++;
-    //		@log "&&&&& testStart: concurrent now=#{@runningCnt}: #{test.one()}"
+    //		@lg "&&&&& testStart: concurrent now=#{@runningCnt}: #{test.one()}"
     return test.start();
   }
 
