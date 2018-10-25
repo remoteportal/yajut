@@ -746,7 +746,7 @@ markers: got     : #{@markers}
 
 			b
 		@bag = proxyBag
-#		@box = (s) -> console.log Context.textFormat.format s, "red,box"
+#R		@box = (s) -> console.log Context.textFormat.format s, "red,box"
 		@context = "CONTEXT set in decorateJustObject"		#H
 		@defined = (v, msg) ->
 			_ = if msg then ": #{msg}" else ""
@@ -910,18 +910,14 @@ b> #{V.vt b}
 			console.error "fatal: #{msg}"
 			@exit @WHY_FATAL, msg
 			abort msg
-		@h = (msg) ->
-			if trace.UT
-				console.log Context.textFormat.format msg, "blue,bold,uc"
+		@h = (s) -> @log s, undefined, bHeader:false,format:"blue,bold,uc"
 		#DUP: this is principal @log of unit tests		#TODO: use Context.MAKE
-		@log = -> #HERE
-#			console.log "trace.UT=#{trace.UT} trace.UT_SYS=#{trace.UT_SYS}"
+		@log = ->
 			if trace.UT
 				Context.logBase.apply this, ["#{@cname}/#{@tn}", arguments...]				#PATTERN: CALL #FORWARD
 		@m = (s) =>
 			@markers += s
-			if trace.UT
-				console.log Context.textFormat.format "M #{s}", "blue,bold,uc"			#H: write content through logging system	#TODO: use offical logging system
+			@log "MARK #{s}", undefined, bHeader:false,format:"magenta,bold,uc"
 		MAKE_UT_LOG_FAIL = (mn, mFail) =>
 			do (mn, mFail, that=@) =>		#PATTERN #CURRYING
 #				console.log "mn=#{mn} mFail=#{mFail}"
@@ -1281,7 +1277,7 @@ class UTRunner extends UTBase		#@UTRunner @runner
 
 		#MOVE
 		Object.defineProperties @,
-			LT:
+			UT:
 				enumerable: true
 				get: -> trace.UT
 				set: (v) ->
@@ -2152,14 +2148,14 @@ class UT_UT extends UT		#@UT_UT		@unittest  @ut
 				await @delay 100			#ABOVE => async function(ut) { ... }
 				return "peter"				# still returns promise because of implicit "async" above
 		@t "trace.T", ->
-			keep = @runner.LT
-			@runner.LT = 55
-			@eq @runner.LT, 55
+			keep = @runner.UT				#REVISIT #URGENT
+			@runner.UT = 55
+			@eq @runner.UT, 55
 #			@log "yes show"	#, @trace
-			@runner.LT = false
-			@eq @runner.LT, false
+			@runner.UT = false
+			@eq @runner.UT, false
 #			@log "no show"	#, @trace
-			@runner.LT = keep
+			@runner.UT = keep
 #		@t "clash with built-in", {mType:@NEG}, (ut) ->
 #			@log "clash"
 #			drill this

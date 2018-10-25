@@ -879,7 +879,7 @@ Test = class Test extends UTBase { //@Test #@test
       return b;
     };
     this.bag = proxyBag;
-    //		@box = (s) -> console.log Context.textFormat.format s, "red,box"
+    //R		@box = (s) -> console.log Context.textFormat.format s, "red,box"
     this.context = "CONTEXT set in decorateJustObject"; //H
     this.defined = function(v, msg) {
       var _, b;
@@ -1072,15 +1072,14 @@ Test = class Test extends UTBase { //@Test #@test
       this.exit(this.WHY_FATAL, msg);
       return abort(msg);
     };
-    this.h = function(msg) {
-      if (trace.UT) {
-        return console.log(Context.textFormat.format(msg, "blue,bold,uc"));
-      }
+    this.h = function(s) {
+      return this.log(s, void 0, {
+        bHeader: false,
+        format: "blue,bold,uc"
+      });
     };
     //DUP: this is principal @log of unit tests		
     this.log = function() {
-      
-      //			console.log "trace.UT=#{trace.UT} trace.UT_SYS=#{trace.UT_SYS}"
       if (trace.UT) {
         return Context.logBase.apply(this, [
           `${this.cname}/${this.tn}`,
@@ -1090,9 +1089,10 @@ Test = class Test extends UTBase { //@Test #@test
     };
     this.m = (s) => {
       this.markers += s;
-      if (trace.UT) {
-        return console.log(Context.textFormat.format(`M ${s}`, "blue,bold,uc")); //H: write content through logging system	
-      }
+      return this.log(`MARK ${s}`, void 0, {
+        bHeader: false,
+        format: "magenta,bold,uc"
+      });
     };
     MAKE_UT_LOG_FAIL = (mn, mFail) => {
       return ((mn, mFail, that) => { //PATTERN #CURRYING
@@ -1505,7 +1505,7 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
     this.runnerThread = null;
     //MOVE
     Object.defineProperties(this, {
-      LT: {
+      UT: {
         enumerable: true,
         get: function() {
           return trace.UT;
@@ -2728,14 +2728,14 @@ UT_UT = class UT_UT extends UT { //@UT_UT		@unittest  @ut
     });
     return this.t("trace.T", function() {
       var keep;
-      keep = this.runner.LT;
-      this.runner.LT = 55;
-      this.eq(this.runner.LT, 55);
+      keep = this.runner.UT; //REVISIT #URGENT
+      this.runner.UT = 55;
+      this.eq(this.runner.UT, 55);
       //			@log "yes show"	#, @trace
-      this.runner.LT = false;
-      this.eq(this.runner.LT, false);
+      this.runner.UT = false;
+      this.eq(this.runner.UT, false);
       //			@log "no show"	#, @trace
-      return this.runner.LT = keep;
+      return this.runner.UT = keep;
     });
   }
 
