@@ -219,11 +219,8 @@ KNOWN BUGS:
 #GITHUB: #TODO: create new repo called AlvinUtils and put these in there
 #NOTE: ILLEGAL TO USE context instance in this file!!! only static class methods (why? instance is domain specific)
 #IMPORT2 Context
-#import O
-#import V
 
 
-IS = Context.IS
 
 
 #EASY #TODO: minimize these global variables
@@ -257,15 +254,15 @@ target = (cmdUNUSED_TODO) ->
 		O.LOG sans		#NOT-DEBUG
 
 		if _=O.CNT_OWN sans
-			log "*** bag: #{_} propert#{if _ is 1 then "y" else "ies"}:"
+			log "bag: #{_} propert#{if _ is 1 then "y" else "ies"}:"
 			for k,v of sans
 				if typeof v is "object"
-					log "*** bag: #{k} ="
+					log "bag: #{k} ="
 					O.LOG v
 				else
-					log "*** bag: #{k} = #{V.DUMP v}"
+					log "bag: #{k} = #{V.DUMP v}"
 		else
-			log "*** bag: empty"
+			log "bag: empty"
 		return
 
 
@@ -328,7 +325,7 @@ class UTBase extends Base		#@UTBase
 		@const "WHY_NO_TESTS_FOUND", 6
 		@const "WHY_LIST", [null, "ALL_TESTS_RUN", "FAIL_FAST", "FATAL", "TOLD_TO_STOP", "CLI", "WHY_NO_TESTS_FOUND"]
 		
-		ONEW.MAKE_LG @, "UTSYS", trace, "UT_RUNNER", => @__CLASS_NAME2 ? @__CLASS_NAME
+		O.MAKE_LG @, "UTSYS", trace, "UT_RUNNER", => @__CLASS_NAME2 ? @__CLASS_NAME
 
 
 
@@ -745,7 +742,6 @@ markers: got     : #{@markers}
 
 			b
 		@bag = proxyBag
-#R		@box = (s) -> console.log Context.textFormat.format s, "red,box"
 		@context = "CONTEXT set in decorateJustObject"		#H
 		@defined = (v, msg) ->
 			_ = if msg then ": #{msg}" else ""
@@ -820,7 +816,7 @@ markers: got     : #{@markers}
 #					console.log "aaa> #{a}"
 #					console.log "bbb> #{b}"
 
-				unless VNEW.EQ a, b
+				unless V.EQ a, b
 					s = "#{mn} values violation"
 
 			switch mn
@@ -862,7 +858,7 @@ b> #{V.vt b}
 
 			_a = await @file.fileSize a
 			if _a < 0
-				@lg "a dne ***"
+				@lg "a dne"
 				return @FAIL @FAIL_EQ, "eq \"doesn't exist\" vs. \"b\"", "a=#{a}"
 
 			_b = await @file.fileSize b
@@ -913,7 +909,7 @@ b> #{V.vt b}
 		#DUP: this is principal @log of unit tests		#TODO: use Context.MAKE
 		@log = ->
 			if trace.UT
-				Context.logBase.apply this, ["#{@cname}/#{@tn}", arguments...]				#PATTERN: CALL #FORWARD
+				Context.logBase.apply this, ["#{@cname}/#{@tn}", arguments...]						#PATTERN: CALL #FORWARD
 		@m = (s) =>
 			@markers += s
 			@log "MARK #{s}", undefined, bHeader:false,format:"magenta,bold,uc"
@@ -933,16 +929,6 @@ b> #{V.vt b}
 						@FAIL mFail, msg, "UT~MAKE_UT_LOG_FAIL", o, opt		#H:opt #EXTRA_PARAM
 		MAKE_UT_LOG_FAIL "logCatch", @FAIL_EXCEPTION
 		MAKE_UT_LOG_FAIL "logError", @FAIL_ERROR
-		@logSilent	= (s, o, opt)		-> Context.logBase @one(), s, o, bVisible:false			#REVISIT
-		@logTransient = (s, o, opt)		->														#REVISIT
-			if @runner.OPTS.mFailMode is @FM_RUNALL
-				Context.logBase @one(), "TRANSIENT: #{s}", o, opt
-			else
-				Context.logBase @one(), "FATAL_TRANSIENT: #{s}", o, opt
-				abort "logError called with @mFailMode is @FM_RUNALL=false"
-		@logWarning	= (s, o, opt) ->															#REVISIT
-			if trace.WARNING		#H: push lower?     new parameter: bWarning:true  or mType:5
-				Context.logBase.apply this, [@one(), "WARNING3", arguments...]			#PATTERN: CALL FORWARDING
 		@mStage = @STAGE_SETUP
 		@ok = (vOpt) ->			#CONVENTION
 	#		drill this, grep:"env"
@@ -1108,9 +1094,9 @@ class SyncTest extends Test		#@SyncTest @sync
 			@lg "sync had exception"
 			return @after @FAIL_EXCEPTION, ex
 
-#		@lg "********************* #{typeof rv}"
-#		@lg "********************* #{IS.pr rv}"
-#		@lg "********************* #{IS.who rv}"
+#		@lg "start: #{typeof rv}"
+#		@lg "start: #{IS.pr rv}"
+#		@lg "start: #{IS.who rv}"
 #		@drill rv
 #		@lg "lloogg", rv
 		if IS.pr rv
@@ -1165,7 +1151,7 @@ class AsyncTest extends Test				#@AsyncTest @async
 
 			@lg "returned from asynch test! #{kvt "rv", rv}"
 			if @cmd.toLowerCase() is 'p'
-				@lg kvt "#{@cmd}-test rv ******************************", rv
+				@lg kvt "#{@cmd}-test rv", rv
 				if IS.pr rv
 #					@lg "async test returned Promise"
 					rv.then (resolved) =>
@@ -1258,7 +1244,7 @@ class UTRunner extends UTBase		#@UTRunner @runner
 		@OPTS = @opts	#HACK
 		@OPTS.bOnline ?= true
 		@OPTS.timeout ?= 3000
-		ONEW.validate @opts,
+		O.validate @opts,
 			onlyCSV: "bOnline,bSerial,decorate,mFailMode,perTestOpts,timeout,userDefined"
 
 #		console.log "UT.UTRunner.constructor: WORK_AROUND_UT_CLASS_NAME_OVERRIDE=#{@WORK_AROUND_UT_CLASS_NAME_OVERRIDE}"
@@ -1425,7 +1411,7 @@ class UTRunner extends UTBase		#@UTRunner @runner
 #					er "URGENT: trace.#{k} doesn't exist"
 				trace[k] = v
 #			console.log "UT: trace.one: #{trace.one()}"
-#			ONEW.DUMP trace
+#			O.DUMP trace
 #			drill trace
 			trace
 
@@ -1478,7 +1464,7 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 					when "-async"
 						@OPTS.bAsync = true
 					when "-dup"
-						# ONEW.DUMP testList
+						# O.DUMP testList
 						dupMap = {}
 						for test in testList
 							unless dupMap[test.tn]
@@ -1911,7 +1897,7 @@ class UT_UT extends UT		#@UT_UT		@unittest  @ut
 				Promise.reject "I am bad"
 			@p "non-promise", expect:"ERROR", mType:@NEG, ->		#TODO: this is not an ERROR, it's a UT unit test problem, no?
 				Math.pi
-			@p "role model of how to use @p and @ce together", desc:"see file header for full explanation", ->
+			@p "@p and @ce together", desc:"role model of how to use @p and @ce together.  see file header for full explanation", ->
 				pr = @ce().run()
 				.then (po) =>
 					@env.d()		#WORKS
@@ -2066,6 +2052,13 @@ class UT_UT extends UT		#@UT_UT		@unittest  @ut
 				@logCatch "this is logCatch"
 			@t "logError", expect:"ERROR", ->
 				@logError "this is logError"
+			@t "logSilent", ->
+				@logSilent "you can't see me"
+				@logSilent "you can't see my object", a:"a"
+				@logSilent "you can't see me in red", undefined, format:"red"
+				#TEST: format:red   doesn't throw right error
+			@t "logTransient", ->
+				@logTransient "a blip"
 		@t "one", ->
 			@human @one()
 			@human @one2()
@@ -2147,14 +2140,19 @@ class UT_UT extends UT		#@UT_UT		@unittest  @ut
 				await @delay 100			#ABOVE => async function(ut) { ... }
 				return "peter"				# still returns promise because of implicit "async" above
 		@t "trace.T", ->
-			keep = @runner.UT				#REVISIT #URGENT
-			@runner.UT = 55
-			@eq @runner.UT, 55
+			keep = @runner.UT
+			@log "keep", keep
+
+			trace.stackPush "UT", 55
+			@eq @runner.UT, 55, "set?"
 #			@log "yes show"	#, @trace
 			@runner.UT = false
-			@eq @runner.UT, false
+			@eq @runner.UT, false, "false?"
 #			@log "no show"	#, @trace
-			@runner.UT = keep
+
+			trace.stackPop "UT"
+
+			@eq @runner.UT, keep, "keep"
 #		@t "clash with built-in", {mType:@NEG}, (ut) ->
 #			@log "clash"
 #			drill this
