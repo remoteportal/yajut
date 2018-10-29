@@ -194,7 +194,7 @@
   -
    */
   //GITHUB: 
-  //NOTE: ILLEGAL TO USE context instance in this file!!! only static class methods (why? instance is domain specific)
+  //NOTE: ILLEGAL TO USE context instance in this file only static class methods (why? instance is domain specific)
   // *** #IMPORT2
   //IMPORT2 Context
   Base = require('./Base');
@@ -308,7 +308,7 @@
     }
   };
 
-  //PATTERN: target isn't actually proxy target (ONLY WORKS FOR SINGLETONS!!!)
+  //PATTERN: target isn't actually proxy target (ONLY WORKS FOR SINGLETONS)
   handler = { // "traps"
     get: function(target, pn) {
       //		log "read from bag: #{pn} => #{bag[pn]}"
@@ -383,7 +383,7 @@
       }
       //		if bRunning and t_depth is 1 => @lgFatal "NESTED t: the parent of '#{tn}' is also a test; change to 's' (section)"
       //		@lg "found async: #{tn} --> #{@__CLASS_NAME}"
-      //		@lg "CLASS=#{@__CLASS_NAME}  TN=#{tn} ===> PATH=#{path}"
+      //		@lg "CLASS=#{@__CLASS_NAME}  TN=#{tn} PATH=#{path}"
       //		@lg "#{@__CLASS_NAME}#{path}/#{tn}"
       return new AsyncTest({
         cmd: cmd,
@@ -620,9 +620,9 @@
           this.detail = detail1;
           this.o = o1;
           failList_CLOSURE.unshift(this);
-          //				@lg "fail constructor: mFail=#{@mFail} #{@summary} nowLen=#{failList_CLOSURE.length} ###################################################", @o
+          //				@lg "fail constructor: mFail=#{@mFail} #{@summary} nowLen=#{failList_CLOSURE.length}", @o
           this.bEnabled = true;
-          //				console.log "RRRR=#{V.Type @o}"
+          //				console.log "Fail=#{V.Type @o}"
           if (V.Type(this.o) === "Error") {
             //					console.log "got error"
             this.ex = this.o;
@@ -892,7 +892,7 @@
           msBeg: Date.now(),
           msEnd: null
         };
-        return new Promise((resolve) => { //NEEEDED
+        return new Promise((resolve) => { //NEEDED
           //				@logg trace.DELAY, "BEG: delay #{ms}"
           return setTimeout(() => {
             to.msEnd = Date.now();
@@ -1120,7 +1120,7 @@
       };
       
       //H: what is this?  write test for it
-      // I JUST DO NOT UNDERSTAND THIS!!!
+      // I JUST DO NOT UNDERSTAND THIS!
       // in ServerStoreUT it moves alloc() to be reachable from unit test
       if (this.common) {
         ref = this.common;
@@ -1336,7 +1336,7 @@
             //				console.log "catch: asynch test"
             clearTimeout(timer);
             //YES_CODE_PATH: I've seen this but sure why... you'd think that "catch" would be run instead
-            //				throw new Error "REALLY?  I really don't see how this could be triggered!!!"  it's not a promise... it's  TRY..CATCH... that's why!
+            //				throw new Error "REALLY?  I really don't see how this could be triggered"  it's not a promise... it's  TRY..CATCH... that's why!
             this.lg("FFF1");
             return this.after(this.FAIL_EXCEPTION, ex);
           }
@@ -1444,7 +1444,7 @@
   UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
     constructor(argv = ["", ""], opts1 = {}, cb = (function() {})) {
       var base, base1, ref;
-      super("I DO NOT UNDERSTAND WHY I CANNOT PASS @__CLASS_NAME and I don't know why it works when I don't!!!");
+      super("I DO NOT UNDERSTAND WHY I CANNOT PASS @__CLASS_NAME and I don't know why it works when I don't");
       this.argv = argv;
       this.opts = opts1;
       this.cb = cb;
@@ -1523,8 +1523,7 @@
         },
         {
           o: "-f FM#",
-          //				d: "mFailMode: 0=run all, 1=fail at test (after possible healing), 2=fail fast (before healing)"
-          d: "mFailMode: 0=run all, 1=fail after test, 2=fail fast"
+          d: "mFailMode: 0=fail fast, 1=fail after test, 2=run all"
         },
         {
           o: "-g testPattern",
@@ -1872,7 +1871,7 @@
         for (l = 0, len1 = testList.length; l < len1; l++) {
           test = testList[l];
           if (!test.opts) {
-            console.log("xxxxx");
+            console.log("falsy test.opts");
             O.LOG(test);
           }
           test.opts.mutex = "same";
@@ -1938,7 +1937,6 @@
       //		@lg @one()
       this.secsElapsed = Math.ceil((Date.now() - this.msStart) / 1000);
       if (this.pass || this.failList.length) {
-        //		console.log "======================================================"
         console.log(`${Base.openMsgGet()}  All unit tests completed: [${this.secsElapsed} ${S.PLURAL("second", this.secsElapsed)}] total=${this.pass + this.failList.length}: ${(!this.failList.length ? "PASS" : "pass")}=${this.pass} ${(this.failList.length ? "FAIL" : "fail")}=${this.failList.length}`);
         if (Base.openCntGet()) {
           this.eventFire("left-open");
@@ -1992,7 +1990,7 @@
       s = this.one();
       return s += testList.reduce(((acc, test) => {
         if (test.mState === this.STATE_RUNNING) {
-          return acc + `\nrunning >>> ${test.one2()}`;
+          return acc + `\nrunning: ${test.one2()}`;
         } else {
           return acc;
         }
@@ -2269,7 +2267,7 @@
     //			@lg "[#{i}] pre: #{test.one()}"
     testStart(test) {
       this.runningCnt++;
-      //		@lg "&&&&& testStart: concurrent now=#{@runningCnt}: #{test.one()}"
+      //		@lg "testStart: concurrent now=#{@runningCnt}: #{test.one()}"
       return test.start();
     }
 
@@ -2331,9 +2329,9 @@
       //				@logCatch "startClient", ex		#H: logCatch WHAT should be the parameter?
       this.t("opts", function(ut) {
         this.human("ut.opts", ut.opts);
-        this.eq(ut.opts.aaa, "AAA");
+        this.eq(ut.opts.utUDOptionName, "utUDOptionValue");
         this.log("@opts=", this.opts);
-        this.eq(this.opts.aaa, "AAA");
+        this.eq(this.opts.utUDOptionName, "utUDOptionValue");
         return this.eq(this.get42(), 42);
       });
       this.s("bag", function() {

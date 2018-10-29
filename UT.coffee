@@ -217,7 +217,7 @@ KNOWN BUGS:
 
 
 #GITHUB: #TODO: create new repo called AlvinUtils and put these in there
-#NOTE: ILLEGAL TO USE context instance in this file!!! only static class methods (why? instance is domain specific)
+#NOTE: ILLEGAL TO USE context instance in this file only static class methods (why? instance is domain specific)
 #IMPORT2 Context
 
 
@@ -267,7 +267,7 @@ target = (cmdUNUSED_TODO) ->
 
 
 
-#PATTERN: target isn't actually proxy target (ONLY WORKS FOR SINGLETONS!!!)
+#PATTERN: target isn't actually proxy target (ONLY WORKS FOR SINGLETONS)
 handler =	# "traps"
 	get: (target, pn) ->
 #		log "read from bag: #{pn} => #{bag[pn]}"
@@ -342,7 +342,7 @@ MAKEa = (cmd) =>
 
 #		if bRunning and t_depth is 1 => @lgFatal "NESTED t: the parent of '#{tn}' is also a test; change to 's' (section)"
 #		@lg "found async: #{tn} --> #{@__CLASS_NAME}"
-#		@lg "CLASS=#{@__CLASS_NAME}  TN=#{tn} ===> PATH=#{path}"
+#		@lg "CLASS=#{@__CLASS_NAME}  TN=#{tn} PATH=#{path}"
 #		@lg "#{@__CLASS_NAME}#{path}/#{tn}"
 
 		new AsyncTest
@@ -546,9 +546,9 @@ class Test extends UTBase		#@Test #@test
 			constructor: (@mFail, @summary, @detail, @o) ->
 				super()
 				failList_CLOSURE.unshift @
-#				@lg "fail constructor: mFail=#{@mFail} #{@summary} nowLen=#{failList_CLOSURE.length} ###################################################", @o
+#				@lg "fail constructor: mFail=#{@mFail} #{@summary} nowLen=#{failList_CLOSURE.length}", @o
 				@bEnabled = true
-#				console.log "RRRR=#{V.Type @o}"
+#				console.log "Fail=#{V.Type @o}"
 				if V.Type(@o) is "Error"
 #					console.log "got error"
 					@ex = @o
@@ -764,7 +764,7 @@ markers: got     : #{@markers}
 				msBeg: Date.now()
 				msEnd: null
 
-			new Promise (resolve) =>	#NEEEDED
+			new Promise (resolve) =>	#NEEDED
 #				@logg trace.DELAY, "BEG: delay #{ms}"
 
 				setTimeout =>
@@ -943,7 +943,7 @@ b> #{V.vt b}
 
 
 		#H: what is this?  write test for it
-# I JUST DO NOT UNDERSTAND THIS!!!
+# I JUST DO NOT UNDERSTAND THIS!
 # in ServerStoreUT it moves alloc() to be reachable from unit test
 		if @common
 #			@lg "common: #{JSON.stringify @common}"
@@ -1017,7 +1017,7 @@ b> #{V.vt b}
 		@opts = Object.assign {}, @runner.OPTS, @runner.OPTS?.perTestOpts?[@cname], @opts
 		delete @opts.perTestOpts		#H: this assumes PER TEST not PER FILE
 
-#TODO: remove extranous test name in front: 39:58 [AsyncTest] ================== #27 a FSUT /fileSize
+#TODO: remove extranous test name in front: 39:58 [AsyncTest] #27 a FSUT /fileSize
 		@logg trace.UT_TEST_PRE_ONE_LINER, "=^20 #{@one()}"		# /#{testList.length} #{@cname} #{@cmd}:#{@tn}#{AP.c_d trace.DETAIL, "path=#{@path}"}"
 
 		@msBeg = Date.now()
@@ -1145,7 +1145,7 @@ class AsyncTest extends Test				#@AsyncTest @async
 #				console.log "catch: asynch test"
 				clearTimeout timer
 				#YES_CODE_PATH: I've seen this but sure why... you'd think that "catch" would be run instead
-#				throw new Error "REALLY?  I really don't see how this could be triggered!!!"  it's not a promise... it's  TRY..CATCH... that's why!
+#				throw new Error "REALLY?  I really don't see how this could be triggered"  it's not a promise... it's  TRY..CATCH... that's why!
 				@lg "FFF1"
 				return @after @FAIL_EXCEPTION, ex
 
@@ -1238,7 +1238,7 @@ syncTestsCount = 0	#HACK
 
 class UTRunner extends UTBase		#@UTRunner @runner
 	constructor: (@argv=["",""], @opts={}, @cb=(->)) ->
-		super "I DO NOT UNDERSTAND WHY I CANNOT PASS @__CLASS_NAME and I don't know why it works when I don't!!!"	#RESEARCH
+		super "I DO NOT UNDERSTAND WHY I CANNOT PASS @__CLASS_NAME and I don't know why it works when I don't"	#RESEARCH
 #		log "UT CONSTRUCTOR IMPLICIT CALL: #{@WORK_AROUND_UT_CLASS_NAME_OVERRIDE} #{@constructor.name}"
 #		O.LOG @opts
 		@OPTS = @opts	#HACK
@@ -1302,8 +1302,7 @@ class UTRunner extends UTBase		#@UTRunner @runner
 				d: "cli EXamples"
 			,
 				o: "-f FM#"
-#				d: "mFailMode: 0=run all, 1=fail at test (after possible healing), 2=fail fast (before healing)"
-				d: "mFailMode: 0=run all, 1=fail after test, 2=fail fast"
+				d: "mFailMode: 0=fail fast, 1=fail after test, 2=run all"
 			,
 				o: "-g testPattern"
 				d: "like -l (list all tests) but only show matching lines"
@@ -1552,7 +1551,7 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 		if @OPTS.bSerial?
 			for test in testList
 				unless test.opts
-					console.log "xxxxx"
+					console.log "falsy test.opts"
 					O.LOG test
 				test.opts.mutex = "same"
 			return
@@ -1616,7 +1615,6 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 		@secsElapsed = Math.ceil((Date.now() - @msStart) / 1000)
 
 		if @pass or @failList.length
-	#		console.log "======================================================"
 			console.log "#{Base.openMsgGet()}  All unit tests completed: [#{@secsElapsed} #{S.PLURAL "second", @secsElapsed}] total=#{@pass+@failList.length}: #{unless @failList.length then "PASS" else "pass"}=#{@pass} #{if @failList.length then "FAIL" else "fail"}=#{@failList.length}"
 
 			if Base.openCntGet()
@@ -1663,7 +1661,7 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 
 	multi: ->
 		s = @one()
-		s += testList.reduce(((acc, test) => if test.mState is @STATE_RUNNING then acc+"\nrunning >>> #{test.one2()}" else acc), '')
+		s += testList.reduce(((acc, test) => if test.mState is @STATE_RUNNING then acc+"\nrunning: #{test.one2()}" else acc), '')
 
 
 
@@ -1872,7 +1870,7 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 
 	testStart: (test) ->
 		@runningCnt++
-#		@lg "&&&&& testStart: concurrent now=#{@runningCnt}: #{test.one()}"
+#		@lg "testStart: concurrent now=#{@runningCnt}: #{test.one()}"
 		test.start()
 
 
@@ -1917,9 +1915,9 @@ class UT_UT extends UT		#@UT_UT		@unittest  @ut
 #				@logCatch "startClient", ex		#H: logCatch WHAT should be the parameter?
 		@t "opts", (ut) ->
 			@human "ut.opts", ut.opts
-			@eq ut.opts.aaa, "AAA"
+			@eq ut.opts.utUDOptionName, "utUDOptionValue"
 			@log "@opts=", @opts
-			@eq @opts.aaa, "AAA"
+			@eq @opts.utUDOptionName, "utUDOptionValue"
 			@eq @get42(), 42
 		@s "bag", ->
 			@t "set", ->
