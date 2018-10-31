@@ -231,7 +231,7 @@ testList = []
 
 
 #REVISIT
-log = -> global.log.apply this, arguments		#PATTERN
+log = -> global.log.apply this, arguments		#PATTERN	#R	#TRY
 
 
 
@@ -905,10 +905,17 @@ b> #{V.vt b}
 			console.error "fatal: #{msg}"
 			@exit @WHY_FATAL, msg
 			abort msg
-		@h = (s) -> @log s, undefined, bHeader:false,format:"blue,bold,uc"
+		@h = (s) ->
+			@log s, undefined, bHeader:false,format:"blue,bold,uc",orTrace:"H"
 		#DUP: this is principal @log of unit tests		#TODO: use Context.MAKE
-		@log = ->
-			if trace.UT
+		@log = (sU, oU, opts) ->
+			if opts?.orTrace
+#				log "OR TRACE: #{opts.orTrace}"
+				bbb = trace[opts.orTrace]
+#				console.log "bbb => #{bbb}"		#HERE
+#				console.log "SUMMARY=#{trace.summary()}"
+#			console.log bbb		#HERE
+			if trace.UT or bbb
 				Context.logBase.apply this, ["#{@cname}/#{@tn}", arguments...]						#PATTERN: CALL #FORWARD
 		@m = (s) =>
 			@markers += s
@@ -1537,8 +1544,8 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 		if sum > 1
 			er "Can't specify #, -a, -async, -sync at the same time"
 
-		if @OPTS.bSummary?
-			trace.summary()
+#		if @OPTS.bSummary?
+#			trace.summary()		#WTF: commenting this out b/c it makes no sense at all
 
 #		if @OPTS.traceOverride?
 #			console.log "calling TRISTATE"
@@ -2108,7 +2115,7 @@ class UT_UT extends UT		#@UT_UT		@unittest  @ut
 			.then =>
 				doPass 2
 		@s "primatives", ->			# all the commands.. DEFINE TERMS!
-			@t "h - header", ->
+			@t "h: header", ->
 				@h "header 1"
 				@h "header 2"
 		@s "promises", ->

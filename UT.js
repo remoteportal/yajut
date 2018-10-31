@@ -269,7 +269,7 @@
 
   //REVISIT
   log = function() {
-    return global.log.apply(this, arguments); //PATTERN
+    return global.log.apply(this, arguments); //PATTERN	#R	#TRY
   };
 
   bag = Object.create({
@@ -1065,12 +1065,21 @@
       this.h = function(s) {
         return this.log(s, void 0, {
           bHeader: false,
-          format: "blue,bold,uc"
+          format: "blue,bold,uc",
+          orTrace: "H"
         });
       };
       //DUP: this is principal @log of unit tests		
-      this.log = function() {
-        if (trace.UT) {
+      this.log = function(sU, oU, opts) {
+        var bbb;
+        if (opts != null ? opts.orTrace : void 0) {
+          //				log "OR TRACE: #{opts.orTrace}"
+          bbb = trace[opts.orTrace];
+        }
+        //				console.log "bbb => #{bbb}"		
+        //				console.log "SUMMARY=#{trace.summary()}"
+        //			console.log bbb		
+        if (trace.UT || bbb) {
           return Context.logBase.apply(this, [
             `${this.cname}/${this.tn}`,
             ...arguments //PATTERN: CALL #FORWARD
@@ -1857,9 +1866,9 @@
       if (sum > 1) {
         er("Can't specify #, -a, -async, -sync at the same time");
       }
-      if (this.OPTS.bSummary != null) {
-        trace.summary();
-      }
+      //		if @OPTS.bSummary?
+      //			trace.summary()		#WTF: commenting this out b/c it makes no sense at all
+
       //		if @OPTS.traceOverride?
       //			console.log "calling TRISTATE"
       //			trace.tristate @OPTS.traceOverride
@@ -2668,7 +2677,7 @@
         });
       });
       this.s("primatives", function() { // all the commands.. DEFINE TERMS!
-        return this.t("h - header", function() {
+        return this.t("h: header", function() {
           this.h("header 1");
           return this.h("header 2");
         });
