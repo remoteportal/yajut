@@ -1076,9 +1076,9 @@
           //				log "OR TRACE: #{opts.orTrace}"
           bbb = trace[opts.orTrace];
         }
-        //				console.log "bbb => #{bbb}"		
+        //				console.log "bbb => #{bbb}"
         //				console.log "SUMMARY=#{trace.summary()}"
-        //			console.log bbb		
+        //			console.log bbb
         if (trace.UT || bbb) {
           return Context.logBase.apply(this, [
             `${this.cname}/${this.tn}`,

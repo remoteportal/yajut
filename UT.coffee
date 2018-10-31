@@ -912,9 +912,9 @@ b> #{V.vt b}
 			if opts?.orTrace
 #				log "OR TRACE: #{opts.orTrace}"
 				bbb = trace[opts.orTrace]
-#				console.log "bbb => #{bbb}"		#HERE
+#				console.log "bbb => #{bbb}"
 #				console.log "SUMMARY=#{trace.summary()}"
-#			console.log bbb		#HERE
+#			console.log bbb
 			if trace.UT or bbb
 				Context.logBase.apply this, ["#{@cname}/#{@tn}", arguments...]						#PATTERN: CALL #FORWARD
 		@m = (s) =>
