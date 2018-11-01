@@ -231,7 +231,7 @@ testList = []
 
 
 #REVISIT
-log = -> global.log.apply this, arguments		#PATTERN	#R	#TRY
+log = -> global.log.apply this, arguments		#PATTERN	#R
 
 
 
@@ -1185,7 +1185,6 @@ class AsyncTest extends Test				#@AsyncTest @async
 					.catch (ex) =>
 #						@logCatch "@a returned promise. WHAT DO? rejected value=", ex
 
-						#TRY:
 						clearTimeout timer
 						@lg "FFF5"
 						@after @FAIL_EXCEPTION, ex

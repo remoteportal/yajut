@@ -268,7 +268,7 @@ testList = [];
 
 //REVISIT
 log = function() {
-  return global.log.apply(this, arguments); //PATTERN	#R	#TRY
+  return global.log.apply(this, arguments); //PATTERN	#R
 };
 
 bag = Object.create({
@@ -1380,8 +1380,6 @@ AsyncTest = (function() {
               }
             }).catch((ex) => {
               //						@logCatch "@a returned promise. WHAT DO? rejected value=", ex
-
-              //TRY:
               clearTimeout(timer);
               this.lg("FFF5");
               return this.after(this.FAIL_EXCEPTION, ex);
