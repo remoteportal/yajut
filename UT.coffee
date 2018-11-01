@@ -907,7 +907,7 @@ b> #{V.vt b}
 			abort msg
 		@h = (s) ->
 			@log s, undefined, bHeader:false,format:"blue,bold,uc",orTrace:"H"
-		#DUP: this is principal @log of unit tests		#TODO: use Context.MAKE
+		#DUP: this is principal @log of unit tests		#TODO #USE: Context.MAKE
 		@log = (sU, oU, opts) ->
 			if opts?.orTrace
 #				log "OR TRACE: #{opts.orTrace}"
@@ -2053,6 +2053,39 @@ class UT_UT extends UT		#@UT_UT		@unittest  @ut
 				if trace.HUMAN
 					@["log"]()
 					@["log"]()
+			@t "maxDepth 1", ->
+				deep = L1:
+					L2:
+						L3:
+							L4:
+								I_AM_L5: true
+				@log "hello"
+				#HERE
+				@logg trace.HUMAN, "maxDepth:0", deep, maxDepth:0			#WTF: what does this even mean?   Just give summary counts of various things
+				@logg trace.HUMAN, "maxDepth:1", deep, maxDepth:1
+				@logg trace.HUMAN, "maxDepth:2", deep, maxDepth:2
+				@logg trace.HUMAN, "maxDepth:3", deep, maxDepth:3
+				@logg trace.HUMAN, "maxDepth:4", deep, maxDepth:4
+				@logg trace.HUMAN, "maxDepth:5", deep, maxDepth:5
+				@logg trace.HUMAN, "maxDepth:6", deep, maxDepth:6					
+			@t "maxDepth 22", ->
+				L1 =
+					L1P: "L1P"
+					L2:
+						L2P: "L2P"
+						L3:
+							L3P: "L3P"
+							L4:
+								L4P: "L4P"								
+				@log "hello"
+				#HERE
+				@logg trace.HUMAN, "maxDepth:0", L1, maxDepth:0			#WTF: what does this even mean?   Just give summary counts of various things
+				@logg trace.HUMAN, "maxDepth:1", L1, maxDepth:1
+				@logg trace.HUMAN, "maxDepth:2", L1, maxDepth:2
+				@logg trace.HUMAN, "maxDepth:3", L1, maxDepth:3
+				@logg trace.HUMAN, "maxDepth:4", L1, maxDepth:4
+				@logg trace.HUMAN, "maxDepth:5", L1, maxDepth:5
+				@logg trace.HUMAN, "maxDepth:6", L1, maxDepth:6
 			@t "logCatch", expect:"EXCEPTION", ->
 				@logCatch "this is logCatch"
 			@t "logError", expect:"ERROR", ->
