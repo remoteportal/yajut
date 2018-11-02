@@ -1406,15 +1406,7 @@ class UTRunner extends UTBase		#@UTRunner @runner
 				def
 
 		setTrace = (csv, v) ->
-			log "FOUND TRACE CSV: #{csv} => #{v}"
-			ta = csv.split ','
-
-			for k in ta
-				k = k.toUpperCase()
-				log "TRACE: #{k} => #{v}"
-#				if trace[k]? and k not in ["pop"]		#HACK	#TC		#NON-SENSICAL: this isn't making sence 2018-10-23 so comment out... myabe I'm drunk
-#					er "URGENT: trace.#{k} doesn't exist"
-				trace[k] = v
+			trace[csv] = v
 #			console.log "UT: trace.one: #{trace.one()}"
 #			O.DUMP trace
 #			drill trace
