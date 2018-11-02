@@ -1628,7 +1628,7 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 
 		@summary =
 			fail: @failList.length
-			frag: @frag = "[#{@secsElapsed}s]  passHERE=#{@pass} fail555=#{@failList.length}"
+			frag: @frag = "[#{@secsElapsed}s]  pass=#{@pass} fail=#{@failList.length}"
 			mWhy: @mWhy
 			pass: @pass
 			why: @WHY_LIST[@mWhy]
