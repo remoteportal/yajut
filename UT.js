@@ -620,20 +620,24 @@
           this.detail = detail1;
           this.o = o1;
           failList_CLOSURE.unshift(this);
-          //				@lg "fail constructor: mFail=#{@mFail} #{@summary} nowLen=#{failList_CLOSURE.length}", @o
+          this.lg(`fail constructor: mFail=${this.mFail} ${this.summary} nowLen=${failList_CLOSURE.length}`, this.o);
           this.bEnabled = true;
           //				console.log "Fail=#{V.Type @o}"
           if (V.Type(this.o) === "Error") {
-            //					console.log "got error"
+            //					console.log "got error <<<<<<<<<<<<<<<"
             this.ex = this.o;
             this.o = null;
             this.stack = this.ex;
-          } else {
-
           }
         }
 
-        //				https://www.stacktracejs.com
+        //					@lg "111*^20 stack.length=#{@stack?.length}"
+        //					@lg "222*^20 stack.length=#{@stack?.length}", @ex
+        //				else
+        //					console.log "NOT ERROR"
+        //					O.DUMP @o
+
+        //					https://www.stacktracejs.com
         //					console.log "console.trace():"
         //					console.trace()
         //					err = new Error @msg
@@ -648,10 +652,8 @@
         //				@lg "*^20 stack.length=#{@stack?.length}"
 
         //			full: -> Context.textFormat.red "#{@one()}\n\n#{@detail}#{SP.d @stack, "\n#{@stack}"}"
-        //					@lg "111*^20 stack.length=#{@stack?.length}"
-        //					@lg "222*^20 stack.length=#{@stack?.length}", @ex
         full() {
-          return `${this.one()}\n\n${this.detail}${SP.d(this.stack, `\n${this.stack}`)}`;
+          return `${this.one()}\n\ndetail=${this.detail}\no=${this.o}\n${SP.d(this.stack, `\n${this.stack}`)}`;
         }
 
         heal() {
@@ -1383,6 +1385,13 @@
                 //						@logCatch "@a returned promise. WHAT DO? rejected value=", ex
                 clearTimeout(timer);
                 this.lg("FFF5");
+                //						a0
+                //						@log()
+                //						a1
+                //						@log "FFF5-B", ex
+                //						a3
+                //						@log()
+                //						a4
                 return this.after(this.FAIL_EXCEPTION, ex);
               });
             } else {

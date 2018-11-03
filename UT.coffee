@@ -546,18 +546,21 @@ class Test extends UTBase		#@Test #@test
 			constructor: (@mFail, @summary, @detail, @o) ->
 				super()
 				failList_CLOSURE.unshift @
-#				@lg "fail constructor: mFail=#{@mFail} #{@summary} nowLen=#{failList_CLOSURE.length}", @o
+				@lg "fail constructor: mFail=#{@mFail} #{@summary} nowLen=#{failList_CLOSURE.length}", @o
 				@bEnabled = true
 #				console.log "Fail=#{V.Type @o}"
 				if V.Type(@o) is "Error"
-#					console.log "got error"
+#					console.log "got error <<<<<<<<<<<<<<<"
 					@ex = @o
 					@o = null
 					@stack = @ex
 #					@lg "111*^20 stack.length=#{@stack?.length}"
 #					@lg "222*^20 stack.length=#{@stack?.length}", @ex
-				else
-	#				https://www.stacktracejs.com
+#				else
+#					console.log "NOT ERROR"
+#					O.DUMP @o
+
+#					https://www.stacktracejs.com
 #					console.log "console.trace():"
 #					console.trace()
 #					err = new Error @msg
@@ -572,7 +575,7 @@ class Test extends UTBase		#@Test #@test
 #				@lg "*^20 stack.length=#{@stack?.length}"
 
 #			full: -> Context.textFormat.red "#{@one()}\n\n#{@detail}#{SP.d @stack, "\n#{@stack}"}"
-			full: -> "#{@one()}\n\n#{@detail}#{SP.d @stack, "\n#{@stack}"}"
+			full: -> "#{@one()}\n\ndetail=#{@detail}\no=#{@o}\n#{SP.d @stack, "\n#{@stack}"}"
 			heal: -> @bEnabled = false
 			one: -> "Fail: #{@failTypes[@mFail]}(#{@mFail})#{SP.d @msg, @msg}: #{@summary}"
 
@@ -1187,6 +1190,13 @@ class AsyncTest extends Test				#@AsyncTest @async
 
 						clearTimeout timer
 						@lg "FFF5"
+#						a0
+#						@log()
+#						a1
+#						@log "FFF5-B", ex
+#						a3
+#						@log()
+#						a4
 						@after @FAIL_EXCEPTION, ex
 				else
 					@lg "AsyncTest.start: non-promise return value from @a.  rv=", rv
