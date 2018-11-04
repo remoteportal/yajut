@@ -2055,8 +2055,6 @@ class UT_UT extends UT		#@UT_UT		@unittest  @ut
 						L3:
 							L4:
 								I_AM_L5: true
-				@log "hello"
-				#HERE
 				@logg trace.HUMAN, "maxDepth:0", deep, maxDepth:0			#WTF: what does this even mean?   Just give summary counts of various things
 				@logg trace.HUMAN, "maxDepth:1", deep, maxDepth:1
 				@logg trace.HUMAN, "maxDepth:2", deep, maxDepth:2
@@ -2074,7 +2072,6 @@ class UT_UT extends UT		#@UT_UT		@unittest  @ut
 							L4:
 								L4P: "L4P"								
 				@log "hello"
-				#HERE
 				@logg trace.HUMAN, "maxDepth:0", L1, maxDepth:0			#WTF: what does this even mean?   Just give summary counts of various things
 				@logg trace.HUMAN, "maxDepth:1", L1, maxDepth:1
 				@logg trace.HUMAN, "maxDepth:2", L1, maxDepth:2

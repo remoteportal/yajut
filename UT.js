@@ -2582,7 +2582,6 @@
               }
             }
           };
-          this.log("hello");
           this.logg(trace.HUMAN, "maxDepth:0", deep, {
             maxDepth: 0 //WTF: what does this even mean?   Just give summary counts of various things
           });
