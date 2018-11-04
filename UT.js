@@ -1288,11 +1288,6 @@
         this.lg("sync had exception");
         return this.after(this.FAIL_EXCEPTION, ex);
       }
-      //		@lg "start: #{typeof rv}"
-      //		@lg "start: #{IS.pr rv}"
-      //		@lg "start: #{IS.who rv}"
-      //		@drill rv
-      //		@lg "lloogg", rv
       if (IS.pr(rv)) {
         return this.after(this.FAIL_UNEXPECTED_PROMISE, rv);
       } else {

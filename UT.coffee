@@ -1104,11 +1104,6 @@ class SyncTest extends Test		#@SyncTest @sync
 			@lg "sync had exception"
 			return @after @FAIL_EXCEPTION, ex
 
-#		@lg "start: #{typeof rv}"
-#		@lg "start: #{IS.pr rv}"
-#		@lg "start: #{IS.who rv}"
-#		@drill rv
-#		@lg "lloogg", rv
 		if IS.pr rv
 			@after @FAIL_UNEXPECTED_PROMISE, rv
 		else
