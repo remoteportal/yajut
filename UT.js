@@ -186,6 +186,8 @@
   - client/server with different trace colors
   - track which tests seem to fail occasionally ("which dones are transient failures"); track by name and desc (NOT number)
   - ut -sum			if error I don't think it tells you which test it died on
+  - ___7  25:06 [SyncTest] ==================== #6 t BaseUT logging/logError
+    ___8  25:06 [AsyncTest] ==================== #7 a BaseUT logging/soon			<---- line up
 
   ROUNDUP:
   - https://medium.com/welldone-software/an-overview-of-javascript-testing-in-2018-f68950900bc3
@@ -567,14 +569,16 @@
       };
       if (this.opts) {
         if (!IS.o(this.opts)) {
-          console.log(`UT006 pre-flight failure: opts must be object: ${this.path}`);
+          console.log(`UT006 pre-flight failure: opts must be object: ${this.path //H: not console.log
+}`);
           O.LOG(this.opts);
           return void 0;
         }
       }
       if ((ref = this.opts) != null ? ref.tags : void 0) {
         if (!IS.csv(this.opts.tags)) {
-          console.log(`UT007 pre-flight failure: opts.tags must be CSV: ${this.path}`);
+          console.log(`UT007 pre-flight failure: opts.tags must be CSV: ${this.path //H: not console.log
+}`);
           O.LOG(this.opts.tags);
           return void 0;
         }
@@ -596,7 +600,7 @@
               }
             }));
             console.log();
-            console.log("UT009 Invalid test tag:");
+            console.log("UT009 Invalid test tag:"); //H: not console.log
             console.log(S.autoTable({
               "file:": this.cname,
               "path:": this.hier,
@@ -611,6 +615,11 @@
         return tag !== "tags";
       }).sort().join(',');
       this.tagsCSV = this.opts.tags;
+      if (this.opts.mon) {
+        this.mon = this.opts.mon;
+        delete this.opts.mon;
+      }
+      //			console.log "FOUND mon: #{@mon}"
       delete this.opts.tags; // remove from options since it's been promoted to top-level
       this.Fail = class Fail extends UTBase { //@Fail	#@fail   #PATTERN
         constructor(mFail1, summary1, detail1, o1) {
@@ -1241,7 +1250,7 @@
         if (this.opts.exceptionMessage && (this.opts.expect == null)) {
           this.opts.expect = "EXCEPTION";
         }
-        cmds = "bManual,desc,exceptionMessage,expect,hang,markers,mType,mutex,onAssert,onEq,onError,onException,onTimeout,onUnfail,onUnexpectedPromise,SO,RUNTIME_SECS,tags,timeout,url,USER_CNT".split(',');
+        cmds = "bManual,desc,exceptionMessage,expect,hang,markers,mon,mType,mutex,onAssert,onEq,onError,onException,onTimeout,onUnfail,onUnexpectedPromise,SO,RUNTIME_SECS,tags,timeout,url,USER_CNT".split(',');
         for (j = 0, len = cmds.length; j < len; j++) {
           cmd = cmds[j];
           cmds.push('_' + cmd);
@@ -1498,7 +1507,7 @@
     }
 
     CLI(a) {
-      var CLIParser, CSV, CSV2Object, NUMBER_CSL_RE, bActed, dupMap, er, getKeys, i, j, l, len, len1, log_help, maybeGrabTrace, optionList, optionalNumber, parser, setTrace, sum, test, testPattern, tn, traceList, word;
+      var ADDTEST, CLIParser, CSV, CSV2Object, NUMBER_CSL_RE, UniqueTester, _, bActed, dupMap, er, getKeys, i, j, l, len, len1, len2, log_help, maybeGrabTrace, monUnique, optionList, optionalNumber, p, parser, setTrace, sum, test, testPattern, tn, traceList, word;
       optionList = [
         {
           //EASY 
@@ -1719,6 +1728,34 @@
       NUMBER_CSL_RE = /^\d+(,\d+)*$/;
       CLIParser = class CLIParser extends Base {};
       parser = new CLIParser();
+      UniqueTester = class UniqueTester {
+        constructor(fnClash) {
+          this.fnClash = fnClash;
+          this.map = Object.create(null);
+        }
+
+        add(item) {
+          if (item) {
+            if (this.map[item]) {
+              return this.fnClash(item);
+            } else {
+              //						console.log "OKAY: #{item}"
+              return this.map[item] = true;
+            }
+          }
+        }
+
+      };
+      monUnique = new UniqueTester((item) => {
+        return this.logError(`monikers ('${item}') must be unique`);
+      });
+//		monUnique.add "peter"
+//		monUnique.add "peter"
+      for (j = 0, len = testList.length; j < len; j++) {
+        test = testList[j];
+        //			@log test.mon
+        monUnique.add(test.mon); //? test.tn
+      }
       i = 0;
       while (i < a.length) {
         word = a[i++];
@@ -1735,8 +1772,8 @@
             case "-dup":
               // O.DUMP testList
               dupMap = {};
-              for (j = 0, len = testList.length; j < len; j++) {
-                test = testList[j];
+              for (l = 0, len1 = testList.length; l < len1; l++) {
+                test = testList[l];
                 if (!dupMap[test.tn]) {
                   dupMap[test.tn] = [];
                 }
@@ -1828,15 +1865,44 @@
               }
               break;
             default:
-              if (NUMBER_CSL_RE.test(word)) {
+              ADDTEST = (word) => {
+                //							@log "ADDTEST: #{word}"
                 if (this.OPTS.testsInclude) {
-                  this.OPTS.testsInclude = this.OPTS.testsInclude + "," + word;
+                  return this.OPTS.testsInclude = this.OPTS.testsInclude + "," + word;
                 } else {
-                  this.OPTS.testsInclude = word;
+                  return this.OPTS.testsInclude = "" + word;
                 }
+              };
+              if (NUMBER_CSL_RE.test(word)) {
+                ADDTEST(word);
               } else {
-                log_help();
-                er(`UT: Illegal CLI option: "${word}".`);
+                // map monikers to IDs
+
+                //							@log "testList", testList
+                //							for test in testList
+                //#								@log "tn=#{test.tn} mon=#{test.mon} opts.mon=#{test.opts.mon}"		#, test.opts
+                //#								@log "tn=#{test.tn} opts.mon=#{test.opts.mon}"
+                //								if test.tn is "cat2"
+                //#									@log "MON: #{test.opts.mon ? test.tn}"
+                //#									@log "tn=#{test.tn} mon=#{test.mon}"	# , test.opts
+                //									@log "tn=#{test.tn} mon=#{test.mon}"	# , test.opts
+                //							abort "HERE"
+                _ = testList.filter(function(test) {
+                  var ref;
+                  return ((ref = test.mon) != null ? ref : test.tn) === word;
+                });
+                if (_.length) {
+                  //								@log "found #{word} => #{_[0].testIndex}"
+                  ADDTEST(_[0].testIndex);
+                } else {
+                  log_help();
+                  if (word[0] === '-') {
+                    er(`UT: Illegal CLI option: "${word}".`);
+                  } else {
+                    er(`UT: Illegal moniker (doesn't match test.tn or test.opts.mon): "${word}".`);
+                    this.log("EXTRA", word);
+                  }
+                }
               }
           }
         }
@@ -1869,8 +1935,8 @@
       //		if @OPTS.mFailMode is @FM_FAILFAST			#POP
       //			trace.tristate t r u e
       if (this.OPTS.bSerial != null) {
-        for (l = 0, len1 = testList.length; l < len1; l++) {
-          test = testList[l];
+        for (p = 0, len2 = testList.length; p < len2; p++) {
+          test = testList[p];
           if (!test.opts) {
             console.log("falsy test.opts");
             O.LOG(test);

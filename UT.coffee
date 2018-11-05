@@ -200,6 +200,8 @@ TODOs
 - client/server with different trace colors
 - track which tests seem to fail occasionally ("which dones are transient failures"); track by name and desc (NOT number)
 - ut -sum			if error I don't think it tells you which test it died on
+- ___7  25:06 [SyncTest] ==================== #6 t BaseUT logging/logError
+  ___8  25:06 [AsyncTest] ==================== #7 a BaseUT logging/soon			<---- line up
 
 
 
@@ -510,12 +512,12 @@ class Test extends UTBase		#@Test #@test
 
 		if @opts
 			unless IS.o @opts
-				console.log "UT006 pre-flight failure: opts must be object: #{@path}"
+				console.log "UT006 pre-flight failure: opts must be object: #{@path}"		#H: not console.log
 				O.LOG @opts
 				return undefined
 		if @opts?.tags
 			unless IS.csv @opts.tags
-				console.log "UT007 pre-flight failure: opts.tags must be CSV: #{@path}"
+				console.log "UT007 pre-flight failure: opts.tags must be CSV: #{@path}"		#H: not console.log
 				O.LOG @opts.tags
 				return undefined
 
@@ -529,7 +531,7 @@ class Test extends UTBase		#@Test #@test
 				else
 					console.log S.autoTable validTagsMap, headerMap:{key:"tag",value:"description"}
 					console.log()
-					console.log "UT009 Invalid test tag:"
+					console.log "UT009 Invalid test tag:"			#H: not console.log
 					console.log S.autoTable
 						"file:": @cname
 						"path:": @hier
@@ -538,6 +540,10 @@ class Test extends UTBase		#@Test #@test
 #				console.log "> tag: #{k}"
 		@optsCSV = Object.getOwnPropertyNames(@opts).filter((tag) => tag isnt "tags").sort().join ','
 		@tagsCSV = @opts.tags
+		if @opts.mon
+			@mon = @opts.mon
+			delete @opts.mon
+#			console.log "FOUND mon: #{@mon}"
 		delete @opts.tags				# remove from options since it's been promoted to top-level
 
 
@@ -1064,7 +1070,7 @@ TypeError: One of the sources for assign has an enumerable key on the prototype 
 			if @opts.exceptionMessage and !@opts.expect?
 				@opts.expect = "EXCEPTION"
 
-			cmds = "bManual,desc,exceptionMessage,expect,hang,markers,mType,mutex,onAssert,onEq,onError,onException,onTimeout,onUnfail,onUnexpectedPromise,SO,RUNTIME_SECS,tags,timeout,url,USER_CNT".split ','
+			cmds = "bManual,desc,exceptionMessage,expect,hang,markers,mon,mType,mutex,onAssert,onEq,onError,onException,onTimeout,onUnfail,onUnexpectedPromise,SO,RUNTIME_SECS,tags,timeout,url,USER_CNT".split ','
 			cmds.push '_' + cmd for cmd in cmds
 
 			for k of @opts
@@ -1453,6 +1459,24 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 		class CLIParser extends Base
 		parser = new CLIParser()
 
+		class UniqueTester
+			constructor: (@fnClash) ->
+				@map = Object.create null
+			add: (item) ->
+				if item
+					if @map[item]
+						@fnClash item
+					else
+#						console.log "OKAY: #{item}"
+						@map[item] = true
+		monUnique = new UniqueTester (item) =>
+			@logError "monikers ('#{item}') must be unique"
+#		monUnique.add "peter"
+#		monUnique.add "peter"
+		for test in testList
+#			@log test.mon
+			monUnique.add test.mon #? test.tn
+
 		i = 0			#TODO: create object with the helper functions as methods; must make @runner available
 		while i < a.length
 			word = a[i++]
@@ -1522,15 +1546,39 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 						unless maybeGrabTrace true
 							@OPTS.traceOverride = true
 					else
-						if NUMBER_CSL_RE.test word			#TODO: support ranges (e.g., 10-19)
-							if @OPTS.testsInclude
+						ADDTEST = (word) =>
+#							@log "ADDTEST: #{word}"
+							if @OPTS.testsInclude		#TODO: change to array and do push
 								@OPTS.testsInclude = @OPTS.testsInclude + "," + word
 							else
-								@OPTS.testsInclude = word
-						else
-							log_help()
-							er "UT: Illegal CLI option: \"#{word}\"."
+								@OPTS.testsInclude = "" + word
 
+						if NUMBER_CSL_RE.test word			#TODO: support ranges (e.g., 10-19)
+							ADDTEST word
+						else
+							# map monikers to IDs
+							#HERE
+#							@log "testList", testList
+#							for test in testList
+##								@log "tn=#{test.tn} mon=#{test.mon} opts.mon=#{test.opts.mon}"		#, test.opts
+##								@log "tn=#{test.tn} opts.mon=#{test.opts.mon}"
+#								if test.tn is "cat2"
+##									@log "MON: #{test.opts.mon ? test.tn}"
+##									@log "tn=#{test.tn} mon=#{test.mon}"	# , test.opts
+#									@log "tn=#{test.tn} mon=#{test.mon}"	# , test.opts
+#							abort "HERE"
+							_ = testList.filter((test)->(test.mon ? test.tn) is word)
+							if _.length
+#								@log "found #{word} => #{_[0].testIndex}"
+								ADDTEST _[0].testIndex
+							else
+								log_help()
+
+								if word[0] is '-'
+									er "UT: Illegal CLI option: \"#{word}\"."
+								else
+									er "UT: Illegal moniker (doesn't match test.tn or test.opts.mon): \"#{word}\"."
+									@log "EXTRA", word
 		sum = 0
 		sum++	if @selectList.length > 0
 		sum++	if @OPTS.testsAll
