@@ -1507,7 +1507,7 @@
     }
 
     CLI(a) {
-      var ADDTEST, CLIParser, CSV, CSV2Object, NUMBER_CSL_RE, UniqueTester, _, bActed, dupMap, er, getKeys, i, j, l, len, len1, len2, log_help, maybeGrabTrace, monUnique, optionList, optionalNumber, p, parser, setTrace, sum, test, testPattern, tn, traceList, word;
+      var ADDTEST, CLIParser, CSV, CSV2Object, NUMBER_CSL_RE, UniqueTester, _, aMod, bActed, dupMap, er, getKeys, i, j, l, len, len1, len2, len3, log_help, maybeGrabTrace, monUnique, optionList, optionalNumber, p, parser, q, setTrace, sum, test, testPattern, tn, traceList, word;
       optionList = [
         {
           //EASY 
@@ -1836,6 +1836,27 @@
             case "-lh": //MOVE: tests
               CSV2Object("logHighlightPattern");
               break;
+            case "-mon":
+              testPattern = a[i++];
+              aMod = [];
+              for (p = 0, len2 = testList.length; p < len2; p++) {
+                test = testList[p];
+                if (test.mon) {
+                  aMod.push({
+                    testIndex: test.testIndex,
+                    mon: test.mon,
+                    tn: test.tn
+                  });
+                }
+              }
+              er(S.autoTable(aMod, {
+                bHeader: true,
+                boldColumnMap: {
+                  mod: true
+                },
+                grep: testPattern
+              }));
+              break;
             case "-o":
               this.OPTS.bOnline = false;
               break;
@@ -1886,7 +1907,6 @@
                 //#									@log "MON: #{test.opts.mon ? test.tn}"
                 //#									@log "tn=#{test.tn} mon=#{test.mon}"	# , test.opts
                 //									@log "tn=#{test.tn} mon=#{test.mon}"	# , test.opts
-                //							abort "HERE"
                 _ = testList.filter(function(test) {
                   var ref;
                   return ((ref = test.mon) != null ? ref : test.tn) === word;
@@ -1935,8 +1955,8 @@
       //		if @OPTS.mFailMode is @FM_FAILFAST			#POP
       //			trace.tristate t r u e
       if (this.OPTS.bSerial != null) {
-        for (p = 0, len2 = testList.length; p < len2; p++) {
-          test = testList[p];
+        for (q = 0, len3 = testList.length; q < len3; q++) {
+          test = testList[q];
           if (!test.opts) {
             console.log("falsy test.opts");
             O.LOG(test);

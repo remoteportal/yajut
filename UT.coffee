@@ -1527,6 +1527,16 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 						@OPTS.logGrepPattern = a[i++]
 					when "-lh"			#MOVE: tests
 						CSV2Object "logHighlightPattern"
+					when "-mon"
+						testPattern = a[i++]
+						aMod = []
+						for test in testList
+							if test.mon
+								aMod.push
+									testIndex: test.testIndex
+									mon: test.mon
+									tn: test.tn
+						er S.autoTable aMod, bHeader:true,boldColumnMap:{mod:true},grep:testPattern
 					when "-o"
 						@OPTS.bOnline = false
 					when "-s"
@@ -1566,7 +1576,6 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 ##									@log "MON: #{test.opts.mon ? test.tn}"
 ##									@log "tn=#{test.tn} mon=#{test.mon}"	# , test.opts
 #									@log "tn=#{test.tn} mon=#{test.mon}"	# , test.opts
-#							abort "HERE"
 							_ = testList.filter((test)->(test.mon ? test.tn) is word)
 							if _.length
 #								@log "found #{word} => #{_[0].testIndex}"
