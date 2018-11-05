@@ -1574,6 +1574,10 @@
           d: "log line highlight (FUTURE)"
         },
         {
+          o: "-mon pattern",
+          d: "discover and list all test monikers"
+        },
+        {
           o: "-o",
           d: "offline"
         },

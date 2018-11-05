@@ -1342,6 +1342,9 @@ class UTRunner extends UTBase		#@UTRunner @runner
 				o: "-llh key1,key2,..."
 				d: "log line highlight (FUTURE)"
 			,
+				o: "-mon pattern"
+				d: "discover and list all test monikers"
+			,
 				o: "-o"
 				d: "offline"
 			,
