@@ -175,7 +175,7 @@ TODOs
 - count the number of disabled tests
 - include string diff report functions to make it really easy to ascertain why @eq fails
 #EASY: dump all possible test options... in grid with S T A section/test/asynch columns in front, option, desc, and example
-#EASY: new option def:
+#DREAM: new option def:
     @t "some test",
 			def:
 				em: "Deanna is beautiful"
@@ -225,7 +225,7 @@ KNOWN BUGS:
 
 
 
-#EASY #TODO: minimize these global variables
+#EASY: minimize these global variables
 path = ''
 testStack = []
 testList = []
@@ -1191,13 +1191,6 @@ class AsyncTest extends Test				#@AsyncTest @async
 
 						clearTimeout timer
 						@lg "FFF5"
-#						a0
-#						@log()
-#						a1
-#						@log "FFF5-B", ex
-#						a3
-#						@log()
-#						a4
 						@after @FAIL_EXCEPTION, ex
 				else
 					@lg "AsyncTest.start: non-promise return value from @a.  rv=", rv
@@ -1545,7 +1538,9 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 					when "-s"
 						@OPTS.bSerial = true
 					when "-sum"
-						@OPTS.bSummary = true
+#						@OPTS.bSummary = true
+						#H: somehow se trace.UT_TEST_PRE_ONE_LINER = false (set in tests: "runner-start")
+						bHELP = true
 					when "-sync"
 						@OPTS.bSync = true
 					when "-tg"
@@ -1705,10 +1700,7 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 
 				testList.sort (a, b) -> if a.msDur > b.msDur then -1 else 1
 
-				#TODO: for test in testList #EASY
-				for i in [0..testList.length-1]
-					test = testList[i]
-
+				for test in testList
 					if test.msDur > trace.TRACE_DURATION_MIN_MS
 						if s
 							log s
