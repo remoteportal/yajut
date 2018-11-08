@@ -616,11 +616,11 @@
         return tag !== "tags";
       }).sort().join(',');
       this.tagsCSV = this.opts.tags;
-      if (this.opts.mon) {
-        this.mon = this.opts.mon;
-        delete this.opts.mon;
+      if (this.opts.mkr) {
+        this.mkr = this.opts.mkr;
+        delete this.opts.mkr;
       }
-      //			console.log "FOUND mon: #{@mon}"
+      //			console.log "FOUND mkr: #{@mkr}"
       delete this.opts.tags; // remove from options since it's been promoted to top-level
       this.Fail = class Fail extends UTBase { //@Fail	#@fail   #PATTERN
         constructor(mFail1, summary1, detail1, o1) {
@@ -1251,7 +1251,7 @@
         if (this.opts.exceptionMessage && (this.opts.expect == null)) {
           this.opts.expect = "EXCEPTION";
         }
-        cmds = "bManual,desc,exceptionMessage,expect,hang,markers,mon,mType,mutex,onAssert,onEq,onError,onException,onTimeout,onUnfail,onUnexpectedPromise,SO,RUNTIME_SECS,tags,timeout,url,USER_CNT".split(',');
+        cmds = "bManual,desc,exceptionMessage,expect,hang,markers,mkr,mType,mutex,onAssert,onEq,onError,onException,onTimeout,onUnfail,onUnexpectedPromise,SO,RUNTIME_SECS,tags,timeout,url,USER_CNT".split(',');
         for (j = 0, len = cmds.length; j < len; j++) {
           cmd = cmds[j];
           cmds.push('_' + cmd);
@@ -1568,7 +1568,7 @@
           d: "log line highlight (FUTURE)"
         },
         {
-          o: "-mon pattern",
+          o: "-mkr pattern",
           d: "discover and list all test monikers"
         },
         {
@@ -1751,8 +1751,8 @@
 //		monUnique.add "peter"
       for (j = 0, len = testList.length; j < len; j++) {
         test = testList[j];
-        //			@log test.mon
-        monUnique.add(test.mon); //? test.tn
+        //			@log test.mkr
+        monUnique.add(test.mkr); //? test.tn
       }
       i = 0;
       while (i < a.length) {
@@ -1834,15 +1834,15 @@
             case "-lh": //MOVE: tests
               CSV2Object("logHighlightPattern");
               break;
-            case "-mon":
+            case "-mkr":
               testPattern = a[i++];
               aMod = [];
               for (p = 0, len2 = testList.length; p < len2; p++) {
                 test = testList[p];
-                if (test.mon) {
+                if (test.mkr) {
                   aMod.push({
                     testIndex: test.testIndex,
-                    mon: test.mon,
+                    mkr: test.mkr,
                     tn: test.tn
                   });
                 }
@@ -1901,15 +1901,15 @@
 
                 //							@log "testList", testList
                 //							for test in testList
-                //#								@log "tn=#{test.tn} mon=#{test.mon} opts.mon=#{test.opts.mon}"		#, test.opts
-                //#								@log "tn=#{test.tn} opts.mon=#{test.opts.mon}"
+                //#								@log "tn=#{test.tn} mkr=#{test.mkr} opts.mkr=#{test.opts.mkr}"		#, test.opts
+                //#								@log "tn=#{test.tn} opts.mkr=#{test.opts.mkr}"
                 //								if test.tn is "cat2"
-                //#									@log "MON: #{test.opts.mon ? test.tn}"
-                //#									@log "tn=#{test.tn} mon=#{test.mon}"	# , test.opts
-                //									@log "tn=#{test.tn} mon=#{test.mon}"	# , test.opts
+                //#									@log "MON: #{test.opts.mkr ? test.tn}"
+                //#									@log "tn=#{test.tn} mkr=#{test.mkr}"	# , test.opts
+                //									@log "tn=#{test.tn} mkr=#{test.mkr}"	# , test.opts
                 _ = testList.filter(function(test) {
                   var ref;
-                  return ((ref = test.mon) != null ? ref : test.tn) === word;
+                  return ((ref = test.mkr) != null ? ref : test.tn) === word;
                 });
                 if (_.length) {
                   //								@log "found #{word} => #{_[0].testIndex}"
@@ -1919,7 +1919,7 @@
                   if (word[0] === '-') {
                     er(`UT: Illegal CLI option: "${word}".`);
                   } else {
-                    er(`UT: Illegal moniker (doesn't match test.tn or test.opts.mon): "${word}".`);
+                    er(`UT: Illegal moniker (doesn't match test.tn or test.opts.mkr): "${word}".`);
                     this.log("EXTRA", word);
                   }
                 }

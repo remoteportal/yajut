@@ -539,10 +539,10 @@ class Test extends UTBase		#@Test #@test
 #				console.log "> tag: #{k}"
 		@optsCSV = Object.getOwnPropertyNames(@opts).filter((tag) => tag isnt "tags").sort().join ','
 		@tagsCSV = @opts.tags
-		if @opts.mon
-			@mon = @opts.mon
-			delete @opts.mon
-#			console.log "FOUND mon: #{@mon}"
+		if @opts.mkr
+			@mkr = @opts.mkr
+			delete @opts.mkr
+#			console.log "FOUND mkr: #{@mkr}"
 		delete @opts.tags				# remove from options since it's been promoted to top-level
 
 
@@ -1069,7 +1069,7 @@ TypeError: One of the sources for assign has an enumerable key on the prototype 
 			if @opts.exceptionMessage and !@opts.expect?
 				@opts.expect = "EXCEPTION"
 
-			cmds = "bManual,desc,exceptionMessage,expect,hang,markers,mon,mType,mutex,onAssert,onEq,onError,onException,onTimeout,onUnfail,onUnexpectedPromise,SO,RUNTIME_SECS,tags,timeout,url,USER_CNT".split ','
+			cmds = "bManual,desc,exceptionMessage,expect,hang,markers,mkr,mType,mutex,onAssert,onEq,onError,onException,onTimeout,onUnfail,onUnexpectedPromise,SO,RUNTIME_SECS,tags,timeout,url,USER_CNT".split ','
 			cmds.push '_' + cmd for cmd in cmds
 
 			for k of @opts
@@ -1334,7 +1334,7 @@ class UTRunner extends UTBase		#@UTRunner @runner
 				o: "-llh key1,key2,..."
 				d: "log line highlight (FUTURE)"
 			,
-				o: "-mon pattern"
+				o: "-mkr pattern"
 				d: "discover and list all test monikers"
 			,
 				o: "-o"
@@ -1469,8 +1469,8 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 #		monUnique.add "peter"
 #		monUnique.add "peter"
 		for test in testList
-#			@log test.mon
-			monUnique.add test.mon #? test.tn
+#			@log test.mkr
+			monUnique.add test.mkr #? test.tn
 
 		i = 0			#TODO: create object with the helper functions as methods; must make @runner available
 		while i < a.length
@@ -1522,14 +1522,14 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 						@OPTS.logGrepPattern = a[i++]
 					when "-lh"			#MOVE: tests
 						CSV2Object "logHighlightPattern"
-					when "-mon"
+					when "-mkr"
 						testPattern = a[i++]
 						aMod = []
 						for test in testList
-							if test.mon
+							if test.mkr
 								aMod.push
 									testIndex: test.testIndex
-									mon: test.mon
+									mkr: test.mkr
 									tn: test.tn
 						er S.autoTable aMod, bHeader:true,boldColumnMap:{mod:true},grep:testPattern
 					when "-o"
@@ -1567,13 +1567,13 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 							#HERE
 #							@log "testList", testList
 #							for test in testList
-##								@log "tn=#{test.tn} mon=#{test.mon} opts.mon=#{test.opts.mon}"		#, test.opts
-##								@log "tn=#{test.tn} opts.mon=#{test.opts.mon}"
+##								@log "tn=#{test.tn} mkr=#{test.mkr} opts.mkr=#{test.opts.mkr}"		#, test.opts
+##								@log "tn=#{test.tn} opts.mkr=#{test.opts.mkr}"
 #								if test.tn is "cat2"
-##									@log "MON: #{test.opts.mon ? test.tn}"
-##									@log "tn=#{test.tn} mon=#{test.mon}"	# , test.opts
-#									@log "tn=#{test.tn} mon=#{test.mon}"	# , test.opts
-							_ = testList.filter((test)->(test.mon ? test.tn) is word)
+##									@log "MON: #{test.opts.mkr ? test.tn}"
+##									@log "tn=#{test.tn} mkr=#{test.mkr}"	# , test.opts
+#									@log "tn=#{test.tn} mkr=#{test.mkr}"	# , test.opts
+							_ = testList.filter((test)->(test.mkr ? test.tn) is word)
 							if _.length
 #								@log "found #{word} => #{_[0].testIndex}"
 								ADDTEST _[0].testIndex
@@ -1583,7 +1583,7 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 								if word[0] is '-'
 									er "UT: Illegal CLI option: \"#{word}\"."
 								else
-									er "UT: Illegal moniker (doesn't match test.tn or test.opts.mon): \"#{word}\"."
+									er "UT: Illegal moniker (doesn't match test.tn or test.opts.mkr): \"#{word}\"."
 									@log "EXTRA", word
 		sum = 0
 		sum++	if @selectList.length > 0
