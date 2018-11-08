@@ -277,7 +277,7 @@ handler =	# "traps"
 
 	set: (target, pn, pv) ->
 #H: 	I don't know why this following line isn't green with -hl CLI
-		global.log "UT handler: set: #{pn}=#{pv} <#{typeof pv}>"										if trace.UT_BAG_SET
+		global.log "UT handler: set: #{pn}=#{pv} <#{typeof pv}>"										if trace.UT_BAG_SET	#R
 		throw Error "clear is not appropriate" if pn is "clear"
 		bag[pn] = pv
 
@@ -335,7 +335,7 @@ class UTBase extends Base		#@UTBase
 #TODO: combine MAKEa and MAKEt?
 MAKEa = (cmd) =>
 	(tn, fn) ->
-		if Object::toString.call(fn) is '[object Object]'
+		if IS.o fn
 			opts = fn
 			fn = arguments[2]
 
@@ -363,7 +363,7 @@ MAKEa = (cmd) =>
 
 MAKEt = (cmd) =>
 	(tn, fn) ->
-		if Object::toString.call(fn) is '[object Object]'
+		if IS.o fn
 			opts = fn
 			fn = arguments[2]
 
@@ -382,18 +382,17 @@ MAKEt = (cmd) =>
 
 
 
-#TODO: combine these three somehow
+#COMBINE: these three somehow
 MAKEs = (cmd) =>
-	(tn, fn) ->
-		throw 0 unless typeof tn is "string"
-		throw 0 unless typeof fn is "function"
-
-		if Object::toString.call(fn) is '[object Object]'
+	(tn, fn) ->		#ALT-ARGS: tn, opts, fn
+		if IS.o fn
 			opts = fn
 			fn = arguments[2]
 
-		unless typeof fn is "function"
-			abort "MISSING fn"
+			O.validate opts, onlyCSV:"ME_MAKEs"
+
+		throw "MAKEs: 1st arg must be s" unless IS.s tn
+		throw "MAKEs: fn missing" unless IS.fn fn
 
 		testStack.push tn
 

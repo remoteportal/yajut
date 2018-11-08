@@ -317,7 +317,7 @@
       return bag[pn];
     },
     set: function(target, pn, pv) {
-      if (trace.UT_BAG_SET) {
+      if (trace.UT_BAG_SET) { //R
         //H: 	I don't know why this following line isn't green with -hl CLI
         global.log(`UT handler: set: ${pn}=${pv} <${typeof pv}>`);
       }
@@ -376,7 +376,7 @@
   MAKEa = (cmd) => {
     return function(tn, fn) {
       var opts;
-      if (Object.prototype.toString.call(fn) === '[object Object]') {
+      if (IS.o(fn)) {
         opts = fn;
         fn = arguments[2];
       }
@@ -407,7 +407,7 @@
   MAKEt = (cmd) => {
     return function(tn, fn) {
       var opts;
-      if (Object.prototype.toString.call(fn) === '[object Object]') {
+      if (IS.o(fn)) {
         opts = fn;
         fn = arguments[2];
       }
@@ -427,21 +427,22 @@
     };
   };
 
+  //COMBINE: these three somehow
   MAKEs = (cmd) => {
-    return function(tn, fn) {
+    return function(tn, fn) { //ALT-ARGS: tn, opts, fn
       var opts;
-      if (typeof tn !== "string") {
-        throw 0;
-      }
-      if (typeof fn !== "function") {
-        throw 0;
-      }
-      if (Object.prototype.toString.call(fn) === '[object Object]') {
+      if (IS.o(fn)) {
         opts = fn;
         fn = arguments[2];
+        O.validate(opts, {
+          onlyCSV: "ME_MAKEs"
+        });
       }
-      if (typeof fn !== "function") {
-        abort("MISSING fn");
+      if (!IS.s(tn)) {
+        throw "MAKEs: 1st arg must be s";
+      }
+      if (!IS.fn(fn)) {
+        throw "MAKEs: fn missing";
       }
       testStack.push(tn);
       path = testStack.join('/');
