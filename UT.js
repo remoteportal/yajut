@@ -1124,10 +1124,8 @@
         return ((mn, mFail, that) => { //PATTERN #CURRYING
           //				console.log "mn=#{mn} mFail=#{mFail}"
           return that[mn] = function(msg, o, opt) {
-            l0;
             this.lg(`method ${mn}: ${kvt("msg", msg)}`);
             this.lg(`FFF8: MAKE_UT_LOG_FAIL '${mn}'`);
-            l1;
             //					if V.type(msg) is "string"
             if (IS.s(msg)) {
               //						(mFail, summary, detail, v)

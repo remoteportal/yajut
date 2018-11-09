@@ -939,10 +939,8 @@ b> #{V.vt b}
 			do (mn, mFail, that=@) =>		#PATTERN #CURRYING
 #				console.log "mn=#{mn} mFail=#{mFail}"
 				that[mn] = (msg, o, opt) ->
-					l0
 					@lg "method #{mn}: #{kvt "msg", msg}"
 					@lg "FFF8: MAKE_UT_LOG_FAIL '#{mn}'"
-					l1
 
 #					if V.type(msg) is "string"
 					if IS.s msg
