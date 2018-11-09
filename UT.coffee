@@ -551,6 +551,7 @@ class Test extends UTBase		#@Test #@test
 			constructor: (@mFail, @summary, @detail, @o) ->
 				super()
 				failList_CLOSURE.unshift @
+				#URGENT
 				@lg "fail constructor: mFail=#{@mFail} #{@summary} nowLen=#{failList_CLOSURE.length}", @o
 				@bEnabled = true
 #				console.log "Fail=#{V.Type @o}"
@@ -580,9 +581,9 @@ class Test extends UTBase		#@Test #@test
 #				@lg "*^20 stack.length=#{@stack?.length}"
 
 #			full: -> Context.textFormat.red "#{@one()}\n\n#{@detail}#{SP.d @stack, "\n#{@stack}"}"
-			full: -> "#{@one()}\n\ndetail=#{@detail}\no=#{@o}\n#{SP.d @stack, "\n#{@stack}"}"
+			full: -> "#{@one()}\n\ndetail=#{@detail}\no=#{O.ONE @o}\n#{SP.d @stack, "\n#{@stack}"}"
 			heal: -> @bEnabled = false
-			one: -> "Fail: #{@failTypes[@mFail]}(#{@mFail})#{SP.d @msg, @msg}: #{@summary}"
+			one: -> "Fail: #{@failTypes[@mFail]}(#{@mFail})#{SP.d @msg, @msg}: #{@summary}"		#URGENT: put in subroutine
 
 		@one = -> "##{@testIndex} #{_}"
 		@one2 = -> "Test: #{@one()}: cmd=#{@cmd} enabled=#{@bEnabled} mState=#{@stateFrag()} mStage=#{@mStage}#{SP.d @opts.mutex, "mutex=#{@opts.mutex}"} pf=#{@pass}/#{@failList.length}"
@@ -595,7 +596,7 @@ class Test extends UTBase		#@Test #@test
 	after: (mFail, ex_s_null) ->
 #		@assert mFail?, "mFail"		wrong: mFail is undefined or null if success
 		@lg "#".repeat 60
-		@lg "after: #{@failTypes[mFail]}(#{mFail}): #{@one2()}" #, ex_s_null
+		@lg "after#{if mFail? then ": #{@failTypes[mFail]}(#{mFail})" else ""}: #{@one2()}"				#, ex_s_null
 
 #H #DOMAIN: remove this from UT.coffee... onAfter()      	perhaps @env.onAfter()
 		if @env?.server?.deliverObj?.config?.deliverList?.length > 1
@@ -875,11 +876,17 @@ b> #{V.vt b}
 				return @FAIL @FAIL_EQ, "eq \"a\" vs. \"doesn't exist\"", "b=#{b}"
 
 			@eq _a, _b
-		@ex = (ex) ->
+		@ex = (ex) ->			#OPPO: @ok
 			@logCatch ex
 			@reject ex
 		@FAIL = (mFail, summary, detail, v) ->
 			throw Error "bad mFail" unless mFail
+
+			#REVISIT
+			@lg "@FAIL: p0: mFail: isn't n (got: #{IS.ty mFail})"			unless IS.n mFail
+			@lg "@FAIL: p1: summary: isn't s (got: #{IS.ty summary})"		if 		summary? and !IS.s summary
+			@lg "@FAIL: p2: detail: isn't s (got: #{IS.ty detail})"			if		detail?	 and !IS.s detail
+			@lg "@FAIL: p3: v: isn't v (got: #{IS.ty v})"					unless IS.o v
 #			console.log "\n\n\nX X X X X X X X X"		#POP
 
 			fail = new @Fail mFail, summary, detail, v
@@ -932,9 +939,14 @@ b> #{V.vt b}
 			do (mn, mFail, that=@) =>		#PATTERN #CURRYING
 #				console.log "mn=#{mn} mFail=#{mFail}"
 				that[mn] = (msg, o, opt) ->
-#					console.log "method #{mn}: #{msg}: type=#{V.type msg}"
+					l0
+					@lg "method #{mn}: #{kvt "msg", msg}"
+					@lg "FFF8: MAKE_UT_LOG_FAIL '#{mn}'"
+					l1
 
-					if V.type(msg) is "string"
+#					if V.type(msg) is "string"
+					if IS.s msg
+#						(mFail, summary, detail, v)
 						@FAIL mFail, msg, "", o, opt
 					else
 						o = msg
@@ -945,7 +957,7 @@ b> #{V.vt b}
 		MAKE_UT_LOG_FAIL "logCatch", @FAIL_EXCEPTION
 		MAKE_UT_LOG_FAIL "logError", @FAIL_ERROR
 		@mStage = @STAGE_SETUP
-		@ok = (vOpt) ->			#CONVENTION
+		@ok = (vOpt) ->			#CONVENTION		#OPPO: @ex
 	#		drill this, grep:"env"
 			@lg "OK", @env
 	#		@env.succ()		#TODO: get reference to @env and tear down resources
@@ -1145,6 +1157,7 @@ class AsyncTest extends Test				#@AsyncTest @async
 			ms = if @opts.hang then 2147483647 else @opts.timeout
 #			@lg "setting timer: #{ms}ms"
 			timer = setTimeout =>
+					@log "ASYNC TIMEOUT!"
 					@after @FAIL_TIMEOUT, ms			# promise is never consummated and that's okay
 				,
 					ms

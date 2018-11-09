@@ -630,6 +630,7 @@
           this.detail = detail1;
           this.o = o1;
           failList_CLOSURE.unshift(this);
+          //URGENT
           this.lg(`fail constructor: mFail=${this.mFail} ${this.summary} nowLen=${failList_CLOSURE.length}`, this.o);
           this.bEnabled = true;
           //				console.log "Fail=#{V.Type @o}"
@@ -663,7 +664,7 @@
 
         //			full: -> Context.textFormat.red "#{@one()}\n\n#{@detail}#{SP.d @stack, "\n#{@stack}"}"
         full() {
-          return `${this.one()}\n\ndetail=${this.detail}\no=${this.o}\n${SP.d(this.stack, `\n${this.stack}`)}`;
+          return `${this.one()}\n\ndetail=${this.detail}\no=${O.ONE(this.o)}\n${SP.d(this.stack, `\n${this.stack}`)}`;
         }
 
         heal() {
@@ -671,7 +672,8 @@
         }
 
         one() {
-          return `Fail: ${this.failTypes[this.mFail]}(${this.mFail})${SP.d(this.msg, this.msg)}: ${this.summary}`;
+          return `Fail: ${this.failTypes[this.mFail]}(${this.mFail})${SP.d(this.msg, this.msg)}: ${this.summary //URGENT: put in subroutine
+}`;
         }
 
       };
@@ -691,7 +693,7 @@
       var EXPECT, PR, _, bFound, detail, expectMap, fail, i, j, k, kUC, l, len, p, ref, ref1, ref10, ref2, ref3, ref4, ref5, ref6, ref7, ref8, ref9, s;
       //		@assert mFail?, "mFail"		wrong: mFail is undefined or null if success
       this.lg("#".repeat(60));
-      this.lg(`after: ${this.failTypes[mFail]}(${mFail}): ${this.one2() //, ex_s_null
+      this.lg(`after${(mFail != null ? `: ${this.failTypes[mFail]}(${mFail})` : "")}: ${this.one2() //, ex_s_null
 }`);
       
       //H #DOMAIN: remove this from UT.coffee... onAfter()      	perhaps @env.onAfter()
@@ -1031,7 +1033,7 @@
         }
         return this.eq(_a, _b);
       };
-      this.ex = function(ex) {
+      this.ex = function(ex) { //OPPO: @ok
         this.logCatch(ex);
         return this.reject(ex);
       };
@@ -1039,6 +1041,19 @@
         var _, fail;
         if (!mFail) {
           throw Error("bad mFail");
+        }
+        if (!IS.n(mFail)) {
+          //REVISIT
+          this.lg(`@FAIL: p0: mFail: isn't n (got: ${IS.ty(mFail)})`);
+        }
+        if ((summary != null) && !IS.s(summary)) {
+          this.lg(`@FAIL: p1: summary: isn't s (got: ${IS.ty(summary)})`);
+        }
+        if ((detail != null) && !IS.s(detail)) {
+          this.lg(`@FAIL: p2: detail: isn't s (got: ${IS.ty(detail)})`);
+        }
+        if (!IS.o(v)) {
+          this.lg(`@FAIL: p3: v: isn't v (got: ${IS.ty(v)})`);
         }
         //			console.log "\n\n\nX X X X X X X X X"		#POP
         fail = new this.Fail(mFail, summary, detail, v);
@@ -1109,8 +1124,13 @@
         return ((mn, mFail, that) => { //PATTERN #CURRYING
           //				console.log "mn=#{mn} mFail=#{mFail}"
           return that[mn] = function(msg, o, opt) {
-            //					console.log "method #{mn}: #{msg}: type=#{V.type msg}"
-            if (V.type(msg) === "string") {
+            l0;
+            this.lg(`method ${mn}: ${kvt("msg", msg)}`);
+            this.lg(`FFF8: MAKE_UT_LOG_FAIL '${mn}'`);
+            l1;
+            //					if V.type(msg) is "string"
+            if (IS.s(msg)) {
+              //						(mFail, summary, detail, v)
               return this.FAIL(mFail, msg, "", o, opt);
             } else {
               o = msg;
@@ -1124,7 +1144,7 @@
       MAKE_UT_LOG_FAIL("logCatch", this.FAIL_EXCEPTION);
       MAKE_UT_LOG_FAIL("logError", this.FAIL_ERROR);
       this.mStage = this.STAGE_SETUP;
-      this.ok = function(vOpt) { //CONVENTION
+      this.ok = function(vOpt) { //CONVENTION		#OPPO: @ex
         //		drill this, grep:"env"
         this.lg("OK", this.env);
         //		@env.succ()		
@@ -1343,6 +1363,7 @@
           ms = this.opts.hang ? 2147483647 : this.opts.timeout;
           //			@lg "setting timer: #{ms}ms"
           timer = setTimeout(() => {
+            this.log("ASYNC TIMEOUT!");
             return this.after(this.FAIL_TIMEOUT, ms); // promise is never consummated and that's okay
           }, ms);
           try {
