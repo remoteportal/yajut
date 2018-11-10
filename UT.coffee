@@ -548,7 +548,7 @@ class Test extends UTBase		#@Test #@test
 
 		#TODO: move to Log.coffee?
 		class @Fail extends UTBase		#@Fail	#@fail   #PATTERN
-			constructor: (@mFail, @summary, @detail, @o) ->
+			constructor: (@mFail, @summary, @detail, @o, @opts) ->			#RENAME: @o -> @v
 				super()
 				failList_CLOSURE.unshift @
 				#URGENT
@@ -581,7 +581,7 @@ class Test extends UTBase		#@Test #@test
 #				@lg "*^20 stack.length=#{@stack?.length}"
 
 #			full: -> Context.textFormat.red "#{@one()}\n\n#{@detail}#{SP.d @stack, "\n#{@stack}"}"
-			full: -> "#{@one()}\n\ndetail=#{@detail}\no=#{O.ONE @o}\n#{SP.d @stack, "\n#{@stack}"}"
+			full: -> "#{@one()}\n\ndetail=#{@detail}\no=#{O.DUMP @o, @opts}\n#{SP.d @stack, "\n#{@stack}"}"
 			heal: -> @bEnabled = false
 			one: -> "Fail: #{@failTypes[@mFail]}(#{@mFail})#{SP.d @msg, @msg}: #{@summary}"		#URGENT: put in subroutine
 
@@ -739,15 +739,15 @@ markers: got     : #{@markers}
 
 	decorate: ->
 		@assert @fn, "function body is required"
-		@assert = (b, msg) ->
+		@assert = (b, msg, v, opts) ->
 			_ = if msg then ": #{msg}" else ""
 
-			@logSilent "UT.docorate.assert: b=#{b}#{_}"
+			@logSilent "UT.docorate.assert: b=#{b}#{_}", v, opts
 
 			if b
 				@pass++
 			else
-				@FAIL @FAIL_ASSERT, "@assert#{_}", null, null
+				@FAIL @FAIL_ASSERT, "@assert#{_}", null, v, opts
 
 			b
 		@bag = proxyBag
@@ -879,7 +879,7 @@ b> #{V.vt b}
 		@ex = (ex) ->			#OPPO: @ok
 			@logCatch ex
 			@reject ex
-		@FAIL = (mFail, summary, detail, v) ->
+		@FAIL = (mFail, summary, detail, v, opts) ->
 			throw Error "bad mFail" unless mFail
 
 			#REVISIT
@@ -887,9 +887,10 @@ b> #{V.vt b}
 			@lg "@FAIL: p1: summary: isn't s (got: #{IS.ty summary})"		if 		summary? and !IS.s summary
 			@lg "@FAIL: p2: detail: isn't s (got: #{IS.ty detail})"			if		detail?	 and !IS.s detail
 			@lg "@FAIL: p3: v: isn't v (got: #{IS.ty v})"					unless IS.o v
+			@lg "@FAIL: p4: opts: isn't opts (got: #{IS.ty opts})"			if		opts?	 and !IS.opts opts
 #			console.log "\n\n\nX X X X X X X X X"		#POP
 
-			fail = new @Fail mFail, summary, detail, v
+			fail = new @Fail mFail, summary, detail, v, opts
 #			@lg "TYPE: #{Context.TYPE v}"
 
 			_ = "FAIL: #{IF summary, "#{summary}: "}fail666=#{@failList.length}"
@@ -1575,7 +1576,6 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 							ADDTEST word
 						else
 							# map monikers to IDs
-							#HERE
 #							@log "testList", testList
 #							for test in testList
 ##								@log "tn=#{test.tn} mkr=#{test.mkr} opts.mkr=#{test.opts.mkr}"		#, test.opts

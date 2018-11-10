@@ -623,12 +623,13 @@
       //			console.log "FOUND mkr: #{@mkr}"
       delete this.opts.tags; // remove from options since it's been promoted to top-level
       this.Fail = class Fail extends UTBase { //@Fail	#@fail   #PATTERN
-        constructor(mFail1, summary1, detail1, o1) {
+        constructor(mFail1, summary1, detail1, o1, opts1) { //RENAME: @o -> @v
           super();
           this.mFail = mFail1;
           this.summary = summary1;
           this.detail = detail1;
           this.o = o1;
+          this.opts = opts1;
           failList_CLOSURE.unshift(this);
           //URGENT
           this.lg(`fail constructor: mFail=${this.mFail} ${this.summary} nowLen=${failList_CLOSURE.length}`, this.o);
@@ -664,7 +665,7 @@
 
         //			full: -> Context.textFormat.red "#{@one()}\n\n#{@detail}#{SP.d @stack, "\n#{@stack}"}"
         full() {
-          return `${this.one()}\n\ndetail=${this.detail}\no=${O.ONE(this.o)}\n${SP.d(this.stack, `\n${this.stack}`)}`;
+          return `${this.one()}\n\ndetail=${this.detail}\no=${O.DUMP(this.o, this.opts)}\n${SP.d(this.stack, `\n${this.stack}`)}`;
         }
 
         heal() {
@@ -872,14 +873,14 @@
     decorate() {
       var MAKE_UT_LOG_FAIL, j, len, mn, ref;
       this.assert(this.fn, "function body is required");
-      this.assert = function(b, msg) {
+      this.assert = function(b, msg, v, opts) {
         var _;
         _ = msg ? `: ${msg}` : "";
-        this.logSilent(`UT.docorate.assert: b=${b}${_}`);
+        this.logSilent(`UT.docorate.assert: b=${b}${_}`, v, opts);
         if (b) {
           this.pass++;
         } else {
-          this.FAIL(this.FAIL_ASSERT, `@assert${_}`, null, null);
+          this.FAIL(this.FAIL_ASSERT, `@assert${_}`, null, v, opts);
         }
         return b;
       };
@@ -1037,7 +1038,7 @@
         this.logCatch(ex);
         return this.reject(ex);
       };
-      this.FAIL = function(mFail, summary, detail, v) {
+      this.FAIL = function(mFail, summary, detail, v, opts) {
         var _, fail;
         if (!mFail) {
           throw Error("bad mFail");
@@ -1055,8 +1056,11 @@
         if (!IS.o(v)) {
           this.lg(`@FAIL: p3: v: isn't v (got: ${IS.ty(v)})`);
         }
+        if ((opts != null) && !IS.opts(opts)) {
+          this.lg(`@FAIL: p4: opts: isn't opts (got: ${IS.ty(opts)})`);
+        }
         //			console.log "\n\n\nX X X X X X X X X"		#POP
-        fail = new this.Fail(mFail, summary, detail, v);
+        fail = new this.Fail(mFail, summary, detail, v, opts);
         //			@lg "TYPE: #{Context.TYPE v}"
         _ = `FAIL: ${IF(summary, `${summary}: `)}fail666=${this.failList.length}`;
         if (v) {
@@ -1917,7 +1921,6 @@
                 ADDTEST(word);
               } else {
                 // map monikers to IDs
-
                 //							@log "testList", testList
                 //							for test in testList
                 //#								@log "tn=#{test.tn} mkr=#{test.mkr} opts.mkr=#{test.opts.mkr}"		#, test.opts
