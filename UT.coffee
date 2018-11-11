@@ -312,6 +312,7 @@ class UTBase extends Base		#@UTBase
 		@const "FAIL_UNFAIL", 7						# onUnfail()		something was supposed to fail but didn't!
 		@const "FAIL_UNEXPECTED_PROMISE", 8			# onUnexpectedPromise
 		@const "failTypes", [null, "Assert", "Eq", "Error", "Exception", "Markers", "Timeout", "Unfail", "Unexpected_Promise"]
+		O.___ @, "failSnip", (mFail=@mFail) -> "#{@failTypes[mFail]}(#{mFail})"
 
 		@const "FM_FAILFAST", 0
 		@const "FM_FAILTEST", 1
@@ -560,8 +561,7 @@ class Test extends UTBase		#@Test #@test
 			constructor: (@mFail, @summary, @detail, @o, @opts) ->			#RENAME: @o -> @v
 				super()
 				failList_CLOSURE.unshift @
-				#URGENT
-				@lg "fail constructor: mFail=#{@mFail} #{@summary} nowLen=#{failList_CLOSURE.length}", @o
+				@lg "fail constructor: #{@failSnip @mFail} #{@summary} nowLen=#{failList_CLOSURE.length}", @o
 				@bEnabled = true
 #				console.log "Fail=#{V.Type @o}"
 				if V.Type(@o) is "Error"
@@ -583,7 +583,7 @@ class Test extends UTBase		#@Test #@test
 #				@lg "stack", stack
 #				O.LOG @
 
-#				@lg "*^20 mFail=#{@mFail}"				#POP
+#				@lg "*^20 mFail=#{@failSnip @mFail}"				#POP
 #				@lg "*^20 summary=#{@summary}"
 #				@lg "*^20 detail=#{@detail}"
 #				@lg "*^20 o=#{@o}"
@@ -592,7 +592,7 @@ class Test extends UTBase		#@Test #@test
 #			full: -> Context.textFormat.red "#{@one()}\n\n#{@detail}#{SP.d @stack, "\n#{@stack}"}"
 			full: -> "#{@one()}\n\ndetail=#{@detail}\no=#{O.DUMP @o, @opts}\n#{SP.d @stack, "\n#{@stack}"}"
 			heal: -> @bEnabled = false
-			one: -> "Fail: #{@failTypes[@mFail]}(#{@mFail})#{SP.d @msg, @msg}: #{@summary}"		#URGENT: put in subroutine
+			one: -> "Fail: #{@failSnip @mFail}#{SP.d @msg, @msg}: #{@summary}"		#URGENT: put in subroutine
 
 		@one = -> "##{@testIndex} #{_}"
 		@one2 = -> "Test: #{@one()}: cmd=#{@cmd} enabled=#{@bEnabled} mState=#{@stateFrag()} mStage=#{@mStage}#{SP.d @opts.mutex, "mutex=#{@opts.mutex}"} pf=#{@pass}/#{@failList.length}"
@@ -605,7 +605,7 @@ class Test extends UTBase		#@Test #@test
 	after: (mFail, ex_s_null) ->
 #		@assert mFail?, "mFail"		wrong: mFail is undefined or null if success
 		@lg "#".repeat 60
-		@lg "after#{if mFail? then ": #{@failTypes[mFail]}(#{mFail})" else ""}: #{@one2()}"				#, ex_s_null
+		@lg "after#{if mFail? then ": #{@failSnip mFail}" else ""}: #{@one2()}"				#, ex_s_null
 
 #H #DOMAIN: remove this from UT.coffee... onAfter()      	perhaps @env.onAfter()
 		if @env?.server?.deliverObj?.config?.deliverList?.length > 1

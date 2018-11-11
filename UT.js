@@ -354,6 +354,9 @@ UTBase = class UTBase extends Base { //@UTBase
     this.const("FAIL_UNFAIL", 7); // onUnfail()		something was supposed to fail but didn't!
     this.const("FAIL_UNEXPECTED_PROMISE", 8); // onUnexpectedPromise
     this.const("failTypes", [null, "Assert", "Eq", "Error", "Exception", "Markers", "Timeout", "Unfail", "Unexpected_Promise"]);
+    O.___(this, "failSnip", function(mFail = this.mFail) {
+      return `${this.failTypes[mFail]}(${mFail})`;
+    });
     this.const("FM_FAILFAST", 0);
     this.const("FM_FAILTEST", 1);
     this.const("FM_RUNALL", 2);
@@ -640,8 +643,7 @@ Test = class Test extends UTBase { //@Test #@test
         this.o = o1;
         this.opts = opts1;
         failList_CLOSURE.unshift(this);
-        //URGENT
-        this.lg(`fail constructor: mFail=${this.mFail} ${this.summary} nowLen=${failList_CLOSURE.length}`, this.o);
+        this.lg(`fail constructor: ${this.failSnip(this.mFail)} ${this.summary} nowLen=${failList_CLOSURE.length}`, this.o);
         this.bEnabled = true;
         //				console.log "Fail=#{V.Type @o}"
         if (V.Type(this.o) === "Error") {
@@ -666,7 +668,7 @@ Test = class Test extends UTBase { //@Test #@test
       //				@lg "stack", stack
       //				O.LOG @
 
-      //				@lg "*^20 mFail=#{@mFail}"				#POP
+      //				@lg "*^20 mFail=#{@failSnip @mFail}"				#POP
       //				@lg "*^20 summary=#{@summary}"
       //				@lg "*^20 detail=#{@detail}"
       //				@lg "*^20 o=#{@o}"
@@ -682,7 +684,7 @@ Test = class Test extends UTBase { //@Test #@test
       }
 
       one() {
-        return `Fail: ${this.failTypes[this.mFail]}(${this.mFail})${SP.d(this.msg, this.msg)}: ${this.summary //URGENT: put in subroutine
+        return `Fail: ${this.failSnip(this.mFail)}${SP.d(this.msg, this.msg)}: ${this.summary //URGENT: put in subroutine
 }`;
       }
 
@@ -703,7 +705,7 @@ Test = class Test extends UTBase { //@Test #@test
     var EXPECT, PR, _, bFound, detail, expectMap, fail, i, j, k, kUC, l, len, p, ref, ref1, ref10, ref2, ref3, ref4, ref5, ref6, ref7, ref8, ref9, s;
     //		@assert mFail?, "mFail"		wrong: mFail is undefined or null if success
     this.lg("#".repeat(60));
-    this.lg(`after${(mFail != null ? `: ${this.failTypes[mFail]}(${mFail})` : "")}: ${this.one2() //, ex_s_null
+    this.lg(`after${(mFail != null ? `: ${this.failSnip(mFail)}` : "")}: ${this.one2() //, ex_s_null
 }`);
     
     //H #DOMAIN: remove this from UT.coffee... onAfter()      	perhaps @env.onAfter()
