@@ -1764,13 +1764,17 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
     CLIParser = class CLIParser extends Base {};
     parser = new CLIParser();
     UniqueTester = class UniqueTester {
-      constructor(fnClash) {
+      constructor(bCaseSensitive, fnClash) {
+        this.bCaseSensitive = bCaseSensitive;
         this.fnClash = fnClash;
         this.map = Object.create(null);
       }
 
       add(item) {
         if (item) {
+          if (!this.bCaseSensitive) {
+            item = item.toUpperCase();
+          }
           if (this.map[item]) {
             return this.fnClash(item);
           } else {
@@ -1781,7 +1785,7 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
       }
 
     };
-    monUnique = new UniqueTester((item) => {
+    monUnique = new UniqueTester(false, (item) => {
       return this.logError(`monikers ('${item}') must be unique`);
     });
 //		monUnique.add "peter"

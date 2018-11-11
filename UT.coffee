@@ -1478,16 +1478,18 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 		parser = new CLIParser()
 
 		class UniqueTester
-			constructor: (@fnClash) ->
+			constructor: (@bCaseSensitive, @fnClash) ->
 				@map = Object.create null
 			add: (item) ->
 				if item
+					unless @bCaseSensitive
+						item = item.toUpperCase()
 					if @map[item]
 						@fnClash item
 					else
 #						console.log "OKAY: #{item}"
 						@map[item] = true
-		monUnique = new UniqueTester (item) =>
+		monUnique = new UniqueTester false, (item) =>
 			@logError "monikers ('#{item}') must be unique"
 #		monUnique.add "peter"
 #		monUnique.add "peter"
