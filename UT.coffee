@@ -46,6 +46,14 @@ TERMINOLOGY: #H
 DESCRIPTION:
 The goal of JAJUT is to be absolutely the least-friction most-terse easiest to use JS unit test system.
 
+Taxonomy: Ability to organize tests by hierarchically:
+    @s "boating", ->
+    	@s "motor", ->
+    	@s "sail", ->
+    		@t "high wind conditions"
+    @s "farming", ->
+    		@s "equipment", ->
+    			@t "tractor", ->
 
 use skinny arrows (not fat arrows) for nested tests:
 	@s "async nesting test", ->
