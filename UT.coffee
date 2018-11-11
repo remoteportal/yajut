@@ -794,7 +794,9 @@ markers: got     : #{@markers}
 			# EQ	#EQ-STRICT			"value and type"		(new String "6") EQ (new String "6")
 			# EQO	#EQ-SAME			"same object"			obj == obj
 
+			#CRASH: TypeError: Cannot convert object to primitive value
 			@lg "#{mn}: BEG: a=#{a} b=#{b}"
+
 			if !(a?) and !(b?)
 				@logg trace.UT_EQ, "#{mn} pass: #{a} vs #{b}: both undefined [#{msg}]", o
 				return true
@@ -886,7 +888,7 @@ b> #{V.vt b}
 			@lg "@FAIL: p0: mFail: isn't n (got: #{IS.ty mFail})"			unless IS.n mFail
 			@lg "@FAIL: p1: summary: isn't s (got: #{IS.ty summary})"		if 		summary? and !IS.s summary
 			@lg "@FAIL: p2: detail: isn't s (got: #{IS.ty detail})"			if		detail?	 and !IS.s detail
-			@lg "@FAIL: p3: v: isn't v (got: #{IS.ty v})"					unless IS.o v
+			@lg "@FAIL: p3: v: isn't v (got: #{IS.ty v})"					unless typeof(v) is "object"
 			@lg "@FAIL: p4: opts: isn't opts (got: #{IS.ty opts})"			if		opts?	 and !IS.opts opts
 #			console.log "\n\n\nX X X X X X X X X"		#POP
 
@@ -1683,7 +1685,8 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 		@secsElapsed = Math.ceil((Date.now() - @msStart) / 1000)
 
 		if @pass or @failList.length
-			console.log "#{Base.openMsgGet()}  All unit tests completed: [#{@secsElapsed} #{S.PLURAL "second", @secsElapsed}] total=#{@pass+@failList.length}: #{unless @failList.length then "PASS" else "pass"}=#{@pass} #{if @failList.length then "FAIL" else "fail"}=#{@failList.length}"
+			_ = Base.openMsgGet()
+			console.log "#{_}UT: [#{@secsElapsed} #{S.PLURAL "second", @secsElapsed}] total=#{@pass+@failList.length}: #{unless @failList.length then "PASS" else "pass"}=#{@pass} #{if @failList.length then "FAIL" else "fail"}=#{@failList.length}"
 
 			if Base.openCntGet()
 				@eventFire "left-open"
