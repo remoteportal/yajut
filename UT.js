@@ -1244,8 +1244,9 @@ Test = class Test extends UTBase { //@Test #@test
     var k, pn, pv, ref, ref1, ref2, ref3, ref4, v;
     this.opts = Object.assign({}, this.runner.OPTS, (ref = this.runner.OPTS) != null ? (ref1 = ref.perTestOpts) != null ? ref1[this.cname] : void 0 : void 0, this.opts);
     delete this.opts.perTestOpts; //H: this assumes PER TEST not PER FILE
-    this.logg(trace.UT_TEST_PRE_ONE_LINER, `=^20 ${this.one() // /#{testList.length} #{@cname} #{@cmd}:#{@tn}#{AP.c_d trace.DETAIL, "path=#{@path}"}"
-}`);
+    this.logg(trace.UT_TEST_PRE_ONE_LINER, `^=^20 ${this.one()}`, void 0, {
+      format: "yellow" // /#{testList.length} #{@cname} #{@cmd}:#{@tn}#{AP.c_d trace.DETAIL, "path=#{@path}"}"
+    });
     this.msBeg = Date.now();
     this.mState = this.STATE_RUNNING;
     syncTestsCount++;

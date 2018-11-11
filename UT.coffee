@@ -1055,7 +1055,7 @@ b> #{V.vt b}
 		delete @opts.perTestOpts		#H: this assumes PER TEST not PER FILE
 
 #TODO: remove extranous test name in front: 39:58 [AsyncTest] #27 a FSUT /fileSize
-		@logg trace.UT_TEST_PRE_ONE_LINER, "=^20 #{@one()}"		# /#{testList.length} #{@cname} #{@cmd}:#{@tn}#{AP.c_d trace.DETAIL, "path=#{@path}"}"
+		@logg trace.UT_TEST_PRE_ONE_LINER, "^=^20 #{@one()}", undefined, format:"yellow"		# /#{testList.length} #{@cname} #{@cmd}:#{@tn}#{AP.c_d trace.DETAIL, "path=#{@path}"}"
 
 		@msBeg = Date.now()
 		@mState = @STATE_RUNNING
