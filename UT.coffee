@@ -50,10 +50,11 @@ Taxonomy: Ability to organize tests by hierarchically:
     @s "boating", ->
     	@s "motor", ->
     	@s "sail", ->
-    		@t "high wind conditions"
+    		@_t "high wind conditions"
+    		@_t "low wind conditions"				<-- use _t so test success counts aren't artifically raised when doing top-down specificatin
     @s "farming", ->
     		@s "equipment", ->
-    			@t "tractor", ->
+    			@_t "tractor", ->
 
 use skinny arrows (not fat arrows) for nested tests:
 	@s "async nesting test", ->
