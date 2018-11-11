@@ -1287,7 +1287,7 @@ Test = class Test extends UTBase { //@Test #@test
       if (this.opts.exceptionMessage && (this.opts.expect == null)) {
         this.opts.expect = "EXCEPTION";
       }
-      cmds = "bManual,desc,exceptionMessage,expect,hang,markers,mkr,mType,mutex,onAssert,onEq,onError,onException,onTimeout,onUnfail,onUnexpectedPromise,SO,RUNTIME_SECS,tags,timeout,url,USER_CNT".split(',');
+      cmds = "bManual,desc,exceptionMessage,expect,hang,markers,mkr,mType,mutex,onAssert,onEq,onError,onException,onTimeout,onUnfail,onUnexpectedPromise,SO,RUNTIME_SECS,tags,timeout,tru,url,USER_CNT".split(',');
       for (j = 0, len = cmds.length; j < len; j++) {
         cmd = cmds[j];
         cmds.push('_' + cmd);
@@ -1884,6 +1884,13 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
                 });
               }
             }
+            aMod.sort(function(a, b) {
+              if (a.mkr < b.mkr) {
+                return -1;
+              } else {
+                return +1;
+              }
+            });
             er(S.autoTable(aMod, {
               bHeader: true,
               boldColumnMap: {

@@ -1091,7 +1091,7 @@ TypeError: One of the sources for assign has an enumerable key on the prototype 
 			if @opts.exceptionMessage and !@opts.expect?
 				@opts.expect = "EXCEPTION"
 
-			cmds = "bManual,desc,exceptionMessage,expect,hang,markers,mkr,mType,mutex,onAssert,onEq,onError,onException,onTimeout,onUnfail,onUnexpectedPromise,SO,RUNTIME_SECS,tags,timeout,url,USER_CNT".split ','
+			cmds = "bManual,desc,exceptionMessage,expect,hang,markers,mkr,mType,mutex,onAssert,onEq,onError,onException,onTimeout,onUnfail,onUnexpectedPromise,SO,RUNTIME_SECS,tags,timeout,tru,url,USER_CNT".split ','
 			cmds.push '_' + cmd for cmd in cmds
 
 			for k of @opts
@@ -1554,6 +1554,7 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 									testIndex: test.testIndex
 									mkr: test.mkr
 									tn: test.tn
+						aMod.sort((a,b)->if a.mkr < b.mkr then -1 else +1)
 						er S.autoTable aMod, bHeader:true,boldColumnMap:{mod:true},grep:testPattern
 					when "-o"
 						@OPTS.bOnline = false
