@@ -350,7 +350,7 @@ MAKEa = (cmd) =>
 			fn = arguments[2]
 
 		unless typeof fn is "function"
-			abort "MISSING fn"
+			abort "MAKEa: [#{tn}] MISSING fn"
 
 #		if bRunning and t_depth is 1 => @lgFatal "NESTED t: the parent of '#{tn}' is also a test; change to 's' (section)"
 #		@lg "found async: #{tn} --> #{@__CLASS_NAME}"
@@ -378,7 +378,7 @@ MAKEt = (cmd) =>
 			fn = arguments[2]
 
 		unless typeof fn is "function"
-			abort "MISSING fn"
+			abort "MAKEa: [#{tn}] MISSING fn"
 
 		new SyncTest
 			cmd: cmd
@@ -783,7 +783,7 @@ markers: got     : #{@markers}
 				msEnd: null
 
 			new Promise (resolve) =>	#NEEDED
-#				@logg trace.DELAY, "BEG: delay #{ms}"
+				@logg trace.DELAY, "delay #{ms}"
 
 				setTimeout =>
 						to.msEnd = Date.now()
@@ -948,9 +948,9 @@ b> #{V.vt b}
 			@markers += s
 			@log "MARK #{s}", undefined, bHeader:false,format:"magenta,bold,uc"
 		MAKE_UT_LOG_FAIL = (mn, mFail) =>
-			do (mn, mFail, that=@) =>		#PATTERN #CURRYING
+			do (mn, mFail, t=@) =>		#PATTERN #CURRYING
 #				console.log "mn=#{mn} mFail=#{mFail}"
-				that[mn] = (msg, o, opt) ->
+				t[mn] = (msg, o, opt) ->
 					@lg "method #{mn}: #{kvt "msg", msg}"
 					@lg "FFF8: MAKE_UT_LOG_FAIL '#{mn}'"
 
@@ -1598,7 +1598,7 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 ##									@log "MON: #{test.opts.mkr ? test.tn}"
 ##									@log "tn=#{test.tn} mkr=#{test.mkr}"	# , test.opts
 #									@log "tn=#{test.tn} mkr=#{test.mkr}"	# , test.opts
-							_ = testList.filter((test)->(test.mkr ? test.tn) is word)
+							_ = testList.filter((test)->(test.mkr?.toUpperCase() ? test.tn.toUpperCase()) is word.toUpperCase())
 							if _.length
 #								@log "found #{word} => #{_[0].testIndex}"
 								ADDTEST _[0].testIndex

@@ -393,7 +393,7 @@ MAKEa = (cmd) => {
       fn = arguments[2];
     }
     if (typeof fn !== "function") {
-      abort("MISSING fn");
+      abort(`MAKEa: [${tn}] MISSING fn`);
     }
     //		if bRunning and t_depth is 1 => @lgFatal "NESTED t: the parent of '#{tn}' is also a test; change to 's' (section)"
     //		@lg "found async: #{tn} --> #{@__CLASS_NAME}"
@@ -424,7 +424,7 @@ MAKEt = (cmd) => {
       fn = arguments[2];
     }
     if (typeof fn !== "function") {
-      abort("MISSING fn");
+      abort(`MAKEa: [${tn}] MISSING fn`);
     }
     return new SyncTest({
       cmd: cmd,
@@ -919,7 +919,7 @@ Test = class Test extends UTBase { //@Test #@test
         msEnd: null
       };
       return new Promise((resolve) => { //NEEDED
-        //				@logg trace.DELAY, "BEG: delay #{ms}"
+        this.logg(trace.DELAY, `delay ${ms}`);
         return setTimeout(() => {
           to.msEnd = Date.now();
           to.msActual = to.msEnd - to.msBeg;
@@ -1138,9 +1138,9 @@ Test = class Test extends UTBase { //@Test #@test
       });
     };
     MAKE_UT_LOG_FAIL = (mn, mFail) => {
-      return ((mn, mFail, that) => { //PATTERN #CURRYING
+      return ((mn, mFail, t) => { //PATTERN #CURRYING
         //				console.log "mn=#{mn} mFail=#{mFail}"
-        return that[mn] = function(msg, o, opt) {
+        return t[mn] = function(msg, o, opt) {
           this.lg(`method ${mn}: ${kvt("msg", msg)}`);
           this.lg(`FFF8: MAKE_UT_LOG_FAIL '${mn}'`);
           //					if V.type(msg) is "string"
@@ -1955,8 +1955,8 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
               //#									@log "tn=#{test.tn} mkr=#{test.mkr}"	# , test.opts
               //									@log "tn=#{test.tn} mkr=#{test.mkr}"	# , test.opts
               _ = testList.filter(function(test) {
-                var ref;
-                return ((ref = test.mkr) != null ? ref : test.tn) === word;
+                var ref, ref1;
+                return ((ref = (ref1 = test.mkr) != null ? ref1.toUpperCase() : void 0) != null ? ref : test.tn.toUpperCase()) === word.toUpperCase();
               });
               if (_.length) {
                 //								@log "found #{word} => #{_[0].testIndex}"
