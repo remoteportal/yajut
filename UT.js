@@ -931,26 +931,17 @@ Test = class Test extends UTBase { //@Test #@test
     this.eq = function(a, b, msg, o) {
       return this.eqINNER.apply(this, [
         "eq",
-        ...arguments //PATTERN #FORWARD #CURRYING
+        ...arguments //PATTERN #FORWARD #CURRYING #INJECT-ONE #ADD-ONE
       ]);
     };
     this.Eq = function(a, b, msg, o) {
-      return this.eqINNER.apply(this, [
-        "Eq",
-        ...arguments //PATTERN #FORWARD #CURRYING
-      ]);
+      return this.eqINNER.apply(this, ["Eq", ...arguments]);
     };
     this.EQ = function(a, b, msg, o) {
-      return this.eqINNER.apply(this, [
-        "EQ",
-        ...arguments //PATTERN #FORWARD #CURRYING
-      ]);
+      return this.eqINNER.apply(this, ["EQ", ...arguments]);
     };
     this.EQO = function(a, b, msg, o) {
-      return this.eqINNER.apply(this, [
-        "EQO",
-        ...arguments //PATTERN #FORWARD #CURRYING
-      ]);
+      return this.eqINNER.apply(this, ["EQO", ...arguments]);
     };
     this.eqINNER = (mn, a, b, msg, o) => {
       var doValue, report, s;

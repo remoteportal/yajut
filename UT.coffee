@@ -792,10 +792,10 @@ markers: got     : #{@markers}
 						resolve to
 					,
 						ms
-		@eq  =	(a, b, msg, o) -> 	@eqINNER.apply @, ["eq",  arguments...]			#PATTERN #FORWARD #CURRYING
-		@Eq  =	(a, b, msg, o) -> 	@eqINNER.apply @, ["Eq",  arguments...]			#PATTERN #FORWARD #CURRYING
-		@EQ  =	(a, b, msg, o) -> 	@eqINNER.apply @, ["EQ",  arguments...]			#PATTERN #FORWARD #CURRYING
-		@EQO =	(a, b, msg, o) -> 	@eqINNER.apply @, ["EQO", arguments...]			#PATTERN #FORWARD #CURRYING
+		@eq  =	(a, b, msg, o) -> 	@eqINNER.apply @, ["eq",  arguments...]			#PATTERN #FORWARD #CURRYING #INJECT-ONE #ADD-ONE
+		@Eq  =	(a, b, msg, o) -> 	@eqINNER.apply @, ["Eq",  arguments...]
+		@EQ  =	(a, b, msg, o) -> 	@eqINNER.apply @, ["EQ",  arguments...]
+		@EQO =	(a, b, msg, o) -> 	@eqINNER.apply @, ["EQO", arguments...]
 		@eqINNER = (mn, a, b, msg, o) =>
 			#							PASS CRITERIA
 			# eq	#EQ-NOT-STRICT		"as string equal"		(new String "6") eq 6
