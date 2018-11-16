@@ -1009,7 +1009,9 @@ Test = class Test extends UTBase { //@Test #@test
         s += `\na> ${V.vt(a)}\nb> ${V.vt(b)}`;
         report = V.COMPARE_REPORT(a, b);
         this.FAIL(this.FAIL_EQ, `${mn} ${a} vs. ${b}${AP.c_d(msg)}`, `${s}${AP.crlf_d(report)}`, o);
-        this.logg(trace.UT_EQ, `${mn} fail: ${a} vs ${b} [${msg}]`);
+        this.logg(trace.UT_EQ, `${mn} ${textFormat.red("fail")}: ${a} vs ${b} [${msg
+        //RENAME: EQ
+}]`);
         return false;
       } else {
         this.logg(trace.UT_EQ, `${mn} pass: ${a} vs ${b}${SP.sq(msg)}`);

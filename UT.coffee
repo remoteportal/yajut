@@ -861,7 +861,7 @@ b> #{V.vt b}
 """
 				report = V.COMPARE_REPORT a, b
 				@FAIL @FAIL_EQ, "#{mn} #{a} vs. #{b}#{AP.c_d msg}", "#{s}#{AP.crlf_d report}", o
-				@logg trace.UT_EQ, "#{mn} fail: #{a} vs #{b} [#{msg}]"
+				@logg trace.UT_EQ, "#{mn} #{textFormat.red "fail"}: #{a} vs #{b} [#{msg}]"		#RENAME: EQ
 				false
 			else
 				@logg trace.UT_EQ, "#{mn} pass: #{a} vs #{b}#{SP.sq msg}"
