@@ -1240,6 +1240,8 @@ Test = class Test extends UTBase { //@Test #@test
     this.logg(trace.UT_TEST_PRE_ONE_LINER, `^=^20 ${this.one()}`, void 0, {
       format: "yellow" // /#{testList.length} #{@cname} #{@cmd}:#{@tn}#{AP.c_d trace.DETAIL, "path=#{@path}"}"
     });
+    global.tn = this.tn;
+    //		@log "tn=#{@tn}"
     this.msBeg = Date.now();
     this.mState = this.STATE_RUNNING;
     syncTestsCount++;

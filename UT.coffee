@@ -1057,6 +1057,9 @@ b> #{V.vt b}
 #TODO: remove extranous test name in front: 39:58 [AsyncTest] #27 a FSUT /fileSize
 		@logg trace.UT_TEST_PRE_ONE_LINER, "^=^20 #{@one()}", undefined, format:"yellow"		# /#{testList.length} #{@cname} #{@cmd}:#{@tn}#{AP.c_d trace.DETAIL, "path=#{@path}"}"
 
+		global.tn = @tn
+#		@log "tn=#{@tn}"
+
 		@msBeg = Date.now()
 		@mState = @STATE_RUNNING
 		syncTestsCount++
