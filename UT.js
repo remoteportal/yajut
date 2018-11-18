@@ -1295,7 +1295,9 @@ Test = class Test extends UTBase { //@Test #@test
       }
       for (k in this.opts) {
         if (indexOf.call(cmds, k) < 0) {
-          this.logFatal(`[[${this.path}]] UT001 Unknown test option: '${k}'`, this.opts);
+          this.logFatal(`[[${this.path}]] UT001 Unknown test option: '${k}'`, cmds, {
+            bTable: true
+          });
         }
       }
       if ((this.opts.onTimeout || this.opts.timeout) && ((ref = this.cmd) !== "_a" && ref !== "a" && ref !== "_A" && ref !== "A" && ref !== "_p" && ref !== "p" && ref !== "_P" && ref !== "P")) {

@@ -1093,7 +1093,7 @@ TypeError: One of the sources for assign has an enumerable key on the prototype 
 
 			for k of @opts
 				unless k in cmds
-					@logFatal "[[#{@path}]] UT001 Unknown test option: '#{k}'", @opts
+					@logFatal "[[#{@path}]] UT001 Unknown test option: '#{k}'", cmds, bTable:true
 
 			if (@opts.onTimeout or @opts.timeout) and @cmd not in ["_a","a","_A","A","_p","p","_P","P"]
 				@logFatal "[[#{@path}]] UT008 asynch opt not allowed with '#{@cmd}' cmd", @opts
