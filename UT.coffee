@@ -234,9 +234,7 @@ KNOWN BUGS:
 
 
 
-#EASY: minimize these global variables
-#path=''		#URGENT
-testList = []
+g_testList = []				#RABBIT-HOLE: spent 1h trying to move into UTBase but got reset every time... ended up reverting back to commit 2018-11-18
 
 
 
@@ -278,20 +276,20 @@ target = (cmdUNUSED_TODO) ->
 
 
 #PATTERN: target isn't actually proxy target (ONLY WORKS FOR SINGLETONS)
-handler =	# "traps"
+bagHandler =	# "traps"
 	get: (target, pn) ->
 #		log "read from bag: #{pn} => #{bag[pn]}"
 		bag[pn]
 
 	set: (target, pn, pv) ->
 #H: 	I don't know why this following line isn't green with -hl CLI
-		global.log "UT handler: set: #{pn}=#{pv} <#{typeof pv}>"										if trace.UT_BAG_SET	#R
+		global.log "UT bagHandler: set: #{pn}=#{pv} <#{typeof pv}>"										if trace.UT_BAG_SET	#R
 		throw Error "clear is not appropriate" if pn is "clear"
 		bag[pn] = pv
 
 
 
-proxyBag = new Proxy target, handler
+proxyBag = new Proxy target, bagHandler
 
 
 
@@ -336,7 +334,7 @@ class UTBase extends Base		#@UTBase
 		@const "WHY_NO_TESTS_FOUND", 6
 		@const "WHY_LIST", [null, "ALL_TESTS_RUN", "FAIL_FAST", "FATAL", "TOLD_TO_STOP", "CLI", "WHY_NO_TESTS_FOUND"]
 		
-		O.MAKE_LG @, "UTSYS", trace, "UT_RUNNER", => @__CLASS_NAME2 ? @__CLASS_NAME
+		O.MAKE_LG @, "UT_RUNNER", trace, "UT_RUNNER", => @__CLASS_NAME2 ? @__CLASS_NAME
 
 
 
@@ -388,7 +386,7 @@ EXPORTED = class UT extends UTBase			#@UT
 			#		@lg "CLASS=#{@__CLASS_NAME}  TN=#{tn} PATH=#{path}"
 			#		@lg "#{@__CLASS_NAME}#{path}/#{tn}"
 
-			@log "path=#{@_path}"
+#			@log "path=#{@_path}"
 			new AsyncTest
 				cmd: cmd
 				cname: @__CLASS_NAME
@@ -437,7 +435,6 @@ EXPORTED = class UT extends UTBase			#@UT
 			@testStack.push tn
 
 			@_path = @testStack.join '/'
-			log "********** [#{tn}] BEG: MAKEs: #{@_path}"
 
 			fn.bind(this)
 				opts: opts
@@ -500,7 +497,7 @@ class Test extends UTBase		#@Test #@test
 		for k,v of optsMore
 			@[k] = v
 
-		_ = @cmd + ' ppaatthh' + @path			#		_ = "CN=#{@__CLASS_NAME} PATH=[#{@path}]"		#URGENT
+		_ = "#{@cmd} #{@path}"			# _ = "CN=#{@__CLASS_NAME} PATH=[#{@path}]"
 
 		@bForcePass = false
 		@markers = ""
@@ -591,10 +588,10 @@ class Test extends UTBase		#@Test #@test
 			heal: -> @bEnabled = false
 			one: -> "Fail: #{@failSnip @mFail}#{SP.d @msg, @msg}: #{@summary}"		#URGENT: put in subroutine
 
-		@one = -> "ONE: ##{@testIndex} #{_}"
+		@one = -> "##{@testIndex} #{_}"
 		@one2 = -> "Test: #{@one()}: cmd=#{@cmd} enabled=#{@bEnabled} mState=#{@stateFrag()} mStage=#{@mStage}#{SP.d @opts.mutex, "mutex=#{@opts.mutex}"} pf=#{@pass}/#{@failList.length}"
 		@one3 = -> "#{@one2()} [#{@optsCSV}]"
-		testList.unshift this
+		g_testList.unshift this
 
 
 
@@ -670,8 +667,8 @@ markers: got     : #{@markers}
 				@FAIL @FAIL_ERROR, "exceptionMessage mismatch", detail, null
 
 #H #UNSTABLE: if TWO promises, depending on the order in which they resolve... the splice may be incorrect order and will be indeterminate (WRONG) deletion
-#WORKAROUND: only have a single handler... only guaranteed to work with a single handler
-#ARCHITECTURE: or guarantee serial handler execution
+#WORKAROUND: only have a single bagHandler... only guaranteed to work with a single bagHandler
+#ARCHITECTURE: or guarantee serial bagHandler execution
 		PR = new Promise (resolve, reject) =>
 			afterHandler = (fail) =>
 				unless fail.bEnabled
@@ -688,7 +685,7 @@ markers: got     : #{@markers}
 					rv = _.bind(@) @
 
 					if V.type(rv) is "promise"
-#						@lg "handler returned Promise. Pushing..."
+#						@lg "bagHandler returned Promise. Pushing..."
 						a.push new Promise (resolve2, reject2) =>
 							rv.then (resolved) =>
 #								@lg "FOUND RESOLVED PROMISE"
@@ -1052,7 +1049,7 @@ b> #{V.vt b}
 		delete @opts.perTestOpts		#H: this assumes PER TEST not PER FILE
 
 #TODO: remove extranous test name in front: 39:58 [AsyncTest] #27 a FSUT /fileSize
-		@logg trace.UT_TEST_PRE_ONE_LINER, "^=^20 #{@one()}", undefined, format:"yellow"		# /#{testList.length} #{@cname} #{@cmd}:#{@tn}#{AP.c_d trace.DETAIL, "path=#{@path}"}"
+		@logg trace.UT_TEST_PRE_ONE_LINER, "^=^20 #{@one()}", undefined, format:"yellow"		# /#{g_testList.length} #{@cname} #{@cmd}:#{@tn}#{AP.c_d trace.DETAIL, "path=#{@path}"}"
 
 		global.tn = @tn
 #		@log "tn=#{@tn}"
@@ -1493,7 +1490,7 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 			@logError "monikers ('#{item}') must be unique"
 #		monUnique.add "peter"
 #		monUnique.add "peter"
-		for test in testList
+		for test in g_testList
 #			@log test.mkr
 			monUnique.add test.mkr #? test.tn
 
@@ -1510,9 +1507,9 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 					when "-async"
 						@OPTS.bAsync = true
 					when "-dup"
-						# O.DUMP testList
+						# O.DUMP g_testList
 						dupMap = {}
-						for test in testList
+						for test in g_testList
 							unless dupMap[test.tn]
 								dupMap[test.tn] = []
 							dupMap[test.tn].push
@@ -1526,7 +1523,7 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 						@OPTS.mFailMode = optionalNumber 1
 					when "-g"
 						testPattern = a[i++]
-						er S.autoTable testList, bHeader:true, grep:testPattern, includeCSV:CSV
+						er S.autoTable g_testList, bHeader:true, grep:testPattern, includeCSV:CSV
 					when "-eg"
 						CSV2Object "exitCSV"
 					when "-h"
@@ -1542,7 +1539,7 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 					when "-ky"
 						getKeys true
 					when "-l"
-						er S.autoTable testList, bHeader:true, includeCSV:CSV
+						er S.autoTable g_testList, bHeader:true, includeCSV:CSV
 					when "-lg"			#MOVE: tests
 						@OPTS.logGrepPattern = a[i++]
 					when "-lh"			#MOVE: tests
@@ -1550,7 +1547,7 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 					when "-mkr"
 						testPattern = a[i++]
 						aMod = []
-						for test in testList
+						for test in g_testList
 							if test.mkr
 								aMod.push
 									testIndex: test.testIndex
@@ -1590,15 +1587,15 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 							ADDTEST word
 						else
 							# map monikers to IDs
-#							@log "testList", testList
-#							for test in testList
+#							@log "g_testList", g_testList
+#							for test in g_testList
 ##								@log "tn=#{test.tn} mkr=#{test.mkr} opts.mkr=#{test.opts.mkr}"		#, test.opts
 ##								@log "tn=#{test.tn} opts.mkr=#{test.opts.mkr}"
 #								if test.tn is "cat2"
 ##									@log "MON: #{test.opts.mkr ? test.tn}"
 ##									@log "tn=#{test.tn} mkr=#{test.mkr}"	# , test.opts
 #									@log "tn=#{test.tn} mkr=#{test.mkr}"	# , test.opts
-							_ = testList.filter((test)->(test.mkr?.toUpperCase() ? test.tn.toUpperCase()) is word.toUpperCase())
+							_ = g_testList.filter((test)->(test.mkr?.toUpperCase() ? test.tn.toUpperCase()) is word.toUpperCase())
 							if _.length
 #								@log "found #{word} => #{_[0].testIndex}"
 								ADDTEST _[0].testIndex
@@ -1631,7 +1628,7 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 #			trace.tristate t r u e
 
 		if @OPTS.bSerial?
-			for test in testList
+			for test in g_testList
 				unless test.opts
 					console.log "falsy test.opts"
 					O.LOG test
@@ -1643,7 +1640,7 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 	count: (mState) ->
 		@assert @STATE_WAITING <= mState <= @STATE_DONE
 		count = 0
-		for test in testList
+		for test in g_testList
 #			@lg "COUNT", test
 			count++ if test.mState is mState
 #		@lg "count[#{mState}] => #{count}"
@@ -1720,12 +1717,12 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 #			@lg "calling reject"
 			@reject this
 		else
-			if trace.TRACE_DURATION_REPORT and testList.length
+			if trace.TRACE_DURATION_REPORT and g_testList.length
 				s = "\nTests longer than #{trace.TRACE_DURATION_MIN_MS}ms:"
 
-				testList.sort (a, b) -> if a.msDur > b.msDur then -1 else 1
+				g_testList.sort (a, b) -> if a.msDur > b.msDur then -1 else 1
 
-				for test in testList
+				for test in g_testList
 					if test.msDur > trace.TRACE_DURATION_MIN_MS
 						if s
 							log s
@@ -1741,11 +1738,11 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 
 	multi: ->
 		s = @one()
-		s += testList.reduce(((acc, test) => if test.mState is @STATE_RUNNING then acc+"\nrunning: #{test.one2()}" else acc), '')
+		s += g_testList.reduce(((acc, test) => if test.mState is @STATE_RUNNING then acc+"\nrunning: #{test.one2()}" else acc), '')
 
 
 
-	one: -> "UTRunner: tests=#{testList.length} enabled=#{@enabledCnt} sync=#{@syncCnt} async=#{@asyncCnt} waiting=#{@selectList.length} bRunning=#{@bRunning} running=#{@runningCnt} mutexes=#{AsyncTest.s_one()}"
+	one: -> "UTRunner: tests=#{g_testList.length} enabled=#{@enabledCnt} sync=#{@syncCnt} async=#{@asyncCnt} waiting=#{@selectList.length} bRunning=#{@bRunning} running=#{@runningCnt} mutexes=#{AsyncTest.s_one()}"
 
 
 
@@ -1786,7 +1783,7 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 				if @count(@STATE_WAITING) > 0
 					# now that cleanup can be async can't run all sync tests instantly because after() code contains Promise code
 	#				for testIndex,i in @selectList by -1
-	#					if (test=testList[testIndex-1]).isAsyncRunnable()
+	#					if (test=g_testList[testIndex-1]).isAsyncRunnable()
 	#						@selectList.splice i, 1
 	#						@testStart test
 
@@ -1812,7 +1809,7 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 #			@lg "startAnotherMaybe: syncTestsCount=#{syncTestsCount}"
 			for testIndex,i in @selectList by -1
 				if syncTestsCount is 0
-					test = testList[testIndex-1]
+					test = g_testList[testIndex-1]
 
 					@eq test.mState, @STATE_WAITING, "test isn't in waiting state"
 
@@ -1846,30 +1843,30 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 	testsEnable: ->
 		@assert @selectList.length is 0
 
-		if testList.length > 0
+		if g_testList.length > 0
 			add = (test) => @selectList.unshift test.testIndex
 
-#			testList.forEach (test) =>
+#			g_testList.forEach (test) =>
 #				@lg ">" + test.one3()
 #				if test.opts.bManual
 #					@lg "MANUAL"
 
 # 			-a always overrides capitals (if any happen to be set)
 			if @OPTS.testsAll
-				testList.forEach (test) =>
+				g_testList.forEach (test) =>
 					unless test.opts.bManual
 						add test
 			else if @OPTS.keystrue
-				for test in testList
+				for test in g_testList
 					if O.INTERSECTION test.keys, @OPTS.keystrue		#TODO
 						add test
 			else if @OPTS.bAsync
-				for test in testList
+				for test in g_testList
 					if /^[aA]$/.test test.cmd
 						unless test.opts.bManual
 							add test
 			else if @OPTS.bSync
-				for test in testList
+				for test in g_testList
 					if /^[tT]$/.test test.cmd
 						unless test.opts.bManual
 							add test
@@ -1878,14 +1875,14 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 					@selectList.unshift testIndex * 1			#PATTERN
 			else
 # 				override capitals
-				testList.forEach (test) =>
+				g_testList.forEach (test) =>
 					if /^[A-Z]/.test test.cmd
 #						@lg "found ut override: #{test.tn}"
 						add test
 
 			if @selectList.length is 0
 # 				default scenario: no CLI #, no CLI -a, no capital overrides
-				testList.forEach (test) =>
+				g_testList.forEach (test) =>
 					unless test.opts.bManual
 						add test
 
@@ -1895,7 +1892,7 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 					@selectList = @selectList.filter (i) -> i isnt testIndex * 1
 
 #			if @OPTS.keysfalse
-#				for test in testList
+#				for test in g_testList
 #					if O.INTERSECTION test.keys, @OPTS.keysfalse
 #						bTODO="remove from @selectList"
 
@@ -1903,40 +1900,40 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 			unless @OPTS.bOnline
 				@lg "OFFLINE"
 				@selectList = @selectList.filter (i) =>
-					! ( testList[i-1].tags.internet )
+					! ( g_testList[i-1].tags.internet )
 
 			for i in @selectList
-				testList[i-1].enable()
+				g_testList[i-1].enable()
 
 			if 0
 				@lg "-----> VERIFY REVERSE ORDER:"
 				for i,idx in @selectList
-					@lg "[#{idx}] -----> #{i} -> #{testList[i-1].one2()}"
+					@lg "[#{idx}] -----> #{i} -> #{g_testList[i-1].one2()}"
 
-			@enabledCnt = testList.reduce(((acc, test) -> if test.bEnabled then acc+1 else acc), 0)
-			@syncCnt = testList.reduce(((acc, test) -> if test.bEnabled and test.bSync then acc+1 else acc), 0)
-			@asyncCnt = testList.reduce(((acc, test) -> if test.bEnabled and !test.bSync then acc+1 else acc), 0)
+			@enabledCnt = g_testList.reduce(((acc, test) -> if test.bEnabled then acc+1 else acc), 0)
+			@syncCnt = g_testList.reduce(((acc, test) -> if test.bEnabled and test.bSync then acc+1 else acc), 0)
+			@asyncCnt = g_testList.reduce(((acc, test) -> if test.bEnabled and !test.bSync then acc+1 else acc), 0)
 
-			@lg "#{@summary} Found #{testList.length} #{S.PLURAL "test", testList.length}#{SP.d @enabledCnt < testList.length, "with #{@enabledCnt} enabled"}"
+			@lg "#{@summary} Found #{g_testList.length} #{S.PLURAL "test", g_testList.length}#{SP.d @enabledCnt < g_testList.length, "with #{@enabledCnt} enabled"}"
 
 
 
 	testsSort: ->
-		testList.reverse()				#IMPORTANT: testList must be in reverse order so that we can splice way elements and not break our iterators
+		g_testList.reverse()				#IMPORTANT: g_testList must be in reverse order so that we can splice way elements and not break our iterators
 
 		#TODO: read average test milliseconds from filesystem
 #		_ = []
-#		testList.forEach (test) =>
+#		g_testList.forEach (test) =>
 #			unless test.bSync
 #				_.push test
-#		testList.forEach (test) =>
+#		g_testList.forEach (test) =>
 #			if test.bSync
 #				_.push test
 #
-#		testList = _
+#		g_testList = _
 
 		testIndex = 1
-		for test,i in testList
+		for test,i in g_testList
 			test.testIndex = testIndex++
 			test.runner = this
 			test.bEnabled = false
@@ -1956,7 +1953,7 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 
 
 	testsValidate: ->
-		for test in testList
+		for test in g_testList
 			test.optsValidate()
 
 		@summary = "[NEG=#{@mTypeCtrList[0]} PROOF=#{@mTypeCtrList[1]}]"
