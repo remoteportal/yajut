@@ -235,8 +235,7 @@ KNOWN BUGS:
 
 
 #EASY: minimize these global variables
-path = ''
-testStack = []
+#path=''		#URGENT
 testList = []
 
 
@@ -342,86 +341,6 @@ class UTBase extends Base		#@UTBase
 
 
 
-#TODO: combine MAKEa and MAKEt?
-MAKEa = (cmd) =>
-	(tn, fn) ->
-		if IS.o fn
-			opts = fn
-			fn = arguments[2]
-
-		unless typeof fn is "function"
-			abort "MAKEa: [#{tn}] MISSING fn"
-
-#		if bRunning and t_depth is 1 => @lgFatal "NESTED t: the parent of '#{tn}' is also a test; change to 's' (section)"
-#		@lg "found async: #{tn} --> #{@__CLASS_NAME}"
-#		@lg "CLASS=#{@__CLASS_NAME}  TN=#{tn} PATH=#{path}"
-#		@lg "#{@__CLASS_NAME}#{path}/#{tn}"
-
-		new AsyncTest
-			cmd: cmd
-			cname: @__CLASS_NAME
-			common: Object.getOwnPropertyNames(Object.getPrototypeOf(this)).filter (mn) -> mn not in ["constructor","run"]
-			fn: fn
-			hier: "#{path}/#{tn}"
-			tn: tn
-			opts: opts
-			parent: this
-#			path: "cn=#{@__CLASS_NAME} path=(#{path}) tn=#{tn}"
-			path: "#{@__CLASS_NAME} #{path}/#{tn}"
-
-
-
-MAKEt = (cmd) =>
-	(tn, fn) ->
-		if IS.o fn
-			opts = fn
-			fn = arguments[2]
-
-		unless typeof fn is "function"
-			abort "MAKEa: [#{tn}] MISSING fn"
-
-		new SyncTest
-			cmd: cmd
-			cname: @__CLASS_NAME
-			fn: fn
-			hier: "#{path}/#{tn}"
-			tn: tn
-			opts: opts
-			parent: this
-			path: "#{@__CLASS_NAME} #{path}/#{tn}"
-
-
-
-#COMBINE: these three somehow
-MAKEs = (cmd) =>
-	(tn, fn) ->		#ALT-ARGS: tn, opts, fn
-		if IS.o fn
-			opts = fn
-			fn = arguments[2]
-
-			O.validate opts, onlyCSV:"ME_MAKEs"
-
-		throw "MAKEs: 1st arg must be s" unless IS.s tn
-		throw "MAKEs: fn missing" unless IS.fn fn
-
-		testStack.push tn
-
-		path = testStack.join '/'
-#		log "BEG: MAKEs: #{path}"
-
-		fn.bind(this)
-			opts: opts
-			parent: this
-			tn: tn
-
-		testStack.pop()
-		path = testStack.join '/'
-#		log "END: MAKEs: #{path}"
-#END:UTBase
-
-
-
-
 
 
 
@@ -451,12 +370,90 @@ EXPORTED = class UT extends UTBase			#@UT
 	constructor: (@WORK_AROUND_UT_CLASS_NAME_OVERRIDE) ->
 		super()
 		@__CLASS_NAME = @WORK_AROUND_UT_CLASS_NAME_OVERRIDE ? @constructor.name
+		@_path = ''
+		@testStack = []
+
+	#COMBINE: these three somehow
+	MAKEa: (cmd) =>
+		(tn, fn) ->
+			if IS.o fn
+				opts = fn
+				fn = arguments[2]
+
+			unless typeof fn is "function"
+				abort "MAKEa: [#{tn}] MISSING fn"
+
+			#		if bRunning and t_depth is 1 => @lgFatal "NESTED t: the parent of '#{tn}' is also a test; change to 's' (section)"
+			#		@lg "found async: #{tn} --> #{@__CLASS_NAME}"
+			#		@lg "CLASS=#{@__CLASS_NAME}  TN=#{tn} PATH=#{path}"
+			#		@lg "#{@__CLASS_NAME}#{path}/#{tn}"
+
+			@log "path=#{@_path}"
+			new AsyncTest
+				cmd: cmd
+				cname: @__CLASS_NAME
+				common: Object.getOwnPropertyNames(Object.getPrototypeOf(this)).filter (mn) -> mn not in ["constructor","run"]
+				fn: fn
+				hier: "#{@_path}/#{tn}"
+				tn: tn
+				opts: opts
+				parent: this
+				path: "#{@__CLASS_NAME} #{@_path}/#{tn}"
+
+
+
+	MAKEt: (cmd) =>
+		(tn, fn) ->
+			if IS.o fn
+				opts = fn
+				fn = arguments[2]
+
+			unless typeof fn is "function"
+				abort "MAKEa: [#{tn}] MISSING fn"
+
+			new SyncTest
+				cmd: cmd
+				cname: @__CLASS_NAME
+				fn: fn
+				hier: "#{@_path}/#{tn}"
+				tn: tn
+				opts: opts
+				parent: this
+				path: "#{@__CLASS_NAME} #{@_path}/#{tn}"
+
+
+
+	MAKEs: (cmd) =>
+		(tn, fn) ->		#ALT-ARGS: tn, opts, fn
+			if IS.o fn
+				opts = fn
+				fn = arguments[2]
+
+				O.validate opts, onlyCSV:"ME_MAKEs"
+
+			throw "MAKEs: 1st arg must be s" unless IS.s tn
+			throw "MAKEs: fn missing" unless IS.fn fn
+
+			@testStack.push tn
+
+			@_path = @testStack.join '/'
+			log "********** [#{tn}] BEG: MAKEs: #{@_path}"
+
+			fn.bind(this)
+				opts: opts
+				parent: this
+				tn: tn
+
+			@testStack.pop()
+			@_path = @testStack.join '/'
+		#		log "END: MAKEs: #{@_path}"
+
 
 	#COMMAND: asynchronous test
 	_A: (a, b, c) ->
 	_a: (a, b, c) ->
-	A: (a, b, c) -> MAKEa('A').bind(this) a, b, c		#REVISIT: apply...
-	a: (a, b, c) -> MAKEa('a').bind(this) a, b, c
+	A: (a, b, c) -> @MAKEa('A').bind(this) a, b, c		#REVISIT: apply...
+	a: (a, b, c) -> @MAKEa('a').bind(this) a, b, c
 
 	#COMMAND: asynchronous test
 	_P: (a, b, c) ->
@@ -465,21 +462,21 @@ EXPORTED = class UT extends UTBase			#@UT
 #	P: (a, b, c) -> throw Error "UT005 P-tests aren't supported by ReactNative"
 #	p: (a, b, c) -> throw Error "UT005 P-tests aren't supported by ReactNative"
 # else
-	P: (a, b, c) -> MAKEa('P').bind(this) a, b, c
-	p: (a, b, c) -> MAKEa('p').bind(this) a, b, c
+	P: (a, b, c) -> @MAKEa('P').bind(this) a, b, c
+	p: (a, b, c) -> @MAKEa('p').bind(this) a, b, c
 # endif
 
 	#COMMAND: section / to build a hierarchy of tests
 	_S: (a, b, c) ->
 	_s: (a, b, c) ->
-	S: (a, b, c) -> MAKEs('S').bind(this) a, b, c
-	s: (a, b, c) -> MAKEs('s').bind(this) a, b, c
+	S: (a, b, c) -> @MAKEs('S').bind(this) a, b, c
+	s: (a, b, c) -> @MAKEs('s').bind(this) a, b, c
 
 	#COMMAND: synchronous test
 	_T: (a, b, c) ->
 	_t: (a, b, c) ->
-	T: (a, b, c) -> MAKEt('T').bind(this) a, b, c
-	t: (a, b, c) -> MAKEt('t').bind(this) a, b, c
+	T: (a, b, c) -> @MAKEt('T').bind(this) a, b, c
+	t: (a, b, c) -> @MAKEt('t').bind(this) a, b, c
 
 	@s_runner: -> UTRunner				#WORKAROUND: so don't have to change all the individual tests
 	@UTRunner: -> UTRunner				#PATTERN: not sure why can't just pass UTRunner itself (instead of function returning value)
@@ -503,7 +500,7 @@ class Test extends UTBase		#@Test #@test
 		for k,v of optsMore
 			@[k] = v
 
-		_ = @cmd + ' ' + @path			#		_ = "CN=#{@__CLASS_NAME} PATH=[#{@path}]"
+		_ = @cmd + ' ppaatthh' + @path			#		_ = "CN=#{@__CLASS_NAME} PATH=[#{@path}]"		#URGENT
 
 		@bForcePass = false
 		@markers = ""
@@ -594,7 +591,7 @@ class Test extends UTBase		#@Test #@test
 			heal: -> @bEnabled = false
 			one: -> "Fail: #{@failSnip @mFail}#{SP.d @msg, @msg}: #{@summary}"		#URGENT: put in subroutine
 
-		@one = -> "##{@testIndex} #{_}"
+		@one = -> "ONE: ##{@testIndex} #{_}"
 		@one2 = -> "Test: #{@one()}: cmd=#{@cmd} enabled=#{@bEnabled} mState=#{@stateFrag()} mStage=#{@mStage}#{SP.d @opts.mutex, "mutex=#{@opts.mutex}"} pf=#{@pass}/#{@failList.length}"
 		@one3 = -> "#{@one2()} [#{@optsCSV}]"
 		testList.unshift this
@@ -2047,7 +2044,10 @@ class UT_UT extends UT		#@UT_UT		@unittest  @ut
 						@resolve()
 				@s "b2", ->
 					@s "b2c1", ->
-						@a "b2c1d1", ->
+						@t "one", ->			# needs to be here to test stack
+							@human @one()
+							@human @one2()
+			@a "b2c1d1", ->
 							@resolve()
 		@a "@delay", ->
 			@delay 50
@@ -2170,9 +2170,6 @@ class UT_UT extends UT		#@UT_UT		@unittest  @ut
 				#TEST: format:red   doesn't throw right error
 			@t "logTransient", ->
 				@logTransient "a blip"
-		@t "one", ->
-			@human @one()
-			@human @one2()
 		@a "mutex", mutex:"J", (ut) ->
 			@log "inside MUTEX"
 			ut.resolve()
