@@ -1005,6 +1005,10 @@ b> #{V.vt b}
 		@msEnd = Date.now()
 		@msDur = @msEnd - @msBeg
 
+		if @opts.bTraceRecommended
+#			hr
+			trace.stackAllPop()		
+
 #		@logg trace.UT_DUR, "dur=#{@msDur}: #{@path}"
 #		@lg "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ post: who=#{who} ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 
@@ -1048,6 +1052,14 @@ b> #{V.vt b}
 		@opts = Object.assign {}, @runner.OPTS, @runner.OPTS?.perTestOpts?[@cname], @opts
 		delete @opts.perTestOpts		#H: this assumes PER TEST not PER FILE
 
+#		@log "@runner.OPTS", @runner.OPTS
+#		@log "START", @opts
+
+		if @opts.bTraceRecommended
+#			@log "opts", @opts
+			trace.stackAllPush @opts.ty
+#			@log "@opts.ty -> #{@opts.ty}", trace.one()
+
 #TODO: remove extranous test name in front: 39:58 [AsyncTest] #27 a FSUT /fileSize
 		@logg trace.UT_TEST_PRE_ONE_LINER, "^=^20 #{@one()}", undefined, format:"yellow"		# /#{g_testList.length} #{@cname} #{@cmd}:#{@tn}#{AP.c_d trace.DETAIL, "path=#{@path}"}"
 
@@ -1088,7 +1100,9 @@ TypeError: One of the sources for assign has an enumerable key on the prototype 
 			if @opts.exceptionMessage and !@opts.expect?
 				@opts.expect = "EXCEPTION"
 
-			cmds = "bManual,desc,exceptionMessage,expect,hang,markers,mkr,mType,mutex,onAssert,onEq,onError,onException,onTimeout,onUnfail,onUnexpectedPromise,SO,RUNTIME_SECS,tags,timeout,tru,url,USER_CNT".split ','
+			cmds = "bManual,desc,exceptionMessage,expect,hang,markers,mkr,mType,mutex,onAssert,onEq,onError,onException,onTimeout,onUnfail,onUnexpectedPromise,SO,RUNTIME_SECS,tags,timeout,tru,ty,url,USER_CNT".split ','
+#			for cmd in cmds
+#				console.log "_t \"#{cmd}\", (ut) ->"
 			cmds.push '_' + cmd for cmd in cmds
 
 			for k of @opts
@@ -1372,6 +1386,10 @@ class UTRunner extends UTBase		#@UTRunner @runner
 				o: "-sync"
 				d: "only sychronous tests"
 			,
+				o: "-t"
+				d: "Trace: per-test pre-specified CSV passed via -ty flag"
+				impl: "bTraceRecommended=true"
+			,
 				o: "-tagn"
 				d: "exclude tag1,tag2,... (FUTURE)"
 			,
@@ -1389,7 +1407,11 @@ class UTRunner extends UTBase		#@UTRunner @runner
 			,
 				o: "-ty"
 				d: "Trace Yes: turn on all trace: naked or -ty ut,... for trace.UT (\"log tests\")"  #DOMAIN-SPECIFIC #MOVE #H
+				ex: "-ty backronym,retronym"
 		]
+
+		for optRec in optionList
+			O.validate optRec, onlyCSV:"o,d,ex,impl"
 
 		@eventFire "CLI-optionList", optionList
 		optionList.sort (a,b) -> if a.o > b.o then 1 else -1
@@ -1418,7 +1440,7 @@ class UTRunner extends UTBase		#@UTRunner @runner
 
 		#GITHUB: remove all trace references?
 		maybeGrabTrace = (v) =>
-			if i < a.length and trace.RECSV.test a[i]		#TEST
+			if i < a.length and trace.RE_CSV.test a[i]
 				setTrace a[i++], v
 				true
 			else
@@ -1466,7 +1488,7 @@ class UTRunner extends UTBase		#@UTRunner @runner
 			console.log """
 node tests.js [options] test# ...
 
-OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
+#{S.autoTable(optionList, headerMap:{o:"option",d:"description",impl:"internals",ex:"example"})}"""
 
 		CSV = "testIndex,cmd,path,optsCSV,tagsCSV"
 		NUMBER_CSL_RE = /^\d+(,\d+)*$/
@@ -1565,6 +1587,10 @@ OPTIONS:#{S.autoTable(optionList, bHeader:false)}"""
 						bHELP = true
 					when "-sync"
 						@OPTS.bSync = true
+					when "-t"
+						@OPTS.bTraceRecommended = true
+#						if i < a.length and trace.RE_CSV.test a[i]
+#							@OPTS.bTraceRecommended = a[i++]
 					when "-tg"
 						traceList a[i++]
 					when "-tl"
@@ -2087,7 +2113,9 @@ class UT_UT extends UT		#@UT_UT		@unittest  @ut
 		@s "options", ->
 			@s "general", ->
 				@t "commented out", _desc:"this is not used", ->
-			@s "specific", ->
+			@s "one by one", ->
+				@_t "bManual", (ut) ->
+				@_t "desc", (ut) ->
 				@t "exceptionMessage", exceptionMessage:"Deanna is beautiful",mType:@NEG, ->
 					throw Error "Deanna is beautiful"
 				@s "expect", ->
@@ -2099,28 +2127,50 @@ class UT_UT extends UT		#@UT_UT		@unittest  @ut
 					@t "bManual: fatal", {desc:"can't test because it exits node",bManual:true}, ->
 						@fatal()
 						@fatal "display me on console"
-					@a "promise timeout", {timeout:10, expect:"TIMEOUT", mType:@NEG}, ->
-#						DO NOT CALL ut.resolve()
-				@a "onTimeout", {
-						timeout:10
-						onTimeout: (ut) ->
-#							@log "opts", ut.opts			#MOST-BIZARRE BUG EVER!  the get: property of ut was opening connection:
-#__76  >                                   ∟ user: ut
-#__77  40:58 [TestHub] open ut
-#__78  40:58 [TestHub] auditOpen SQL-ut: count=1
-
-							@log "fail", ut.fail
-							@log "onTimeout called: #{ut.opts.timeout}=#{@opts.timeout}"
-							ut.fail.heal()
-					}, ->
-						@log "do not call resolve in order to force timeout"
-				@a "timeout", timeout:1000, (ut) ->
-#					@log "opts parameter"
-#					O.LOG ut.opts
-					@eq ut.opts.timeout, 1000
-					ut.resolve()
+					@a "promise timeout", timeout:10, expect:"TIMEOUT", mType:@NEG, ->
+#						DO NOT CALL ut.resolve()				@_t "hang", (ut) ->
 #				@t "seek exception but don't get one", expect:"EXCEPTION",mType:@NEG, ->
 #					@log "hello"
+				@_t "markers", (ut) ->
+				@_t "mkr", (ut) ->
+				@_t "mType", (ut) ->
+				@_t "mutex", (ut) ->
+				@_t "onAssert", (ut) ->
+				@_t "onEq", (ut) ->
+				@_t "onError", (ut) ->
+				@_t "onException", (ut) ->
+				@a "onTimeout", {
+					timeout:10
+					onTimeout: (ut) ->
+# @log "opts", ut.opts			#MOST-BIZARRE BUG EVER!  the get: property of ut was opening connection:
+# __76  > ∟ user: ut
+# __77  40:58 [TestHub] open ut
+# __78  40:58 [TestHub] auditOpen SQL-ut: count=1
+						@log "fail", ut.fail
+						@log "onTimeout called: #{ut.opts.timeout}=#{@opts.timeout}"
+						ut.fail.heal()
+				}, ->
+					@log "do not call resolve in order to force timeout"
+				@_t "onUnfail", (ut) ->
+				@_t "onUnexpectedPromise", (ut) ->
+				@_t "SO", (ut) ->
+				@_t "RUNTIME_SECS", (ut) ->
+				@t "t bTraceRecommended", ty:"FB_GET,FB_GET_404", ->
+					if @opts.bTraceRecommended
+						@assert trace.FB_GET
+						@assert trace.FB_GET_404
+					else
+						#TODO: don't up ut.succ by one
+				@_t "tags", (ut) ->
+				@a "timeout", timeout:1000, (ut) ->
+	#					@log "opts parameter"
+	#					O.LOG ut.opts
+					@eq ut.opts.timeout, 1000
+					ut.resolve()
+				@_t "tru", (ut) ->
+				@_t "ty", (ut) ->
+				@_t "url", (ut) ->
+				@_t "USER_CNT", (ut) ->
 		@s "logging", ->
 			@t "log no arguments", ->
 				if trace.HUMAN
@@ -2248,14 +2298,14 @@ class UT_UT extends UT		#@UT_UT		@unittest  @ut
 			keep = @runner.UT
 			@log "keep", keep
 
-			trace.stackPush "UT", 55
+			trace.stackOnePush "UT", 55
 			@eq @runner.UT, 55, "set?"
 #			@log "yes show"	#, @trace
 			@runner.UT = false
 			@eq @runner.UT, false, "false?"
 #			@log "no show"	#, @trace
 
-			trace.stackPop "UT"
+			trace.stackOnePop "UT"
 
 			@eq @runner.UT, keep, "keep"
 #		@t "clash with built-in", {mType:@NEG}, (ut) ->

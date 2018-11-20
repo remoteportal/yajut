@@ -1207,6 +1207,11 @@ Test = class Test extends UTBase { //@Test #@test
     this.mState = this.STATE_DONE;
     this.msEnd = Date.now();
     this.msDur = this.msEnd - this.msBeg;
+    if (this.opts.bTraceRecommended) {
+      //			hr
+      trace.stackAllPop();
+    }
+    
     //		@logg trace.UT_DUR, "dur=#{@msDur}: #{@path}"
     //		@lg "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ post: who=#{who} ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 
@@ -1245,6 +1250,14 @@ Test = class Test extends UTBase { //@Test #@test
     var k, pn, pv, ref, ref1, ref2, ref3, ref4, v;
     this.opts = Object.assign({}, this.runner.OPTS, (ref = this.runner.OPTS) != null ? (ref1 = ref.perTestOpts) != null ? ref1[this.cname] : void 0 : void 0, this.opts);
     delete this.opts.perTestOpts; //H: this assumes PER TEST not PER FILE
+    
+    //		@log "@runner.OPTS", @runner.OPTS
+    //		@log "START", @opts
+    if (this.opts.bTraceRecommended) {
+      //			@log "opts", @opts
+      trace.stackAllPush(this.opts.ty);
+    }
+    //			@log "@opts.ty -> #{@opts.ty}", trace.one()
     this.logg(trace.UT_TEST_PRE_ONE_LINER, `^=^20 ${this.one()}`, void 0, {
       format: "yellow" // /#{g_testList.length} #{@cname} #{@cmd}:#{@tn}#{AP.c_d trace.DETAIL, "path=#{@path}"}"
     });
@@ -1288,9 +1301,11 @@ Test = class Test extends UTBase { //@Test #@test
       if (this.opts.exceptionMessage && (this.opts.expect == null)) {
         this.opts.expect = "EXCEPTION";
       }
-      cmds = "bManual,desc,exceptionMessage,expect,hang,markers,mkr,mType,mutex,onAssert,onEq,onError,onException,onTimeout,onUnfail,onUnexpectedPromise,SO,RUNTIME_SECS,tags,timeout,tru,url,USER_CNT".split(',');
+      cmds = "bManual,desc,exceptionMessage,expect,hang,markers,mkr,mType,mutex,onAssert,onEq,onError,onException,onTimeout,onUnfail,onUnexpectedPromise,SO,RUNTIME_SECS,tags,timeout,tru,ty,url,USER_CNT".split(',');
       for (j = 0, len = cmds.length; j < len; j++) {
         cmd = cmds[j];
+        //			for cmd in cmds
+        //				console.log "_t \"#{cmd}\", (ut) ->"
         cmds.push('_' + cmd);
       }
       for (k in this.opts) {
@@ -1541,7 +1556,7 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
   }
 
   CLI(a) {
-    var ADDTEST, CLIParser, CSV, CSV2Object, NUMBER_CSL_RE, UniqueTester, _, aMod, bActed, bHELP, dupMap, er, getKeys, i, j, l, len, len1, len2, len3, log_help, maybeGrabTrace, monUnique, optionList, optionalNumber, p, parser, q, setTrace, sum, test, testPattern, tn, traceList, word;
+    var ADDTEST, CLIParser, CSV, CSV2Object, NUMBER_CSL_RE, UniqueTester, _, aMod, bActed, bHELP, dupMap, er, getKeys, i, j, l, len, len1, len2, len3, len4, log_help, maybeGrabTrace, monUnique, optRec, optionList, optionalNumber, p, parser, q, r, setTrace, sum, test, testPattern, tn, traceList, word;
     optionList = [
       {
         //EASY 
@@ -1632,6 +1647,11 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
         d: "only sychronous tests"
       },
       {
+        o: "-t",
+        d: "Trace: per-test pre-specified CSV passed via -ty flag",
+        impl: "bTraceRecommended=true"
+      },
+      {
         o: "-tagn",
         d: "exclude tag1,tag2,... (FUTURE)"
       },
@@ -1653,9 +1673,16 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
       },
       {
         o: "-ty",
-        d: "Trace Yes: turn on all trace: naked or -ty ut,... for trace.UT (\"log tests\")" //DOMAIN-SPECIFIC #MOVE #H
+        d: "Trace Yes: turn on all trace: naked or -ty ut,... for trace.UT (\"log tests\")", //DOMAIN-SPECIFIC #MOVE #H
+        ex: "-ty backronym,retronym"
       }
     ];
+    for (j = 0, len = optionList.length; j < len; j++) {
+      optRec = optionList[j];
+      O.validate(optRec, {
+        onlyCSV: "o,d,ex,impl"
+      });
+    }
     this.eventFire("CLI-optionList", optionList);
     optionList.sort(function(a, b) {
       if (a.o > b.o) {
@@ -1665,7 +1692,7 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
       }
     });
     CSV2Object = (key) => {
-      var _, j, k, keys, len, ref, results;
+      var _, k, keys, l, len1, ref, results;
       //			console.log "CSV2Object: global.#{key}"
       if (i < a.length) {
         if (/^[\$\.0-9a-zA-Z_]+(,[\$\.0-9a-zA-Z_]+)*$/.test((keys = a[i++]))) {
@@ -1674,8 +1701,8 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
           global[key] = this.OPTS[key] = _ = {};
           ref = keys.split(',');
           results = [];
-          for (j = 0, len = ref.length; j < len; j++) {
-            k = ref[j];
+          for (l = 0, len1 = ref.length; l < len1; l++) {
+            k = ref[l];
             _[k.toUpperCase()] = true;
             results.push(console.log(`CSV2Object: global[${key}][${k.toUpperCase()
           //C
@@ -1699,7 +1726,7 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
     
     //GITHUB: remove all trace references?
     maybeGrabTrace = (v) => {
-      if (i < a.length && trace.RECSV.test(a[i])) {
+      if (i < a.length && trace.RE_CSV.test(a[i])) {
         setTrace(a[i++], v);
         return true;
       } else {
@@ -1722,12 +1749,12 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
       return trace;
     };
     traceList = (pattern) => {
-      var depth, j, k, last, len, ref;
+      var depth, k, l, last, len1, ref;
       depth = 0;
       last = 'A';
       ref = Object.keys(trace).sort();
-      for (j = 0, len = ref.length; j < len; j++) {
-        k = ref[j];
+      for (l = 0, len1 = ref.length; l < len1; l++) {
+        k = ref[l];
         if (k[0] !== last) {
           last = k[0];
           depth++;
@@ -1739,13 +1766,13 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
       return this.exit(this.WHY_CLI);
     };
     getKeys = (bEnable) => {
-      var _, j, k, keys, len, ref;
+      var _, k, keys, l, len1, ref;
       if (i < a.length) {
         if (/^[a-zA-Z_]+(,[a-zA-Z_]+)*$/.test((keys = a[i++]))) {
           _ = {};
           ref = keys.split(',');
-          for (j = 0, len = ref.length; j < len; j++) {
-            k = ref[j];
+          for (l = 0, len1 = ref.length; l < len1; l++) {
+            k = ref[l];
             _[k.toUpperCase()] = true;
           }
           this.OPTS["keys" + bEnable] = _;
@@ -1758,8 +1785,13 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
       }
     };
     log_help = () => {
-      return console.log(`node tests.js [options] test# ...\n\nOPTIONS:${S.autoTable(optionList, {
-        bHeader: false
+      return console.log(`node tests.js [options] test# ...\n\n${S.autoTable(optionList, {
+        headerMap: {
+          o: "option",
+          d: "description",
+          impl: "internals",
+          ex: "example"
+        }
       })}`);
     };
     CSV = "testIndex,cmd,path,optsCSV,tagsCSV";
@@ -1793,8 +1825,8 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
     });
 //		monUnique.add "peter"
 //		monUnique.add "peter"
-    for (j = 0, len = g_testList.length; j < len; j++) {
-      test = g_testList[j];
+    for (l = 0, len1 = g_testList.length; l < len1; l++) {
+      test = g_testList[l];
       //			@log test.mkr
       monUnique.add(test.mkr); //? test.tn
     }
@@ -1814,8 +1846,8 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
           case "-dup":
             // O.DUMP g_testList
             dupMap = {};
-            for (l = 0, len1 = g_testList.length; l < len1; l++) {
-              test = g_testList[l];
+            for (p = 0, len2 = g_testList.length; p < len2; p++) {
+              test = g_testList[p];
               if (!dupMap[test.tn]) {
                 dupMap[test.tn] = [];
               }
@@ -1881,8 +1913,8 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
           case "-mkr":
             testPattern = a[i++];
             aMod = [];
-            for (p = 0, len2 = g_testList.length; p < len2; p++) {
-              test = g_testList[p];
+            for (q = 0, len3 = g_testList.length; q < len3; q++) {
+              test = g_testList[q];
               if (test.mkr) {
                 aMod.push({
                   testIndex: test.testIndex,
@@ -1920,6 +1952,11 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
           case "-sync":
             this.OPTS.bSync = true;
             break;
+          case "-t":
+            this.OPTS.bTraceRecommended = true;
+            break;
+          //						if i < a.length and trace.RE_CSV.test a[i]
+          //							@OPTS.bTraceRecommended = a[i++]
           case "-tg":
             traceList(a[i++]);
             break;
@@ -2005,8 +2042,8 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
     //		if @OPTS.mFailMode is @FM_FAILFAST			#POP
     //			trace.tristate t r u e
     if (this.OPTS.bSerial != null) {
-      for (q = 0, len3 = g_testList.length; q < len3; q++) {
-        test = g_testList[q];
+      for (r = 0, len4 = g_testList.length; r < len4; r++) {
+        test = g_testList[r];
         if (!test.opts) {
           console.log("falsy test.opts");
           O.LOG(test);
@@ -2644,7 +2681,9 @@ UT_UT = class UT_UT extends UT { //@UT_UT		@unittest  @ut
           _desc: "this is not used"
         }, function() {});
       });
-      return this.s("specific", function() {
+      return this.s("one by one", function() {
+        this._t("bManual", function(ut) {});
+        this._t("desc", function(ut) {});
         this.t("exceptionMessage", {
           exceptionMessage: "Deanna is beautiful",
           mType: this.NEG
@@ -2676,14 +2715,24 @@ UT_UT = class UT_UT extends UT { //@UT_UT		@unittest  @ut
             mType: this.NEG
           }, function() {});
         });
-        //						DO NOT CALL ut.resolve()
+        //						DO NOT CALL ut.resolve()				@_t "hang", (ut) ->
+        //				@t "seek exception but don't get one", expect:"EXCEPTION",mType:@NEG, ->
+        //					@log "hello"
+        this._t("markers", function(ut) {});
+        this._t("mkr", function(ut) {});
+        this._t("mType", function(ut) {});
+        this._t("mutex", function(ut) {});
+        this._t("onAssert", function(ut) {});
+        this._t("onEq", function(ut) {});
+        this._t("onError", function(ut) {});
+        this._t("onException", function(ut) {});
         this.a("onTimeout", {
           timeout: 10,
           onTimeout: function(ut) {
-            //							@log "opts", ut.opts			#MOST-BIZARRE BUG EVER!  the get: property of ut was opening connection:
-            //__76  >                                   ∟ user: ut
-            //__77  40:58 [TestHub] open ut
-            //__78  40:58 [TestHub] auditOpen SQL-ut: count=1
+            // @log "opts", ut.opts			#MOST-BIZARRE BUG EVER!  the get: property of ut was opening connection:
+            // __76  > ∟ user: ut
+            // __77  40:58 [TestHub] open ut
+            // __78  40:58 [TestHub] auditOpen SQL-ut: count=1
             this.log("fail", ut.fail);
             this.log(`onTimeout called: ${ut.opts.timeout}=${this.opts.timeout}`);
             return ut.fail.heal();
@@ -2691,7 +2740,22 @@ UT_UT = class UT_UT extends UT { //@UT_UT		@unittest  @ut
         }, function() {
           return this.log("do not call resolve in order to force timeout");
         });
-        return this.a("timeout", {
+        this._t("onUnfail", function(ut) {});
+        this._t("onUnexpectedPromise", function(ut) {});
+        this._t("SO", function(ut) {});
+        this._t("RUNTIME_SECS", function(ut) {});
+        this.t("t bTraceRecommended", {
+          ty: "FB_GET,FB_GET_404"
+        }, function() {
+          if (this.opts.bTraceRecommended) {
+            this.assert(trace.FB_GET);
+            return this.assert(trace.FB_GET_404);
+          } else {
+
+          }
+        });
+        this._t("tags", function(ut) {});
+        this.a("timeout", {
           timeout: 1000
         }, function(ut) {
           //					@log "opts parameter"
@@ -2699,10 +2763,12 @@ UT_UT = class UT_UT extends UT { //@UT_UT		@unittest  @ut
           this.eq(ut.opts.timeout, 1000);
           return ut.resolve();
         });
+        this._t("tru", function(ut) {});
+        this._t("ty", function(ut) {});
+        this._t("url", function(ut) {});
+        return this._t("USER_CNT", function(ut) {});
       });
     });
-    //				@t "seek exception but don't get one", expect:"EXCEPTION",mType:@NEG, ->
-    //					@log "hello"
     this.s("logging", function() {
       this.t("log no arguments", function() {
         if (trace.HUMAN) {
@@ -2919,13 +2985,13 @@ UT_UT = class UT_UT extends UT { //@UT_UT		@unittest  @ut
       var keep;
       keep = this.runner.UT;
       this.log("keep", keep);
-      trace.stackPush("UT", 55);
+      trace.stackOnePush("UT", 55);
       this.eq(this.runner.UT, 55, "set?");
       //			@log "yes show"	#, @trace
       this.runner.UT = false;
       this.eq(this.runner.UT, false, "false?");
       //			@log "no show"	#, @trace
-      trace.stackPop("UT");
+      trace.stackOnePop("UT");
       return this.eq(this.runner.UT, keep, "keep");
     });
   }
