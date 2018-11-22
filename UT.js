@@ -388,7 +388,7 @@ EXPORTED = UT = class UT extends UTBase { //@UT
   constructor(WORK_AROUND_UT_CLASS_NAME_OVERRIDE) {
     var ref;
     super();
-    //COMBINE: these three somehow
+    //COMBINE: MAKE*
     this.MAKEa = this.MAKEa.bind(this);
     this.MAKEt = this.MAKEt.bind(this);
     this.MAKEs = this.MAKEs.bind(this);
@@ -408,6 +408,9 @@ EXPORTED = UT = class UT extends UTBase { //@UT
       }
       if (typeof fn !== "function") {
         abort(`MAKEa: [${tn}] MISSING fn`);
+      }
+      if (tn.includes('/')) {
+        throw Error(`MAKEa: path=[${this._path}]: slash (/) not allowed in tn=${tn}`);
       }
       //		if bRunning and t_depth is 1 => @lgFatal "NESTED t: the parent of '#{tn}' is also a test; change to 's' (section)"
       //		@lg "found async: #{tn} --> #{@__CLASS_NAME}"
@@ -442,6 +445,9 @@ EXPORTED = UT = class UT extends UTBase { //@UT
       if (typeof fn !== "function") {
         abort(`MAKEa: [${tn}] MISSING fn`);
       }
+      if (tn.includes('/')) {
+        throw Error(`MAKEa: path=[${this._path}]: slash (/) not allowed in tn=${tn}`);
+      }
       return new SyncTest({
         cmd: cmd,
         cname: this.__CLASS_NAME,
@@ -471,6 +477,9 @@ EXPORTED = UT = class UT extends UTBase { //@UT
       }
       if (!IS.fn(fn)) {
         throw "MAKEs: fn missing";
+      }
+      if (tn.includes('/')) {
+        throw Error(`MAKEa: path=[${this._path}]: slash (/) not allowed in tn=${tn}`);
       }
       this.testStack.push(tn);
       this._path = this.testStack.join('/');

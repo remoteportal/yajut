@@ -371,7 +371,7 @@ EXPORTED = class UT extends UTBase			#@UT
 		@_path = ''
 		@testStack = []
 
-	#COMBINE: these three somehow
+	#COMBINE: MAKE*
 	MAKEa: (cmd) =>
 		(tn, fn) ->
 			if IS.o fn
@@ -380,6 +380,9 @@ EXPORTED = class UT extends UTBase			#@UT
 
 			unless typeof fn is "function"
 				abort "MAKEa: [#{tn}] MISSING fn"
+
+			if tn.includes '/'
+				throw Error "MAKEa: path=[#{@_path}]: slash (/) not allowed in tn=#{tn}"
 
 			#		if bRunning and t_depth is 1 => @lgFatal "NESTED t: the parent of '#{tn}' is also a test; change to 's' (section)"
 			#		@lg "found async: #{tn} --> #{@__CLASS_NAME}"
@@ -409,6 +412,9 @@ EXPORTED = class UT extends UTBase			#@UT
 			unless typeof fn is "function"
 				abort "MAKEa: [#{tn}] MISSING fn"
 
+			if tn.includes '/'
+				throw Error "MAKEa: path=[#{@_path}]: slash (/) not allowed in tn=#{tn}"
+
 			new SyncTest
 				cmd: cmd
 				cname: @__CLASS_NAME
@@ -431,6 +437,9 @@ EXPORTED = class UT extends UTBase			#@UT
 
 			throw "MAKEs: 1st arg must be s" unless IS.s tn
 			throw "MAKEs: fn missing" unless IS.fn fn
+
+			if tn.includes '/'
+				throw Error "MAKEa: path=[#{@_path}]: slash (/) not allowed in tn=#{tn}"
 
 			@testStack.push tn
 
