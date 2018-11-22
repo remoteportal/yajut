@@ -867,7 +867,7 @@ Test = class Test extends UTBase { //@Test #@test
         console.log(`${this.one()}: ${this.failList.length} RESIDUAL ERROR${(this.failList.length === 1 ? "" : "S")}`);
         console.log('-'.repeat(75));
         ref12 = this.failList;
-        // @FAIL @FAIL_TIMEOUT, "[[#{@path}]] TIMEOUT: ut.{resolve,reject} not called within #{ms}ms in asynch test"
+        // @FAIL @FAIL_TIMEOUT, "[[#{@path}]] TO: ut.{resolve,reject} not called within #{ms}ms in asynch test"
         for (i = r = 0, len1 = ref12.length; r < len1; i = ++r) {
           fail = ref12[i];
           console.log(`SHORT: #${i + 1}  ${fail.one()}`);
@@ -1397,7 +1397,7 @@ AsyncTest = (function() {
         ms = this.opts.hang ? 2147483647 : this.opts.timeout;
         //			@lg "setting timer: #{ms}ms"
         timer = setTimeout(() => {
-          this.log("ASYNC TIMEOUT!");
+          this.log("ASYNC TO!");
           return this.after(this.FAIL_TIMEOUT, ms); // promise is never consummated and that's okay
         }, ms);
         try {

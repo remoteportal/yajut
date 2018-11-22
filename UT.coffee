@@ -724,7 +724,7 @@ markers: got     : #{@markers}
 				console.log "#{@one()}: #{@failList.length} RESIDUAL ERROR#{if @failList.length is 1 then "" else "S"}"
 				console.log '-'.repeat 75
 
-				# @FAIL @FAIL_TIMEOUT, "[[#{@path}]] TIMEOUT: ut.{resolve,reject} not called within #{ms}ms in asynch test"
+				# @FAIL @FAIL_TIMEOUT, "[[#{@path}]] TO: ut.{resolve,reject} not called within #{ms}ms in asynch test"
 				for fail,i in @failList
 					console.log "SHORT: ##{i+1}  #{fail.one()}"
 
@@ -1178,7 +1178,7 @@ class AsyncTest extends Test				#@AsyncTest @async
 			ms = if @opts.hang then 2147483647 else @opts.timeout
 #			@lg "setting timer: #{ms}ms"
 			timer = setTimeout =>
-					@log "ASYNC TIMEOUT!"
+					@log "ASYNC TO!"
 					@after @FAIL_TIMEOUT, ms			# promise is never consummated and that's okay
 				,
 					ms
