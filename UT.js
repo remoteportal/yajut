@@ -2078,34 +2078,38 @@ UTRunner = class UTRunner extends UTBase { //@UTRunner @runner
   }
 
   eventFire(eventName, primative, test, opts) {
-    var _opts;
-    _opts = opts != null ? opts : this.OPTS;
-    if (!this.bRunning && eventName !== "runner-done") {
-      return;
-    }
-    //			console.log "shutting down is discard most events"
-    this.cb(eventName, primative, test, _opts, this);
-    this.onEvent(eventName, primative, test, _opts);
-    switch (eventName) {
-      case "CLI-optionList":
-        return this.onEventCLIOptionList(primative, _opts);
-      case "CLI-flag":
-        return this.onEventCLIFlag(primative, _opts);
-      case "left-open":
-        return this.onEventLeftOpen(primative, _opts);
-      case "runner-done":
-        return this.onEventRunnerDone(primative, _opts);
-      case "runner-start":
-        return this.onEventRunnerStart(primative, _opts);
-      case "test-done":
-        return this.onEventTestDone(primative, test, _opts);
-      case "test-start":
-        return this.onEventTestStart(primative, test, _opts);
+    var _opts, ex;
+    try {
+      _opts = opts != null ? opts : this.OPTS;
+      if (!this.bRunning && eventName !== "runner-done") {
+        return;
+      }
+      //			console.log "shutting down is discard most events"
+      this.cb(eventName, primative, test, _opts, this);
+      this.onEvent(eventName, primative, test, _opts);
+      switch (eventName) {
+        case "CLI-optionList":
+          return this.onEventCLIOptionList(primative, _opts);
+        case "CLI-flag":
+          return this.onEventCLIFlag(primative, _opts);
+        case "left-open":
+          return this.onEventLeftOpen(primative, _opts);
+        case "runner-done":
+          return this.onEventRunnerDone(primative, _opts);
+        case "runner-start":
+          return this.onEventRunnerStart(primative, _opts);
+        case "test-done":
+          return this.onEventTestDone(primative, test, _opts);
+        case "test-start":
+          return this.onEventTestStart(primative, test, _opts);
+      }
+    } catch (error) {
+      //			else
+      //				throw Error "UT004 EVENT NOT HANDLED: eventName=#{eventName}: Did subclass override methods pass all parameters to super.onEvent?"
+      ex = error;
+      return this.logCatch(`eventFire: eventName=${eventName}`, ex);
     }
   }
-
-  //			else
-  //				throw Error "UT004 EVENT NOT HANDLED: eventName=#{eventName}: Did subclass override methods pass all parameters to super.onEvent?"
 
   //	Runner.exit
   exit(mWhy1, msg) {

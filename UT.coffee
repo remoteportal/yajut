@@ -1684,32 +1684,34 @@ node tests.js [options] test# ...
 
 
 	eventFire: (eventName, primative, test, opts) ->
-		_opts = opts ? @OPTS
+		try
+			_opts = opts ? @OPTS
 
-		if !@bRunning and eventName isnt "runner-done"
-#			console.log "shutting down is discard most events"
-			return
+			if !@bRunning and eventName isnt "runner-done"
+	#			console.log "shutting down is discard most events"
+				return
 
-		@cb eventName, primative, test, _opts, @
-		@onEvent eventName, primative, test, _opts
-		switch eventName
-			when "CLI-optionList"
-				@onEventCLIOptionList primative, _opts
-			when "CLI-flag"
-				@onEventCLIFlag primative, _opts
-			when "left-open"
-				@onEventLeftOpen primative, _opts
-			when "runner-done"
-				@onEventRunnerDone primative, _opts
-			when "runner-start"
-				@onEventRunnerStart primative, _opts
-			when "test-done"
-				@onEventTestDone primative, test, _opts
-			when "test-start"
-				@onEventTestStart primative, test, _opts
-#			else
-#				throw Error "UT004 EVENT NOT HANDLED: eventName=#{eventName}: Did subclass override methods pass all parameters to super.onEvent?"
-
+			@cb eventName, primative, test, _opts, @
+			@onEvent eventName, primative, test, _opts
+			switch eventName
+				when "CLI-optionList"
+					@onEventCLIOptionList primative, _opts
+				when "CLI-flag"
+					@onEventCLIFlag primative, _opts
+				when "left-open"
+					@onEventLeftOpen primative, _opts
+				when "runner-done"
+					@onEventRunnerDone primative, _opts
+				when "runner-start"
+					@onEventRunnerStart primative, _opts
+				when "test-done"
+					@onEventTestDone primative, test, _opts
+				when "test-start"
+					@onEventTestStart primative, test, _opts
+	#			else
+	#				throw Error "UT004 EVENT NOT HANDLED: eventName=#{eventName}: Did subclass override methods pass all parameters to super.onEvent?"
+		catch ex
+			@logCatch "eventFire: eventName=#{eventName}", ex
 
 
 #	Runner.exit
