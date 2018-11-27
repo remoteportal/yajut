@@ -239,7 +239,7 @@ g_testList = []				#RABBIT-HOLE: spent 1h trying to move into UTBase but got res
 
 
 #REVISIT
-log = -> global.log.apply this, arguments		#PATTERN	#R
+log = -> global.log.apply @, arguments		#PATTERN	#R
 
 
 
