@@ -699,8 +699,7 @@ Test = class Test extends UTBase { //@Test #@test
       }
 
       one() {
-        return `Fail: ${this.failSnip(this.mFail)}${SP.d(this.msg, this.msg)}: ${this.summary //URGENT: put in subroutine
-}`;
+        return `Fail: ${this.failSnip(this.mFail)}${SP.d(this.msg, this.msg)}: ${this.summary}`;
       }
 
     };
@@ -946,19 +945,32 @@ Test = class Test extends UTBase { //@Test #@test
     this.eq = function(a, b, msg, o) {
       return this.eqINNER.apply(this, [
         "eq",
+        true,
         ...arguments //PATTERN #FORWARD #CURRYING #INJECT-ONE #ADD-ONE
       ]);
     };
     this.Eq = function(a, b, msg, o) {
-      return this.eqINNER.apply(this, ["Eq", ...arguments]);
+      return this.eqINNER.apply(this, ["Eq", true, ...arguments]);
     };
     this.EQ = function(a, b, msg, o) {
-      return this.eqINNER.apply(this, ["EQ", ...arguments]);
+      return this.eqINNER.apply(this, ["EQ", true, ...arguments]);
     };
     this.EQO = function(a, b, msg, o) {
-      return this.eqINNER.apply(this, ["EQO", ...arguments]);
+      return this.eqINNER.apply(this, ["EQO", true, ...arguments]);
     };
-    this.eqINNER = (mn, a, b, msg, o) => {
+    this.neq = function(a, b, msg, o) {
+      return this.eqINNER.apply(this, ["neq", false, ...arguments]);
+    };
+    this.NEq = function(a, b, msg, o) {
+      return this.eqINNER.apply(this, ["NEq", false, ...arguments]);
+    };
+    this.NEQ = function(a, b, msg, o) {
+      return this.eqINNER.apply(this, ["NEQ", false, ...arguments]);
+    };
+    this.NEQO = function(a, b, msg, o) {
+      return this.eqINNER.apply(this, ["NEQO", false, ...arguments]);
+    };
+    this.eqINNER = (mn, bPositiveLogic, a, b, msg, o) => {
       var doValue, report, s;
       //							PASS CRITERIA
       // eq	#EQ-NOT-STRICT		"as string equal"		(new String "6") eq 6
@@ -997,8 +1009,14 @@ Test = class Test extends UTBase { //@Test #@test
         }
         //					console.log "aaa> #{a}"
         //					console.log "bbb> #{b}"
-        if (!V.EQ(a, b)) {
-          return s = `${mn} values violation`;
+        if (bPositiveLogic) {
+          if (!V.EQ(a, b)) {
+            return s = `${mn} values violation`;
+          }
+        } else {
+          if (V.EQ(a, b)) {
+            return s = `${mn} values violation`;
+          }
         }
       };
       switch (mn) {
@@ -1009,15 +1027,29 @@ Test = class Test extends UTBase { //@Test #@test
           doValue();
           break;
         case "EQ":
-          if (V.Type(a) !== V.Type(b)) {
-            s = "types violation";
+          if (bPositiveLogic) {
+            if (V.Type(a) !== V.Type(b)) {
+              s = "types violation";
+            } else {
+              doValue();
+            }
           } else {
-            doValue();
+            if (V.Type(a) === V.Type(b)) {
+              s = "types violation";
+            } else {
+              doValue();
+            }
           }
           break;
         case "EQO":
-          if (a !== b) {
-            s = "EQO not same object";
+          if (bPositiveLogic) {
+            if (a !== b) {
+              s = "EQO not same object";
+            }
+          } else {
+            if (a === b) {
+              s = "EQO not same object";
+            }
           }
       }
       if (s) {

@@ -595,7 +595,7 @@ class Test extends UTBase		#@Test #@test
 #			full: -> Context.textFormat.red "#{@one()}\n\n#{@detail}#{SP.d @stack, "\n#{@stack}"}"
 			full: -> "#{@one()}\n\ndetail=#{@detail}\no=#{O.DUMP @o, @opts}\n#{SP.d @stack, "\n#{@stack}"}"
 			heal: -> @bEnabled = false
-			one: -> "Fail: #{@failSnip @mFail}#{SP.d @msg, @msg}: #{@summary}"		#URGENT: put in subroutine
+			one: -> "Fail: #{@failSnip @mFail}#{SP.d @msg, @msg}: #{@summary}"
 
 		@one = -> "##{@testIndex} #{_}"
 		@one2 = -> "Test: #{@one()}: cmd=#{@cmd} enabled=#{@bEnabled} mState=#{@stateFrag()} mStage=#{@mStage}#{SP.d @opts.mutex, "mutex=#{@opts.mutex}"} pf=#{@pass}/#{@failList.length}"
@@ -795,11 +795,17 @@ markers: got     : #{@markers}
 						resolve to
 					,
 						ms
-		@eq  =	(a, b, msg, o) -> 	@eqINNER.apply @, ["eq",  arguments...]			#PATTERN #FORWARD #CURRYING #INJECT-ONE #ADD-ONE
-		@Eq  =	(a, b, msg, o) -> 	@eqINNER.apply @, ["Eq",  arguments...]
-		@EQ  =	(a, b, msg, o) -> 	@eqINNER.apply @, ["EQ",  arguments...]
-		@EQO =	(a, b, msg, o) -> 	@eqINNER.apply @, ["EQO", arguments...]
-		@eqINNER = (mn, a, b, msg, o) =>
+		@eq  =	(a, b, msg, o) -> 	@eqINNER.apply @, ["eq", 	true,	arguments...]			#PATTERN #FORWARD #CURRYING #INJECT-ONE #ADD-ONE
+		@Eq  =	(a, b, msg, o) -> 	@eqINNER.apply @, ["Eq", 	true,	arguments...]
+		@EQ  =	(a, b, msg, o) -> 	@eqINNER.apply @, ["EQ", 	true,	arguments...]
+		@EQO =	(a, b, msg, o) -> 	@eqINNER.apply @, ["EQO",	true,	arguments...]
+
+		@neq  =	(a, b, msg, o) -> 	@eqINNER.apply @, ["neq",	false,	arguments...]
+		@NEq  =	(a, b, msg, o) -> 	@eqINNER.apply @, ["NEq",	false,	arguments...]
+		@NEQ  =	(a, b, msg, o) -> 	@eqINNER.apply @, ["NEQ",	false,	arguments...]
+		@NEQO =	(a, b, msg, o) -> 	@eqINNER.apply @, ["NEQO",	false,	arguments...]
+
+		@eqINNER = (mn, bPositiveLogic, a, b, msg, o) =>
 			#							PASS CRITERIA
 			# eq	#EQ-NOT-STRICT		"as string equal"		(new String "6") eq 6
 			# Eq	#EQ-MID-STRICT		"value not type"		(new String "6") Eq "6"						#H: same as eq?
@@ -839,22 +845,36 @@ markers: got     : #{@markers}
 #					console.log "aaa> #{a}"
 #					console.log "bbb> #{b}"
 
-				unless V.EQ a, b
-					s = "#{mn} values violation"
-
+				if bPositiveLogic
+					unless V.EQ a, b
+						s = "#{mn} values violation"
+				else
+					if V.EQ a, b
+						s = "#{mn} values violation"
+	
 			switch mn
 				when "eq"
 					doValue()
 				when "Eq"
 					doValue()
 				when "EQ"
-					unless V.Type(a) is V.Type(b)
-						s = "types violation"
+					if bPositiveLogic
+						unless V.Type(a) is V.Type(b)
+							s = "types violation"
+						else
+							doValue()
 					else
-						doValue()
+						if V.Type(a) is V.Type(b)
+							s = "types violation"
+						else
+							doValue()
 				when "EQO"
-					unless a is b
-						s = "EQO not same object"
+					if bPositiveLogic
+						unless a is b
+							s = "EQO not same object"
+					else
+						if a is b
+							s = "EQO not same object"
 
 			if s
 				s += """
