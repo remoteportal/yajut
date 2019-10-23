@@ -1,9 +1,18 @@
-# yajut
+# YAJUT
 Yet Another JavaScript Unit Test
 
-There are already many established JavaScript unit testing systems.
+There are already many established JavaScript unit testing systems, so why write yet another one?
 
-Why write yet another one?
+Unit tests should be as powerful and yet succinct as possible.
 
-unit tests must be as powerful and succinct as possible... as little boilerplate as possible... and easily controllable... to isolate correct one giving you brief
-    must be fast (parallel execution), vary trace easily.  quickly stop on errors
+YAJUT Features:
+- easily write tests (as little boilerplate and wordy syntax as possible)
+- easily specify set of tests to run
+- easily vary trace classes
+- easily set error mode (stop immediately on error or run to completion)
+- as fast as possible (parallel execution and separate contexts for asynchronous tests)
+
+
+
+# TODO
+- rename to YAJSUT
